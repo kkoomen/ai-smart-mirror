@@ -19,8 +19,6 @@ export type FaceRecognitionResult = {
     height: number;
   } | null;
   isFaceDetected: boolean;
-  isFaceCentered: boolean;
-  isFaceLargeEnough: boolean;
   source: "simulated" | "browser";
 };
 
@@ -29,7 +27,6 @@ export type FaceRecognitionSnapshot = {
   knownUsers: FaceRecognitionSubject[];
   activeUser: FaceRecognitionSubject | null;
   video: HTMLVideoElement | null;
-  minFaceSizeRatio?: number;
 };
 
 export interface FaceRecognitionService {

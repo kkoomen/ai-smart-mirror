@@ -37,26 +37,6 @@ const parseDescriptor = (value: string | null) => {
 
 const encodeDescriptor = (descriptor: Float32Array) => JSON.stringify(Array.from(descriptor));
 
-const getVideoDimensions = (video: HTMLVideoElement) => {
-  const width = video.videoWidth || video.clientWidth || 1;
-  const height = video.videoHeight || video.clientHeight || 1;
-  return { width, height };
-};
-
-const isInsideEllipse = (
-  point: { x: number; y: number },
-  bounds: { x: number; y: number; width: number; height: number }
-) => {
-  const centerX = bounds.x + bounds.width / 2;
-  const centerY = bounds.y + bounds.height / 2;
-  const radiusX = bounds.width / 2;
-  const radiusY = bounds.height / 2;
-  const normalizedX = (point.x - centerX) / radiusX;
-  const normalizedY = (point.y - centerY) / radiusY;
-
-  return normalizedX * normalizedX + normalizedY * normalizedY <= 1;
-};
-
 export class BrowserFaceRecognitionService implements FaceRecognitionService {
   private loadPromise: Promise<void> | null = null;
   private loaded = false;
@@ -71,9 +51,9 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
       faceapi.nets.tinyFaceDetector.loadFromUri(DEFAULT_MODEL_URL),
       faceapi.nets.faceLandmark68Net.loadFromUri(DEFAULT_MODEL_URL),
       faceapi.nets.faceRecognitionNet.loadFromUri(DEFAULT_MODEL_URL)
-    ]).then(() => undefined);
-
-    this.loaded = true;
+    ]).then(() => {
+      this.loaded = true;
+    });
 
     return this.loadPromise;
   }
@@ -132,8 +112,6 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
       faceDescriptor: null,
       faceBox: null,
       isFaceDetected: false,
-      isFaceCentered: false,
-      isFaceLargeEnough: false,
       source
     } satisfies FaceRecognitionResult;
   }
@@ -167,8 +145,6 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
           height: 220
         },
         isFaceDetected: true,
-        isFaceCentered: true,
-        isFaceLargeEnough: true,
         source
       };
     }
@@ -192,8 +168,6 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
         height: 112
       },
       isFaceDetected: true,
-      isFaceCentered: false,
-      isFaceLargeEnough: false,
       source
     };
   }
@@ -216,7 +190,7 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
       .detectSingleFace(
         video,
         new faceapi.TinyFaceDetectorOptions({
-          inputSize: 416,
+          inputSize: 224,
           scoreThreshold: 0.7
         })
       )
@@ -227,39 +201,8 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
       return this.buildNoFaceResult("browser");
     }
 
-    const { width: frameWidth, height: frameHeight } = getVideoDimensions(video);
     const box = detection.detection.box;
     const faceDescriptor = encodeDescriptor(detection.descriptor);
-    const faceCenter = {
-      x: box.x + box.width / 2,
-      y: box.y + box.height / 2
-    };
-
-    const minFaceSizeRatio = snapshot.minFaceSizeRatio ?? 0.22;
-    const isFaceLargeEnough =
-      box.width / frameWidth >= minFaceSizeRatio && box.height / frameHeight >= minFaceSizeRatio;
-
-    const ovalBounds = {
-      x: frameWidth * 0.22,
-      y: frameHeight * 0.12,
-      width: frameWidth * 0.56,
-      height: frameHeight * 0.74
-    };
-    const isFaceCentered = isInsideEllipse(faceCenter, ovalBounds);
-
-    if (!isFaceCentered || !isFaceLargeEnough) {
-      return {
-        detectedFaceLabel: null,
-        matchedUser: null,
-        confidence: detection.detection.score,
-        faceDescriptor,
-        faceBox: box,
-        isFaceDetected: true,
-        isFaceCentered,
-        isFaceLargeEnough,
-        source: "browser"
-      };
-    }
 
     const labeledDescriptors: faceapi.LabeledFaceDescriptors[] = snapshot.knownUsers.flatMap(
       (user: FaceRecognitionSubject) => {
@@ -280,8 +223,6 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
         faceDescriptor,
         faceBox: box,
         isFaceDetected: true,
-        isFaceCentered,
-        isFaceLargeEnough,
         source: "browser"
       };
     }
@@ -298,8 +239,6 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
         faceDescriptor,
         faceBox: box,
         isFaceDetected: true,
-        isFaceCentered,
-        isFaceLargeEnough,
         source: "browser"
       };
     }
@@ -311,8 +250,6 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
       faceDescriptor,
       faceBox: box,
       isFaceDetected: true,
-      isFaceCentered,
-      isFaceLargeEnough,
       source: "browser"
     };
   }

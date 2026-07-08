@@ -115,7 +115,8 @@ const toSubject = (user: User): FaceRecognitionSubject => ({
 export default function App() {
   const browserFaceService = useMemo(() => new BrowserFaceRecognitionService(), []);
   const simulatedFaceService = useMemo(() => new SimulatedFaceRecognitionService(), []);
-  const cameraVideoRef = useRef<HTMLVideoElement | null>(null);
+  const scanVideoRef = useRef<HTMLVideoElement | null>(null);
+  const idleVideoRef = useRef<HTMLVideoElement | null>(null);
   const [phase, setPhase] = useState<VoicePhase>("start");
   const [statusText, setStatusText] = useState("Loading Mirror AI...");
   const [progress, setProgress] = useState(0);
@@ -129,18 +130,16 @@ export default function App() {
   const [faceMode, setFaceMode] = useState<FaceRecognitionMode>("live");
   const [debugPanelOpen, setDebugPanelOpen] = useState(false);
   const [detectedFaceLabel, setDetectedFaceLabel] = useState<string | null>(null);
-  const [scanCentered, setScanCentered] = useState(false);
-  const [scanLargeEnough, setScanLargeEnough] = useState(false);
   const [scanFaceVisible, setScanFaceVisible] = useState(false);
 
   const deviceStatus = useMemo(
     () => ({
       camera:
-        faceMode === "live" && (phase === "dashboard" || phase === "scan" || phase === "unknown")
-          ? phase === "scan"
-            ? "scanning"
-            : "active"
-          : "standby",
+        faceMode === "live" && phase === "scan"
+          ? "scanning"
+          : faceMode === "live" && phase !== "name" && phase !== "confirm"
+            ? "polling"
+            : "standby",
       microphone: phase === "scan" ? "listening" : "ready",
       network: "connected",
       battery: "92%"
@@ -232,98 +231,146 @@ export default function App() {
 
     let cancelled = false;
     const faceService = faceMode === "live" ? browserFaceService : simulatedFaceService;
+    let timeoutId: number | null = null;
+    const delayMs = phase === "scan" ? 350 : 5000;
+    const activeVideoRef = phase === "scan" ? scanVideoRef : idleVideoRef;
 
-    const runDetection = async () => {
-      const detection = await faceService.detectFace({
-        mode: faceMode,
-        knownUsers: knownUsers.map(toSubject),
-        activeUser: registeredUser ? toSubject(registeredUser) : null,
-        video: cameraVideoRef.current,
-        minFaceSizeRatio: 0.24
-      });
-
+    const scheduleNext = () => {
       if (cancelled) {
         return;
       }
 
-      setDetectedFaceLabel(detection.detectedFaceLabel);
+      timeoutId = window.setTimeout(() => {
+        void runDetection();
+      }, delayMs);
+    };
 
-      if (phase === "scan") {
-        setScanCentered(detection.isFaceCentered);
-        setScanLargeEnough(detection.isFaceLargeEnough);
-        setScanFaceVisible(detection.isFaceDetected);
+    const runDetection = async () => {
+      const video = activeVideoRef.current;
+      let cameraStarted = false;
 
-        if (detection.faceDescriptor) {
-          setCapturedFaceDescriptor(detection.faceDescriptor);
+      try {
+        if (faceMode === "live" && video) {
+          await browserFaceService.startCamera(video);
+          cameraStarted = true;
         }
 
-        if (detection.isFaceDetected && detection.isFaceCentered && detection.isFaceLargeEnough) {
-          setProgress((current) => {
-            const next = Math.min(100, current + 18);
+        const detection = await faceService.detectFace({
+          mode: faceMode,
+          knownUsers: knownUsers.map(toSubject),
+          activeUser: registeredUser ? toSubject(registeredUser) : null,
+          video
+        });
 
-            if (current < 100 && next >= 100) {
-              window.setTimeout(() => {
-                if (cancelled) {
-                  return;
-                }
+        if (cancelled) {
+          return;
+        }
 
-                setPhase("confirm");
-                setStatusText(
-                  capturedName
-                    ? `I recognized this face as ${capturedName}. Is that correct?`
-                    : "I recognized this face. Is that correct?"
-                );
-              }, 250);
+        setDetectedFaceLabel(detection.detectedFaceLabel);
+
+        if (phase === "scan") {
+          setScanFaceVisible(detection.isFaceDetected);
+
+          if (detection.faceDescriptor) {
+            setCapturedFaceDescriptor(detection.faceDescriptor);
+          }
+
+          if (detection.isFaceDetected) {
+            setProgress((current) => {
+              const next = Math.min(100, current + 18);
+
+              if (current < 100 && next >= 100) {
+                window.setTimeout(() => {
+                  if (cancelled) {
+                    return;
+                  }
+
+                  setPhase("confirm");
+                  setStatusText(
+                    capturedName
+                      ? `I recognized this face as ${capturedName}. Is that correct?`
+                      : "I recognized this face. Is that correct?"
+                  );
+                }, 250);
+              }
+
+              return next;
+            });
+          } else {
+            setProgress((current) => Math.max(0, current - 12));
+          }
+
+          return;
+        }
+
+        if (detection.matchedUser) {
+          const matchedUser = knownUsers.find((user) => user.faceLabel === detection.matchedUser?.faceLabel);
+
+          if (matchedUser) {
+            const isSameUser = registeredUser?.faceLabel === matchedUser.faceLabel;
+
+            if (!isSameUser) {
+              setRegisteredUser(matchedUser);
             }
 
-            return next;
-          });
-        } else {
-          setProgress((current) => Math.max(0, current - 12));
-        }
-
-        return;
-      }
-
-      if (detection.matchedUser) {
-        const matchedUser = knownUsers.find((user) => user.faceLabel === detection.matchedUser?.faceLabel);
-
-        if (matchedUser) {
-          const isSameUser = registeredUser?.faceLabel === matchedUser.faceLabel;
-
-          if (!isSameUser) {
-            setRegisteredUser(matchedUser);
+            if (!isSameUser || phase !== "dashboard") {
+              browserFaceService.stopCamera(video);
+              await loadDashboardData(matchedUser.id);
+              setPhase("dashboard");
+              setStatusText(`Good morning, ${matchedUser.name}`);
+              return;
+            }
           }
 
-          if (!isSameUser || phase !== "dashboard") {
-            await loadDashboardData(matchedUser.id);
-            setPhase("dashboard");
-            setStatusText(`Good morning, ${matchedUser.name}`);
+          if (detection.isFaceDetected && !detection.matchedUser && knownUsers.length > 0) {
+            browserFaceService.stopCamera(video);
+            setPhase("unknown");
+            setStatusText("Unknown user detected");
+            return;
           }
         }
 
-        return;
-      }
+        if (!detection.isFaceDetected && knownUsers.length > 0 && phase === "dashboard") {
+          browserFaceService.stopCamera(video);
+          setPhase("unknown");
+          setStatusText("Unknown user detected");
+          return;
+        }
 
-      if (
-        detection.isFaceDetected &&
-        !detection.matchedUser &&
-        (faceMode === "unknown_person" || (faceMode === "live" && knownUsers.length > 0))
-      ) {
-        setPhase("unknown");
-        setStatusText("I don't recognize you yet");
-        return;
+        if (phase === "scan") {
+          scheduleNext();
+          return;
+        }
+
+        if (!detection.isFaceDetected) {
+          scheduleNext();
+          return;
+        }
+
+        if (faceMode === "unknown_person") {
+          browserFaceService.stopCamera(video);
+          setPhase("unknown");
+          setStatusText("Unknown user detected");
+          return;
+        }
+
+        browserFaceService.stopCamera(video);
+        scheduleNext();
+      } finally {
+        if (cameraStarted && phase !== "scan") {
+          browserFaceService.stopCamera(video);
+        }
       }
     };
 
     void runDetection();
-    const interval = window.setInterval(() => {
-      void runDetection();
-    }, phase === "scan" ? 350 : 2400);
 
     return () => {
       cancelled = true;
-      window.clearInterval(interval);
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+      browserFaceService.stopCamera(activeVideoRef.current);
     };
   }, [
     browserFaceService,
@@ -335,35 +382,6 @@ export default function App() {
     simulatedFaceService
   ]);
 
-  useEffect(() => {
-    const video = cameraVideoRef.current;
-    const shouldUseCamera = faceMode === "live" && (phase === "scan" || phase === "dashboard" || phase === "unknown");
-
-    if (!video || !shouldUseCamera) {
-      browserFaceService.stopCamera(video);
-      return;
-    }
-
-    let cancelled = false;
-
-    const start = async () => {
-      try {
-        await browserFaceService.startCamera(video);
-      } catch {
-        if (!cancelled) {
-          setStatusText("Camera access is required for face scan.");
-        }
-      }
-    };
-
-    void start();
-
-    return () => {
-      cancelled = true;
-      browserFaceService.stopCamera(video);
-    };
-  }, [browserFaceService, faceMode, phase]);
-
   const startRegistration = async () => {
     await requestJson("/api/mirror/start-registration", {
       method: "POST",
@@ -374,8 +392,6 @@ export default function App() {
     setCapturedFaceLabel(null);
     setCapturedFaceDescriptor(null);
     setProgress(0);
-    setScanCentered(false);
-    setScanLargeEnough(false);
     setScanFaceVisible(false);
     setPhase("name");
     setStatusText("What is your name?");
@@ -385,13 +401,13 @@ export default function App() {
     const faceLabel = capturedFaceLabel ?? browserFaceService.generateFaceLabel(name);
     let faceDescriptor = capturedFaceDescriptor;
 
-    if (!faceDescriptor && faceMode === "live" && cameraVideoRef.current) {
+    if (!faceDescriptor && faceMode === "live" && (scanVideoRef.current || idleVideoRef.current)) {
+      const fallbackVideo = scanVideoRef.current ?? idleVideoRef.current;
       const fallbackDetection = await browserFaceService.detectFace({
         mode: "live",
         knownUsers: knownUsers.map(toSubject),
         activeUser: registeredUser ? toSubject(registeredUser) : null,
-        video: cameraVideoRef.current,
-        minFaceSizeRatio: 0.24
+        video: fallbackVideo
       });
 
       if (fallbackDetection.isFaceDetected && fallbackDetection.faceDescriptor) {
@@ -521,9 +537,9 @@ export default function App() {
 
   const showPanels = phase === "dashboard";
   const hiddenLiveCamera =
-    faceMode === "live" && (phase === "dashboard" || phase === "unknown") ? (
+    faceMode === "live" && phase !== "scan" && phase !== "name" && phase !== "confirm" ? (
       <video
-        ref={cameraVideoRef}
+        ref={idleVideoRef}
         autoPlay
         muted
         playsInline
@@ -565,16 +581,8 @@ export default function App() {
           progress={progress}
           onCommand={handleVoiceCommand}
           helperText={statusText}
-          videoRef={cameraVideoRef}
-          scanStatus={
-            scanFaceVisible
-              ? scanCentered && scanLargeEnough
-                ? "Face detected"
-                : "Adjust your position"
-              : "Waiting for face"
-          }
-          faceCentered={scanCentered}
-          faceLargeEnough={scanLargeEnough}
+          videoRef={scanVideoRef}
+          scanStatus={scanFaceVisible ? "Face detected" : "Waiting for face"}
           detectedFaceLabel={detectedFaceLabel}
         />
       );
@@ -598,7 +606,7 @@ export default function App() {
           {hiddenLiveCamera}
           <p className="text-xs uppercase tracking-[0.6em] text-white/45">mirror state</p>
           <h2 className="max-w-4xl text-4xl font-light tracking-[0.12em] sm:text-6xl lg:text-7xl">
-            I don&apos;t recognize you yet
+            Unknown user detected
           </h2>
           <p className="max-w-2xl text-sm uppercase tracking-[0.3em] text-white/65 sm:text-base">
             Try again or start registration.
@@ -667,9 +675,11 @@ export default function App() {
         center={
           <div className="relative">
             {centerContent}
-            <div className="mt-4 text-center text-[10px] uppercase tracking-[0.35em] text-white/20">
-              {detectedFaceLabel ? `detected: ${detectedFaceLabel}` : "detected: none"}
-            </div>
+            {phase === "dashboard" && detectedFaceLabel ? (
+              <div className="mt-4 text-center text-[10px] uppercase tracking-[0.35em] text-white/20">
+                detected: {detectedFaceLabel}
+              </div>
+            ) : null}
           </div>
         }
       />

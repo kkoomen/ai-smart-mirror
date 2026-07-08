@@ -15,8 +15,6 @@ export default function RegistrationFlow({
   helperText,
   videoRef,
   scanStatus,
-  faceCentered,
-  faceLargeEnough,
   detectedFaceLabel
 }) {
   const currentLabel = stepLabels[step];
@@ -34,13 +32,12 @@ export default function RegistrationFlow({
             videoRef={videoRef}
             progress={progress}
             statusText={scanStatus}
-            faceCentered={faceCentered}
-            faceLargeEnough={faceLargeEnough}
             detectedFaceLabel={detectedFaceLabel}
           />
           <div className="space-y-1 text-sm uppercase tracking-[0.25em] text-white/65">
             <p>Look at the mirror</p>
             <p>Scanning face...</p>
+            <p>{scanStatus}</p>
           </div>
         </div>
       ) : null}

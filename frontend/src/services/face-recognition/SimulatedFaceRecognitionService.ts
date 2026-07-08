@@ -43,8 +43,6 @@ export class SimulatedFaceRecognitionService implements FaceRecognitionService {
         faceDescriptor: null,
         faceBox: null,
         isFaceDetected: false,
-        isFaceCentered: false,
-        isFaceLargeEnough: false,
         source: "simulated"
       };
     }
@@ -60,8 +58,6 @@ export class SimulatedFaceRecognitionService implements FaceRecognitionService {
           faceDescriptor: null,
           faceBox: null,
           isFaceDetected: false,
-          isFaceCentered: false,
-          isFaceLargeEnough: false,
           source: "simulated"
         };
       }
@@ -78,8 +74,6 @@ export class SimulatedFaceRecognitionService implements FaceRecognitionService {
           height: 220
         },
         isFaceDetected: true,
-        isFaceCentered: true,
-        isFaceLargeEnough: true,
         source: "simulated"
       };
     }
@@ -103,8 +97,6 @@ export class SimulatedFaceRecognitionService implements FaceRecognitionService {
         height: 112
       },
       isFaceDetected: true,
-      isFaceCentered: false,
-      isFaceLargeEnough: false,
       source: "simulated"
     };
   }
