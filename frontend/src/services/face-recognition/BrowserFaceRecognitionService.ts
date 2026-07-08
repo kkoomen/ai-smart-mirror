@@ -37,6 +37,26 @@ const parseDescriptor = (value: string | null) => {
 
 const encodeDescriptor = (descriptor: Float32Array) => JSON.stringify(Array.from(descriptor));
 
+const getVideoDimensions = (video: HTMLVideoElement) => {
+  const width = video.videoWidth || video.clientWidth || 1;
+  const height = video.videoHeight || video.clientHeight || 1;
+  return { width, height };
+};
+
+const isInsideEllipse = (
+  point: { x: number; y: number },
+  bounds: { x: number; y: number; width: number; height: number }
+) => {
+  const centerX = bounds.x + bounds.width / 2;
+  const centerY = bounds.y + bounds.height / 2;
+  const radiusX = bounds.width / 2;
+  const radiusY = bounds.height / 2;
+  const normalizedX = (point.x - centerX) / radiusX;
+  const normalizedY = (point.y - centerY) / radiusY;
+
+  return normalizedX * normalizedX + normalizedY * normalizedY <= 1;
+};
+
 export class BrowserFaceRecognitionService implements FaceRecognitionService {
   private loadPromise: Promise<void> | null = null;
   private loaded = false;
@@ -201,7 +221,23 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
       return this.buildNoFaceResult("browser");
     }
 
+    const { width: frameWidth, height: frameHeight } = getVideoDimensions(video);
     const box = detection.detection.box;
+    const faceCenter = {
+      x: box.x + box.width / 2,
+      y: box.y + box.height / 2
+    };
+    const ovalBounds = {
+      x: frameWidth * 0.29,
+      y: frameHeight * 0.11,
+      width: frameWidth * 0.42,
+      height: frameHeight * 0.78
+    };
+
+    if (!isInsideEllipse(faceCenter, ovalBounds)) {
+      return this.buildNoFaceResult("browser");
+    }
+
     const faceDescriptor = encodeDescriptor(detection.descriptor);
 
     const labeledDescriptors: faceapi.LabeledFaceDescriptors[] = snapshot.knownUsers.flatMap(

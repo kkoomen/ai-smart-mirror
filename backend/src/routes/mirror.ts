@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
 import { prisma } from "../lib/prisma.js";
-import { deriveMirrorMode, getMirrorState } from "../lib/mirror-state.js";
+import { deriveMirrorMode, getMirrorState, updateMirrorState } from "../lib/mirror-state.js";
 import { buildAgendaForUser } from "../lib/mock-data.js";
 import { isString, parsePositiveInt } from "../lib/validation.js";
 
@@ -32,13 +32,9 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/api/mirror/start-registration", async () => {
-    const state = await prisma.mirrorState.upsert({
-      where: { id: 1 },
-      create: { registrationComplete: false },
-      update: {
-        activeUserId: null,
-        registrationComplete: false
-      }
+    const state = await updateMirrorState({
+      activeUserId: null,
+      registrationComplete: false
     });
 
     return {
@@ -79,43 +75,36 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
 
     const agendaSeed = buildAgendaForUser(user);
 
-    const [, , state] = await prisma.$transaction([
-      prisma.calendarEvent.createMany({
-        data: agendaSeed.map((event) => ({
+    await prisma.calendarEvent.createMany({
+      data: agendaSeed.map((event) => ({
+        userId: user.id,
+        title: event.title,
+        startTime: new Date(event.startTime),
+        endTime: new Date(event.endTime),
+        location: event.location,
+        description: event.description
+      }))
+    });
+
+    await prisma.reminder.createMany({
+      data: [
+        {
           userId: user.id,
-          title: event.title,
-          startTime: new Date(event.startTime),
-          endTime: new Date(event.endTime),
-          location: event.location,
-          description: event.description
-        }))
-      }),
-      prisma.reminder.createMany({
-        data: [
-          {
-            userId: user.id,
-            text: "Check tomorrow's weather before bed",
-            dueAt: new Date()
-          },
-          {
-            userId: user.id,
-            text: "Review today's calendar before lunch",
-            dueAt: null
-          }
-        ]
-      }),
-      prisma.mirrorState.upsert({
-        where: { id: 1 },
-        create: {
-          activeUserId: user.id,
-          registrationComplete: false
+          text: "Check tomorrow's weather before bed",
+          dueAt: new Date()
         },
-        update: {
-          activeUserId: user.id,
-          registrationComplete: false
+        {
+          userId: user.id,
+          text: "Review today's calendar before lunch",
+          dueAt: null
         }
-      })
-    ]);
+      ]
+    });
+
+    const state = await updateMirrorState({
+      activeUserId: user.id,
+      registrationComplete: false
+    });
 
     return {
       ok: true,
@@ -148,16 +137,9 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
       });
     }
 
-    const state = await prisma.mirrorState.upsert({
-      where: { id: 1 },
-      create: {
-        activeUserId: user.id,
-        registrationComplete: true
-      },
-      update: {
-        activeUserId: user.id,
-        registrationComplete: true
-      }
+    const state = await updateMirrorState({
+      activeUserId: user.id,
+      registrationComplete: true
     });
 
     return {

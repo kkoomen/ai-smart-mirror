@@ -9,6 +9,7 @@ export const ensureMirrorState = async () => {
 
   return prisma.mirrorState.create({
     data: {
+      id: 1,
       registrationComplete: false
     }
   });
@@ -16,6 +17,21 @@ export const ensureMirrorState = async () => {
 
 export const getMirrorState = async () => {
   return ensureMirrorState();
+};
+
+export const updateMirrorState = async (data: {
+  activeUserId?: number | null;
+  registrationComplete: boolean;
+}) => {
+  await ensureMirrorState();
+
+  return prisma.mirrorState.update({
+    where: { id: 1 },
+    data: {
+      ...(data.activeUserId === undefined ? {} : { activeUserId: data.activeUserId }),
+      registrationComplete: data.registrationComplete
+    }
+  });
 };
 
 export const deriveMirrorMode = (params: {
