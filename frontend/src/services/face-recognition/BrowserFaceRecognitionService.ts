@@ -37,6 +37,9 @@ const parseDescriptor = (value: string | null) => {
 
 const encodeDescriptor = (descriptor: Float32Array) => JSON.stringify(Array.from(descriptor));
 
+const isPlayInterruption = (error: unknown) =>
+  error instanceof DOMException && error.name === "AbortError";
+
 const getVideoDimensions = (video: HTMLVideoElement) => {
   const width = video.videoWidth || video.clientWidth || 1;
   const height = video.videoHeight || video.clientHeight || 1;
@@ -61,6 +64,7 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
   private loadPromise: Promise<void> | null = null;
   private loaded = false;
   private cameraStreams = new WeakMap<HTMLVideoElement, MediaStream>();
+  private cameraStartPromises = new WeakMap<HTMLVideoElement, Promise<void>>();
 
   async load() {
     if (this.loadPromise) {
@@ -83,25 +87,55 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
       throw new Error("Camera access is not available in this browser.");
     }
 
+    const existingStartPromise = this.cameraStartPromises.get(video);
+    if (existingStartPromise) {
+      return existingStartPromise;
+    }
+
     const existingStream = this.cameraStreams.get(video);
     if (existingStream) {
+      if (video.paused) {
+        try {
+          await video.play();
+        } catch (error) {
+          if (!isPlayInterruption(error)) {
+            throw error;
+          }
+        }
+      }
+
       return;
     }
 
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        facingMode: "user",
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      }
-    });
+    const startPromise = navigator.mediaDevices
+      .getUserMedia({
+        audio: false,
+        video: {
+          facingMode: "user",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      })
+      .then(async (stream) => {
+        this.cameraStreams.set(video, stream);
+        video.srcObject = stream;
+        video.muted = true;
+        video.playsInline = true;
 
-    this.cameraStreams.set(video, stream);
-    video.srcObject = stream;
-    video.muted = true;
-    video.playsInline = true;
-    await video.play();
+        try {
+          await video.play();
+        } catch (error) {
+          if (!isPlayInterruption(error)) {
+            throw error;
+          }
+        }
+      })
+      .finally(() => {
+        this.cameraStartPromises.delete(video);
+      });
+
+    this.cameraStartPromises.set(video, startPromise);
+    return startPromise;
   }
 
   stopCamera(video?: HTMLVideoElement | null) {
@@ -112,6 +146,7 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
     const stream = this.cameraStreams.get(video) ?? (video.srcObject as MediaStream | null);
     stream?.getTracks().forEach((track) => track.stop());
     this.cameraStreams.delete(video);
+    this.cameraStartPromises.delete(video);
 
     if (video.srcObject) {
       video.pause();

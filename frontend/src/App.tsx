@@ -3,11 +3,10 @@ import MirrorLayout from "./components/mirror-layout";
 import LocalTime from "./components/local-time";
 import WeatherForecast from "./components/weather-forecast";
 import Agenda from "./components/agenda";
-import StartScreen from "./components/start-screen";
 import RegistrationFlow from "./components/registration-flow";
 import VoiceControl from "./components/voice-control";
 import DeviceStatus from "./components/device-status";
-import PrototypePanel from "./components/prototype-panel";
+import FadeTransition from "./components/fade-transition";
 import {
   BrowserFaceRecognitionService,
   SimulatedFaceRecognitionService,
@@ -77,7 +76,7 @@ type AgendaResponse = {
   }>;
 };
 
-type VoicePhase = "start" | "name" | "scan" | "confirm" | "dashboard" | "unknown";
+type VoicePhase = "idle" | "waking" | "hello" | "name" | "scan" | "confirm" | "dashboard" | "unknown";
 type VoiceIntent =
   | "START_REGISTRATION"
   | "PROVIDE_NAME"
@@ -121,31 +120,19 @@ const toSubject = (user: User): FaceRecognitionSubject => ({
   faceDescriptor: user.faceDescriptor
 });
 
-const getGreeting = (date: Date) => {
-  const hour = date.getHours();
+const isWakePhrase = (value: string) =>
+  value.includes("hey mirror") || value.includes("hello mirror");
 
-  if (hour < 5) {
-    return "Good night";
-  }
-
-  if (hour < 12) {
-    return "Good morning";
-  }
-
-  if (hour < 18) {
-    return "Good afternoon";
-  }
-
-  return "Good evening";
-};
+const isSleepPhrase = (value: string) =>
+  value.includes("bye mirror") || value.includes("goodbye mirror");
 
 export default function App() {
   const browserFaceService = useMemo(() => new BrowserFaceRecognitionService(), []);
   const simulatedFaceService = useMemo(() => new SimulatedFaceRecognitionService(), []);
   const scanVideoRef = useRef<HTMLVideoElement | null>(null);
   const idleVideoRef = useRef<HTMLVideoElement | null>(null);
-  const [now, setNow] = useState(() => new Date());
-  const [phase, setPhase] = useState<VoicePhase>("start");
+  const wakeStartedAtRef = useRef<number | null>(null);
+  const [phase, setPhase] = useState<VoicePhase>("idle");
   const [statusText, setStatusText] = useState("Loading Mirror AI...");
   const [progress, setProgress] = useState(0);
   const [capturedName, setCapturedName] = useState("");
@@ -157,19 +144,18 @@ export default function App() {
   const [weather, setWeather] = useState<WeatherResponse["weather"] | null>(null);
   const [agenda, setAgenda] = useState<AgendaResponse["events"]>([]);
   const [faceMode, setFaceMode] = useState<FaceRecognitionMode>("live");
-  const [debugPanelOpen, setDebugPanelOpen] = useState(false);
   const [scanFaceVisible, setScanFaceVisible] = useState(false);
-  const greeting = useMemo(() => getGreeting(now), [now]);
+  const [isMirrorFadingOut, setIsMirrorFadingOut] = useState(false);
 
   const deviceStatus = useMemo(
     () => ({
       camera:
         faceMode === "live" && phase === "scan"
           ? "scanning"
-          : faceMode === "live" && phase !== "name" && phase !== "confirm"
+          : faceMode === "live"
             ? "polling"
             : "standby",
-      microphone: phase === "scan" ? "listening" : "ready",
+      microphone: "listening",
       network: "connected",
       battery: "92%"
     }),
@@ -213,11 +199,11 @@ export default function App() {
 
       if (usersResponse.users.length === 0) {
         setFaceMode("live");
-        setPhase("start");
+        setPhase("idle");
         setStatusText(
           faceApiReady
-            ? "Say 'start registration' to begin"
-            : "Face models are not loaded yet. Say 'start registration' to continue with voice mode."
+            ? "Say 'hey mirror' to wake"
+            : "Face models are not loaded yet. Say 'hey mirror' to continue with voice mode."
         );
         return;
       }
@@ -235,24 +221,23 @@ export default function App() {
       }
 
       if (mirrorState.registrationComplete && mirrorState.activeUser) {
-        setRegisteredUser(mirrorState.activeUser);
+        setRegisteredUser(null);
         setFaceMode("live");
-        await loadDashboardData(mirrorState.activeUser.id, mirrorState.activeUser.location);
-        setPhase("dashboard");
-        setStatusText(`${getGreeting(new Date())}, ${mirrorState.activeUser.name}`);
+        setPhase("idle");
+        setStatusText("Say 'hey mirror' to wake");
         return;
       }
 
       setFaceMode("live");
-      setPhase("start");
+      setPhase("idle");
       setStatusText(
         faceApiReady
-          ? "Say 'start registration' to begin"
-          : "Face models are not loaded yet. Say 'start registration' to continue with voice mode."
+          ? "Say 'hey mirror' to wake"
+          : "Face models are not loaded yet. Say 'hey mirror' to continue with voice mode."
       );
     } catch {
       setFaceMode("live");
-      setPhase("start");
+      setPhase("idle");
       setStatusText("Mirror backend unavailable");
     }
   };
@@ -262,24 +247,24 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setNow(new Date());
-    }, 60_000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (phase === "name" || phase === "confirm") {
+    if (phase !== "hello") {
       return;
     }
 
+    const timeoutId = window.setTimeout(() => {
+      setPhase("dashboard");
+    }, 2000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [phase]);
+
+  useEffect(() => {
     let cancelled = false;
     const faceService = faceMode === "live" ? browserFaceService : simulatedFaceService;
     let timeoutId: number | null = null;
-    const delayMs = phase === "scan" ? 300 : 450;
+    const delayMs = phase === "scan" || phase === "waking" ? 300 : 1000;
     const activeVideoRef = phase === "scan" ? scanVideoRef : idleVideoRef;
 
     const scheduleNext = () => {
@@ -288,14 +273,27 @@ export default function App() {
       }
 
       timeoutId = window.setTimeout(() => {
-        void runDetection();
+        void runDetection().catch((error) => {
+          if (!cancelled) {
+            console.error("Face detection failed", error);
+          }
+        });
       }, delayMs);
     };
 
     const runDetection = async () => {
       const video = activeVideoRef.current;
       if (faceMode === "live" && video) {
+        if (phase === "scan") {
+          browserFaceService.stopCamera(idleVideoRef.current);
+        }
+
         await browserFaceService.startCamera(video);
+      }
+
+      if (phase !== "scan" && phase !== "waking") {
+        scheduleNext();
+        return;
       }
 
       const detection = await faceService.detectFace({
@@ -347,64 +345,45 @@ export default function App() {
         return;
       }
 
-      if (detection.matchedUser) {
+      if (phase === "waking") {
         const matchedUser = knownUsers.find((user) => user.faceLabel === detection.matchedUser?.faceLabel);
 
         if (matchedUser) {
-          const isSameUser = registeredUser?.faceLabel === matchedUser.faceLabel;
-
-          if (!isSameUser) {
-            setRegisteredUser(matchedUser);
-          }
-
-          if (!isSameUser || phase !== "dashboard") {
-            await loadDashboardData(matchedUser.id, matchedUser.location);
-            setPhase("dashboard");
-            setStatusText(`${greeting}, ${matchedUser.name}`);
-            return;
-          }
+          setRegisteredUser(matchedUser);
+          await loadDashboardData(matchedUser.id, matchedUser.location);
+          setPhase("hello");
+          setStatusText(`Hello ${matchedUser.name}`);
+          return;
         }
 
-        if (detection.isFaceDetected && !detection.matchedUser && knownUsers.length > 0) {
+        const wakeStartedAt = wakeStartedAtRef.current ?? Date.now();
+        const wakeTimedOut = Date.now() - wakeStartedAt > 3000;
+
+        if (detection.isFaceDetected || faceMode === "unknown_person" || wakeTimedOut) {
           setPhase("unknown");
           setStatusText("Unknown user detected");
           return;
         }
-      }
 
-      if (!detection.isFaceDetected && knownUsers.length > 0 && phase === "dashboard") {
-        setPhase("unknown");
-        setStatusText("Unknown user detected");
-        return;
-      }
-
-      if (phase === "scan") {
         scheduleNext();
         return;
       }
-
-      if (!detection.isFaceDetected) {
-        scheduleNext();
-        return;
-      }
-
-      if (faceMode === "unknown_person") {
-        setPhase("unknown");
-        setStatusText("Unknown user detected");
-        return;
-      }
-
-      scheduleNext();
     };
 
-    void runDetection();
+    void runDetection().catch((error) => {
+      if (!cancelled) {
+        console.error("Face detection failed", error);
+      }
+    });
 
     return () => {
       cancelled = true;
       if (timeoutId !== null) {
         window.clearTimeout(timeoutId);
       }
-      browserFaceService.stopCamera(activeVideoRef.current);
+      if (activeVideoRef === scanVideoRef) {
+        browserFaceService.stopCamera(activeVideoRef.current);
+      }
     };
   }, [
     browserFaceService,
@@ -480,8 +459,8 @@ export default function App() {
     setCapturedFaceDescriptor(confirmed.user.faceDescriptor);
     setFaceMode("live");
     await loadDashboardData(confirmed.user.id, confirmed.user.location);
-    setPhase("dashboard");
-    setStatusText(`${getGreeting(new Date())}, ${confirmed.user.name}`);
+    setPhase("hello");
+    setStatusText(`Hello ${confirmed.user.name}`);
   };
 
   const getUmbrellaAnswer = async (location: string) => {
@@ -500,7 +479,55 @@ export default function App() {
     return `Probably not. Rain chance is ${rainChanceLabel} in ${payload.location}.`;
   };
 
+  const sleepMirror = () => {
+    wakeStartedAtRef.current = null;
+    setIsMirrorFadingOut(false);
+    setPhase("idle");
+    setRegisteredUser(null);
+    setWeather(null);
+    setAgenda([]);
+    setDetectedFaceLabel(null);
+    setStatusText("Say 'hey mirror' to wake");
+  };
+
+  const wakeMirror = () => {
+    wakeStartedAtRef.current = Date.now();
+    setIsMirrorFadingOut(false);
+    setDetectedFaceLabel(null);
+
+    if (knownUsers.length === 0) {
+      setPhase("unknown");
+      setStatusText("Unknown user detected");
+      return;
+    }
+
+    setPhase("waking");
+    setStatusText("Checking face");
+  };
+
   const handleVoiceCommand = async (spokenText: string) => {
+    const normalizedSpeech = spokenText.toLowerCase();
+    console.info("[Mirror voice] handling command:", normalizedSpeech);
+
+    if (isSleepPhrase(normalizedSpeech)) {
+      if (phase === "idle") {
+        sleepMirror();
+        return;
+      }
+
+      setIsMirrorFadingOut(true);
+      return;
+    }
+
+    if (isWakePhrase(normalizedSpeech)) {
+      wakeMirror();
+      return;
+    }
+
+    if (phase === "idle" || phase === "waking" || phase === "hello") {
+      return;
+    }
+
     const currentPhase = phase;
     const currentUserId = registeredUser?.id ?? null;
 
@@ -512,16 +539,6 @@ export default function App() {
         userId: currentUserId
       })
     });
-
-    if (currentPhase === "start") {
-      if (command.intent !== "START_REGISTRATION") {
-        setStatusText("Say 'start registration' to begin");
-        return;
-      }
-
-      await startRegistration();
-      return;
-    }
 
     if (currentPhase === "name") {
       if (command.intent !== "PROVIDE_NAME" || !command.name) {
@@ -593,8 +610,9 @@ export default function App() {
   };
 
   const showPanels = phase === "dashboard";
+  const shouldShowMirror = phase !== "idle" && !isMirrorFadingOut;
   const hiddenLiveCamera =
-    faceMode === "live" && phase !== "scan" && phase !== "name" && phase !== "confirm" ? (
+    faceMode === "live" && phase !== "scan" ? (
       <video
         ref={idleVideoRef}
         autoPlay
@@ -605,17 +623,8 @@ export default function App() {
     ) : null;
 
   const centerContent = (() => {
-    if (phase === "start") {
-      return (
-        <section className="flex flex-col items-center gap-6 text-center">
-          <StartScreen />
-          <VoiceControl
-            prompt="Say: start registration"
-            onCommand={handleVoiceCommand}
-            helperText={statusText}
-          />
-        </section>
-      );
+    if (phase === "idle" || phase === "waking") {
+      return null;
     }
 
     if (phase === "name") {
@@ -624,7 +633,6 @@ export default function App() {
           step="name"
           name={capturedName}
           progress={0}
-          onCommand={handleVoiceCommand}
           helperText={statusText}
         />
       );
@@ -636,7 +644,6 @@ export default function App() {
           step="scan"
           name={capturedName}
           progress={progress}
-          onCommand={handleVoiceCommand}
           helperText={statusText}
           videoRef={scanVideoRef}
           scanStatus={scanFaceVisible ? "Face detected" : "Waiting for face"}
@@ -650,98 +657,89 @@ export default function App() {
           step="confirm"
           name={capturedName}
           progress={100}
-          onCommand={handleVoiceCommand}
           helperText={statusText}
         />
+      );
+    }
+
+    if (phase === "hello") {
+      return (
+        <section className="flex flex-col items-center gap-4 text-center">
+          <h2 className="max-w-4xl text-4xl font-light tracking-[0.12em] sm:text-6xl lg:text-7xl">
+            Hello {registeredUser?.name ?? "Mirror user"}
+          </h2>
+        </section>
       );
     }
 
     if (phase === "unknown") {
       return (
         <section className="flex flex-col items-center gap-5 text-center">
-          {hiddenLiveCamera}
-          <p className="text-xs uppercase tracking-[0.6em] text-white/45">mirror state</p>
           <h2 className="max-w-4xl text-4xl font-light tracking-[0.12em] sm:text-6xl lg:text-7xl">
-            Unknown user detected
+            Unknown user
           </h2>
           <p className="max-w-2xl text-sm uppercase tracking-[0.3em] text-white/65 sm:text-base">
-            Try again or start registration.
+            Say start registration
           </p>
-          <VoiceControl
-            prompt="Say: start registration"
-            onCommand={handleVoiceCommand}
-            helperText={statusText}
-          />
         </section>
       );
     }
 
-    return (
-      <section className="flex flex-col items-center gap-5 text-center">
-        {hiddenLiveCamera}
-        <p className="text-xs uppercase tracking-[0.6em] text-white/45">mirror state</p>
-        <h2 className="max-w-4xl text-4xl font-light tracking-[0.12em] sm:text-6xl lg:text-7xl">
-          {greeting}, {registeredUser?.name ?? "Mirror user"}
-        </h2>
-        <p className="max-w-2xl text-sm uppercase tracking-[0.3em] text-white/65 sm:text-base">
-          Voice commands are active.
-        </p>
-        <VoiceControl
-          prompt="Try: what do I have today"
-          onCommand={handleVoiceCommand}
-          helperText={statusText}
-        />
-      </section>
-    );
+    return null;
   })();
 
   return (
     <>
-      <MirrorLayout
-        showPanels={showPanels}
-        weather={
-          weather ? (
-            <WeatherForecast
-              location={weather.location}
-              summary={weather.current.condition}
-              temperature={`${weather.current.temperatureC}°`}
-              rainChance={
-                weather.current.rainChancePct === null
-                  ? null
-                  : `${weather.current.rainChancePct}%`
-              }
-            />
-          ) : null
-        }
-        time={<LocalTime />}
-        agenda={
-          <Agenda
-            events={agenda.map((event) => ({
-              time: new Intl.DateTimeFormat("en-GB", {
-                hour: "2-digit",
-                minute: "2-digit"
-              }).format(new Date(event.startTime)),
-              title: event.title
-            }))}
+      {hiddenLiveCamera}
+      <FadeTransition
+        show={shouldShowMirror}
+        className="min-h-screen"
+        onExited={() => {
+          if (isMirrorFadingOut) {
+            sleepMirror();
+          }
+        }}
+      >
+        <FadeTransition transitionKey={phase} className="min-h-screen">
+          <MirrorLayout
+            showPanels={showPanels}
+            showGradient={phase === "hello"}
+            weather={
+              weather ? (
+                <WeatherForecast
+                  location={weather.location}
+                  summary={weather.current.condition}
+                  temperature={`${weather.current.temperatureC}°`}
+                  rainChance={
+                    weather.current.rainChancePct === null
+                      ? null
+                      : `${weather.current.rainChancePct}%`
+                  }
+                />
+              ) : null
+            }
+            time={<LocalTime />}
+            agenda={
+              <Agenda
+                events={agenda.map((event) => ({
+                  time: new Intl.DateTimeFormat("en-GB", {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                  }).format(new Date(event.startTime)),
+                  title: event.title
+                }))}
+              />
+            }
+            deviceStatus={<DeviceStatus {...deviceStatus} />}
+            center={<div className="relative">{centerContent}</div>}
           />
-        }
-        deviceStatus={<DeviceStatus {...deviceStatus} />}
-        center={
-          <div className="relative">
-            {centerContent}
-            {phase === "dashboard" && detectedFaceLabel ? (
-              <div className="mt-4 text-center text-[10px] uppercase tracking-[0.35em] text-white/20">
-                detected: {detectedFaceLabel}
-              </div>
-            ) : null}
-          </div>
-        }
-      />
-      <PrototypePanel
-        open={debugPanelOpen}
-        mode={faceMode}
-        onToggle={() => setDebugPanelOpen((current) => !current)}
-        onModeChange={(mode) => setFaceMode(mode as FaceRecognitionMode)}
+        </FadeTransition>
+      </FadeTransition>
+      <VoiceControl
+        prompt="Say: hey mirror"
+        onCommand={handleVoiceCommand}
+        helperText={statusText}
+        visible={false}
       />
     </>
   );

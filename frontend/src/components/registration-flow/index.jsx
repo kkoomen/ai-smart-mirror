@@ -1,4 +1,3 @@
-import VoiceControl from "../voice-control";
 import CameraPreview from "../camera-preview";
 
 const stepLabels = {
@@ -11,7 +10,6 @@ export default function RegistrationFlow({
   step,
   name,
   progress,
-  onCommand,
   helperText,
   videoRef,
   scanStatus,
@@ -55,15 +53,7 @@ export default function RegistrationFlow({
           What is your name?
         </p>
       ) : null}
-
-      <div className="w-full">
-        <VoiceControl
-          prompt={currentLabel}
-          onCommand={onCommand}
-          helperText={helperText}
-          disabled={step === "scan"}
-        />
-      </div>
+      <p className="text-xs uppercase tracking-[0.25em] text-white/45">{helperText}</p>
     </section>
   );
 }

@@ -13,21 +13,29 @@ export default function VoiceControl({
   onCommand,
   helperText,
   disabled = false,
-  autoListen = true
+  autoListen = true,
+  onTranscript,
+  visible = true
 }) {
-  const [draft, setDraft] = useState("");
   const [voiceState, setVoiceState] = useState("idle");
   const [lastTranscript, setLastTranscript] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSupported, setIsSupported] = useState(false);
   const recognitionRef = useRef(null);
   const voiceStateRef = useRef("idle");
+  const onCommandRef = useRef(onCommand);
+  const onTranscriptRef = useRef(onTranscript);
   const userStoppedRef = useRef(false);
   const autoStartAttemptedRef = useRef(false);
 
   useEffect(() => {
     voiceStateRef.current = voiceState;
   }, [voiceState]);
+
+  useEffect(() => {
+    onCommandRef.current = onCommand;
+    onTranscriptRef.current = onTranscript;
+  }, [onCommand, onTranscript]);
 
   useEffect(() => {
     const Recognition = getRecognitionCtor();
@@ -73,8 +81,9 @@ export default function VoiceControl({
         return;
       }
 
-      setDraft(transcript);
+      console.info("[Mirror voice] transcript detected:", transcript);
       setLastTranscript(transcript);
+      onTranscriptRef.current?.(transcript);
       void submitTranscript(transcript);
     };
 
@@ -122,7 +131,7 @@ export default function VoiceControl({
         try {
           recognitionRef.current.start();
         } catch {
-          // Auto-start can fail until the browser grants permission; the manual button still works.
+          // Auto-start can fail until the browser grants permission.
         }
       }
     }, 0);
@@ -132,19 +141,20 @@ export default function VoiceControl({
     const transcript = value.trim();
 
     if (!transcript) {
-      setErrorMessage("Type or speak a command first.");
+      setErrorMessage("Speak a command first.");
       setVoiceState("error");
       return;
     }
 
+    console.info("[Mirror voice] command submitted:", transcript);
     setVoiceState("thinking");
     setErrorMessage("");
     setLastTranscript(transcript);
+    onTranscriptRef.current?.(transcript);
 
     try {
-      await onCommand(transcript);
+      await onCommandRef.current(transcript);
       setVoiceState("confirmed");
-      setDraft("");
 
       window.setTimeout(() => {
         if (voiceStateRef.current === "confirmed") {
@@ -157,37 +167,9 @@ export default function VoiceControl({
     }
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (disabled) {
-      return;
-    }
-
-    await submitTranscript(draft);
-  };
-
-  const handleListen = () => {
-    if (disabled || !isSupported || !recognitionRef.current) {
-      setErrorMessage(
-        !isSupported
-          ? "Web Speech API is not available in this browser."
-          : "Voice control is disabled right now."
-      );
-      setVoiceState("error");
-      return;
-    }
-
-    if (voiceState === "listening") {
-      userStoppedRef.current = true;
-      recognitionRef.current.stop();
-      setVoiceState("idle");
-      return;
-    }
-
-    userStoppedRef.current = false;
-    recognitionRef.current.start();
-  };
+  if (!visible) {
+    return null;
+  }
 
   return (
     <section className="flex w-full flex-col items-center gap-4">
@@ -202,34 +184,6 @@ export default function VoiceControl({
         <div className="rounded-full border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/80">
           {prompt}
         </div>
-        <div className="border border-white/15 px-4 py-4 text-left text-sm uppercase tracking-[0.2em] text-white/80">
-          {lastTranscript ? `Transcript: ${lastTranscript}` : "Transcript will appear here."}
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <input
-            className="flex-1 border border-white/20 bg-black px-4 py-3 text-sm text-white outline-none placeholder:text-white/35 disabled:cursor-not-allowed"
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            placeholder="Type the voice command or spoken phrase"
-            disabled={disabled || voiceState === "thinking"}
-          />
-          <button
-            type="button"
-            onClick={handleListen}
-            className="border border-white px-5 py-3 text-xs uppercase tracking-[0.35em] text-white transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:border-white/25 disabled:text-white/35 disabled:hover:bg-black disabled:hover:text-white"
-            disabled={disabled || !isSupported}
-          >
-            {voiceState === "listening" ? "Stop" : "Listen"}
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="border border-white px-5 py-3 text-xs uppercase tracking-[0.35em] text-white transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:border-white/25 disabled:text-white/35 disabled:hover:bg-black disabled:hover:text-white"
-            disabled={disabled || voiceState === "thinking"}
-          >
-            Send
-          </button>
-        </div>
         <p className="text-xs uppercase tracking-[0.25em] text-white/45">
           {helperText}
         </p>
@@ -240,7 +194,7 @@ export default function VoiceControl({
         ) : null}
         {!isSupported ? (
           <p className="text-xs uppercase tracking-[0.25em] text-white/40">
-            Voice input uses typed fallback in this browser.
+            Voice input is not available in this browser.
           </p>
         ) : null}
       </div>
