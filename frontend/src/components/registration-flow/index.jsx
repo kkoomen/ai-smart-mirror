@@ -6,15 +6,7 @@ const stepLabels = {
   confirm: "Confirmation step"
 };
 
-export default function RegistrationFlow({
-  step,
-  name,
-  progress,
-  transcript,
-  onTranscriptChange,
-  onSubmit,
-  helperText
-}) {
+export default function RegistrationFlow({ step, name, progress, onCommand, helperText }) {
   const currentLabel = stepLabels[step];
 
   return (
@@ -65,10 +57,7 @@ export default function RegistrationFlow({
       <div className="w-full">
         <VoiceControl
           prompt={currentLabel}
-          transcript={transcript}
-          onTranscriptChange={onTranscriptChange}
-          onSubmit={onSubmit}
-          buttonLabel="Send voice"
+          onCommand={onCommand}
           helperText={helperText}
           disabled={step === "scan"}
         />

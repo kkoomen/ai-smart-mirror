@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import type { FormEvent } from "react";
 import MirrorLayout from "./components/mirror-layout";
 import LocalTime from "./components/local-time";
 import WeatherForecast from "./components/weather-forecast";
@@ -61,7 +60,23 @@ type AgendaResponse = {
   }>;
 };
 
-type FlowPhase = "booting" | "start" | "name" | "scan" | "confirm" | "dashboard";
+type VoicePhase = "start" | "name" | "scan" | "confirm" | "dashboard";
+type VoiceIntent =
+  | "START_REGISTRATION"
+  | "PROVIDE_NAME"
+  | "CONFIRM_YES"
+  | "CONFIRM_NO"
+  | "GET_AGENDA"
+  | "GET_WEATHER"
+  | "GET_TIME"
+  | "UNKNOWN";
+
+type VoiceCommandResponse = {
+  ok: true;
+  intent: VoiceIntent;
+  name: string | null;
+  response: string;
+};
 
 const apiBase = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
@@ -82,37 +97,21 @@ const requestJson = async <T,>(path: string, init?: RequestInit): Promise<T> => 
   return (await response.json()) as T;
 };
 
-const normalizeText = (value: string) => value.trim().toLowerCase();
-
-const isRegistrationStart = (text: string) => normalizeText(text).includes("start registration");
-
-const isConfirmationYes = (text: string) => {
-  const value = normalizeText(text);
-  return value === "yes" || value === "confirm" || value === "ok" || value === "okay";
-};
-
-const isConfirmationNo = (text: string) => {
-  const value = normalizeText(text);
-  return value === "no" || value === "try again" || value === "retry";
-};
-
 const buildFaceLabel = (name: string) =>
   `face_${name.toLowerCase().trim().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "")}_${Date.now().toString(36)}`;
 
 export default function App() {
-  const [phase, setPhase] = useState<FlowPhase>("booting");
-  const [transcript, setTranscript] = useState("");
+  const [phase, setPhase] = useState<VoicePhase>("start");
   const [statusText, setStatusText] = useState("Loading Mirror AI...");
   const [progress, setProgress] = useState(0);
   const [capturedName, setCapturedName] = useState("");
   const [registeredUser, setRegisteredUser] = useState<User | null>(null);
   const [weather, setWeather] = useState<WeatherResponse["weather"] | null>(null);
   const [agenda, setAgenda] = useState<AgendaResponse["events"]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const deviceStatus = useMemo(
     () => ({
-      camera: phase === "dashboard" ? "active" : "standby",
+      camera: phase === "dashboard" ? "active" : phase === "scan" ? "scanning" : "standby",
       microphone: phase === "scan" ? "listening" : "ready",
       network: "connected",
       battery: "92%"
@@ -188,7 +187,7 @@ export default function App() {
             setStatusText(
               capturedName
                 ? `I recognized this face as ${capturedName}. Is that correct?`
-                : "Is that correct?"
+                : "I recognized this face. Is that correct?"
             );
           }, 350);
           return 100;
@@ -203,151 +202,115 @@ export default function App() {
     };
   }, [phase, capturedName]);
 
-  const logVoiceCommand = async (
-    spokenText: string,
-    intent?: string,
-    response?: string,
-    userId?: number | null
-  ) => {
-    await requestJson("/api/voice/command", {
+  const startRegistration = async () => {
+    await requestJson("/api/mirror/start-registration", {
+      method: "POST",
+      body: JSON.stringify({})
+    });
+
+    setCapturedName("");
+    setProgress(0);
+    setPhase("name");
+    setStatusText("What is your name?");
+  };
+
+  const createUserAndConfirm = async (name: string) => {
+    const faceLabel = buildFaceLabel(name);
+
+    const created = await requestJson<{ ok: boolean; user: User }>("/api/mirror/register-user", {
+      method: "POST",
+      body: JSON.stringify({
+        name,
+        faceLabel
+      })
+    });
+
+    const confirmed = await requestJson<{ ok: boolean; user: User }>("/api/mirror/confirm-face", {
+      method: "POST",
+      body: JSON.stringify({
+        userId: created.user.id,
+        faceLabel: created.user.faceLabel
+      })
+    });
+
+    setRegisteredUser(confirmed.user);
+    await loadDashboardData(confirmed.user.id);
+    setPhase("dashboard");
+    setStatusText(`Good morning, ${confirmed.user.name}`);
+  };
+
+  const handleVoiceCommand = async (spokenText: string) => {
+    const currentPhase = phase;
+    const currentUserId = registeredUser?.id ?? null;
+
+    const command = await requestJson<VoiceCommandResponse>("/api/voice/command", {
       method: "POST",
       body: JSON.stringify({
         transcript: spokenText,
-        intent,
-        response,
-        userId: userId ?? undefined
+        phase: currentPhase,
+        userId: currentUserId
       })
     });
-  };
 
-  const startRegistration = async (spokenText: string) => {
-    setIsSubmitting(true);
-
-    try {
-      await logVoiceCommand(spokenText, "start_registration", "Starting registration flow.");
-      await requestJson("/api/mirror/start-registration", {
-        method: "POST",
-        body: JSON.stringify({})
-      });
-      setTranscript("");
-      setCapturedName("");
-      setProgress(0);
-      setPhase("name");
-      setStatusText("What is your name?");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const captureName = async (spokenText: string) => {
-    const name = spokenText.trim();
-    if (!name) {
-      setStatusText("Please say your name.");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      await logVoiceCommand(spokenText, "register_user", `Captured name ${name}.`);
-      setCapturedName(name);
-      setTranscript("");
-      setStatusText("Look at the mirror");
-      setPhase("scan");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const completeRegistration = async (spokenText: string) => {
-    const normalized = normalizeText(spokenText);
-
-    if (isConfirmationNo(normalized)) {
-      await logVoiceCommand(spokenText, "confirm_face", "Okay, let's try again.");
-      setCapturedName("");
-      setTranscript("");
-      setProgress(0);
-      setStatusText("What is your name?");
-      setPhase("name");
-      return;
-    }
-
-    if (!isConfirmationYes(normalized)) {
-      setStatusText("Please say yes, confirm, no, or try again.");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const name = capturedName || "John";
-      const faceLabel = buildFaceLabel(name);
-
-      await logVoiceCommand(spokenText, "confirm_face", `Confirmed face for ${name}.`);
-
-      const created = await requestJson<{
-        ok: boolean;
-        user: User;
-        state: unknown;
-        nextStep: string;
-      }>("/api/mirror/register-user", {
-        method: "POST",
-        body: JSON.stringify({
-          name,
-          faceLabel
-        })
-      });
-
-      const confirmed = await requestJson<{
-        ok: boolean;
-        user: User;
-        state: unknown;
-        mode: string;
-      }>("/api/mirror/confirm-face", {
-        method: "POST",
-        body: JSON.stringify({
-          userId: created.user.id,
-          faceLabel: created.user.faceLabel
-        })
-      });
-
-      setRegisteredUser(confirmed.user);
-      await loadDashboardData(confirmed.user.id);
-      setPhase("dashboard");
-      setStatusText(`Good morning, ${confirmed.user.name}`);
-      setTranscript("");
-      setCapturedName(confirmed.user.name);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const spokenText = transcript.trim();
-    if (!spokenText) {
-      setStatusText("Please type the simulated voice command.");
-      return;
-    }
-
-    if (phase === "start") {
-      if (!isRegistrationStart(spokenText)) {
+    if (currentPhase === "start") {
+      if (command.intent !== "START_REGISTRATION") {
         setStatusText("Say 'start registration' to begin");
         return;
       }
 
-      await startRegistration(spokenText);
+      await startRegistration();
       return;
     }
 
-    if (phase === "name") {
-      await captureName(spokenText);
+    if (currentPhase === "name") {
+      if (command.intent !== "PROVIDE_NAME" || !command.name) {
+        setStatusText("What is your name?");
+        return;
+      }
+
+      setCapturedName(command.name);
+      setPhase("scan");
+      setStatusText("Look at the mirror");
       return;
     }
 
-    if (phase === "confirm") {
-      await completeRegistration(spokenText);
+    if (currentPhase === "scan") {
+      setStatusText("Look at the mirror");
+      return;
+    }
+
+    if (currentPhase === "confirm") {
+      if (command.intent === "CONFIRM_NO") {
+        await startRegistration();
+        return;
+      }
+
+      if (command.intent !== "CONFIRM_YES") {
+        setStatusText("Say yes, confirm, no, or try again");
+        return;
+      }
+
+      await createUserAndConfirm(capturedName || command.name || "John");
+      return;
+    }
+
+    if (currentPhase === "dashboard") {
+      if (command.intent === "GET_AGENDA") {
+        setStatusText("Today's agenda is displayed on the mirror.");
+        return;
+      }
+
+      if (command.intent === "GET_WEATHER") {
+        setStatusText("Weather is displayed on the mirror.");
+        return;
+      }
+
+      if (command.intent === "GET_TIME") {
+        setStatusText("Time is shown in the top-right.");
+        return;
+      }
+
+      setStatusText(command.response);
     }
   };
 
@@ -358,12 +321,8 @@ export default function App() {
           <StartScreen />
           <VoiceControl
             prompt="Say: start registration"
-            transcript={transcript}
-            onTranscriptChange={(event) => setTranscript(event.target.value)}
-            onSubmit={handleSubmit}
-            buttonLabel="Begin"
+            onCommand={handleVoiceCommand}
             helperText={statusText}
-            disabled={isSubmitting}
           />
         </section>
       );
@@ -375,9 +334,7 @@ export default function App() {
           step="name"
           name={capturedName}
           progress={0}
-          transcript={transcript}
-          onTranscriptChange={(event) => setTranscript(event.target.value)}
-          onSubmit={handleSubmit}
+          onCommand={handleVoiceCommand}
           helperText={statusText}
         />
       );
@@ -389,9 +346,7 @@ export default function App() {
           step="scan"
           name={capturedName}
           progress={progress}
-          transcript=""
-          onTranscriptChange={(event) => setTranscript(event.target.value)}
-          onSubmit={handleSubmit}
+          onCommand={handleVoiceCommand}
           helperText={statusText}
         />
       );
@@ -403,10 +358,8 @@ export default function App() {
           step="confirm"
           name={capturedName}
           progress={100}
-          transcript={transcript}
-          onTranscriptChange={(event) => setTranscript(event.target.value)}
-          onSubmit={handleSubmit}
-          helperText="Say: yes, confirm, no, or try again"
+          onCommand={handleVoiceCommand}
+          helperText={statusText}
         />
       );
     }
@@ -418,20 +371,12 @@ export default function App() {
           Good morning, {registeredUser?.name ?? "Mirror user"}
         </h2>
         <p className="max-w-2xl text-sm uppercase tracking-[0.3em] text-white/65 sm:text-base">
-          Your mirror is ready.
+          Voice commands are active.
         </p>
         <VoiceControl
-          prompt="Say: show my schedule"
-          transcript={transcript}
-          onTranscriptChange={(event) => setTranscript(event.target.value)}
-          onSubmit={async (event) => {
-            event.preventDefault();
-            setTranscript("");
-            setStatusText("Mirror is ready.");
-          }}
-          buttonLabel="Send"
+          prompt="Try: what do I have today"
+          onCommand={handleVoiceCommand}
           helperText={statusText}
-          disabled={isSubmitting}
         />
       </section>
     );
@@ -458,13 +403,17 @@ export default function App() {
           ) : null
         }
         time={<LocalTime />}
-        agenda={<Agenda events={agenda.map((event) => ({
-          time: new Intl.DateTimeFormat("en-GB", {
-            hour: "2-digit",
-            minute: "2-digit"
-          }).format(new Date(event.startTime)),
-          title: event.title
-        }))} />}
+        agenda={
+          <Agenda
+            events={agenda.map((event) => ({
+              time: new Intl.DateTimeFormat("en-GB", {
+                hour: "2-digit",
+                minute: "2-digit"
+              }).format(new Date(event.startTime)),
+              title: event.title
+            }))}
+          />
+        }
         deviceStatus={<DeviceStatus {...deviceStatus} />}
         center={centerContent}
       />
