@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import type { MirrorFaceDetectionOptions } from "../../types/mirror-controller";
+import { dashboardPresenceTimeoutMs } from "../../constants";
 import { toSubject } from "../../utils/face-recognition";
 
 export const useMirrorFaceDetection = ({
@@ -23,7 +24,8 @@ export const useMirrorFaceDetection = ({
   useEffect(() => {
     let cancelled = false;
     let timeoutId: number | null = null;
-    const delayMs = phase === "scan" || phase === "waking" ? 300 : 1000;
+    const delayMs =
+      phase === "dashboard" ? dashboardPresenceTimeoutMs : phase === "scan" || phase === "waking" ? 300 : 1000;
     const activeVideoRef = phase === "scan" ? scanVideoRef : idleVideoRef;
 
     const scheduleNext = () => {
@@ -50,7 +52,7 @@ export const useMirrorFaceDetection = ({
         await browserFaceService.startCamera(video);
       }
 
-      if (phase !== "scan" && phase !== "waking") {
+      if (phase !== "scan" && phase !== "waking" && phase !== "dashboard") {
         scheduleNext();
         return;
       }
@@ -128,7 +130,9 @@ export const useMirrorFaceDetection = ({
         }
 
         scheduleNext();
+        return;
       }
+
     };
 
     void runDetection().catch((error) => {

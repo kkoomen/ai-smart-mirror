@@ -11,6 +11,7 @@ import { toSubject } from "../utils/face-recognition";
 import { useMirrorBootstrap } from "../controllers/mirror/use-mirror-bootstrap";
 import { useMirrorFaceDetection } from "../controllers/mirror/use-mirror-face-detection";
 import { useMirrorVoice } from "../controllers/mirror/use-mirror-voice";
+import { dashboardPresenceTimeoutMs } from "../constants";
 
 export const useMirrorController = (navigate: (path: string) => void): MirrorController => {
   const browserFaceService = useMemo(() => new BrowserFaceRecognitionService(), []);
@@ -18,6 +19,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   const idleVideoRef = useRef<HTMLVideoElement | null>(null);
   const wakeStartedAtRef = useRef<number | null>(null);
   const registrationCompletingRef = useRef(false);
+  const dashboardPresenceTimerRef = useRef<number | null>(null);
 
   const [phase, setPhase] = useState<VoicePhase>("idle");
   const [statusText, setStatusText] = useState("Loading Mirror AI...");
@@ -53,6 +55,50 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
 
     return () => window.clearTimeout(timeoutId);
   }, [phase]);
+
+  useEffect(() => {
+    if (phase !== "dashboard" || !registeredUser) {
+      return;
+    }
+
+    let cancelled = false;
+    dashboardPresenceTimerRef.current = window.setTimeout(async () => {
+      if (cancelled) {
+        return;
+      }
+
+      try {
+        const detection = await browserFaceService.detectFace({
+          knownUsers: knownUsers.map(toSubject),
+          video: idleVideoRef.current
+        });
+
+        const activeFaceLabel = registeredUser.faceLabel;
+        const matchedFaceLabel = detection.matchedUser?.faceLabel ?? null;
+
+        if (!detection.isFaceDetected || matchedFaceLabel !== activeFaceLabel) {
+          setIsMirrorFadingOut(true);
+        }
+      } catch (error) {
+        console.error("Dashboard presence check failed", error);
+      }
+    }, dashboardPresenceTimeoutMs);
+
+    return () => {
+      cancelled = true;
+      if (dashboardPresenceTimerRef.current !== null) {
+        window.clearTimeout(dashboardPresenceTimerRef.current);
+        dashboardPresenceTimerRef.current = null;
+      }
+    };
+  }, [browserFaceService, idleVideoRef, knownUsers, phase, registeredUser]);
+
+  const clearDashboardPresenceTimer = () => {
+    if (dashboardPresenceTimerRef.current !== null) {
+      window.clearTimeout(dashboardPresenceTimerRef.current);
+      dashboardPresenceTimerRef.current = null;
+    }
+  };
 
   const loadWeatherForLocation = async (location: string) => {
     const response = await requestJson<WeatherEnvelope>(
@@ -157,6 +203,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   };
 
   const sleepMirror = () => {
+    clearDashboardPresenceTimer();
     wakeStartedAtRef.current = null;
     setIsMirrorFadingOut(false);
     setPhase("idle");
@@ -217,6 +264,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     weather,
     wakeMirror,
     sleepMirror,
+    clearDashboardPresenceTimer,
     startRegistration,
     createUserAndConfirm,
     getUmbrellaAnswer,
