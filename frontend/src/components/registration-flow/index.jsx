@@ -1,7 +1,8 @@
 import CameraPreview from "../camera-preview";
 
 const stepLabels = {
-  name: "Listening for name",
+  name: "How can I call you?",
+  nameConfirm: "Name confirmation",
   scan: "Face scan",
   confirm: "Confirmation step"
 };
@@ -18,7 +19,6 @@ export default function RegistrationFlow({
 
   return (
     <section className="flex flex-col items-center gap-6 text-center">
-      <p className="text-xs uppercase tracking-[0.6em] text-white/45">registration</p>
       <h2 className="max-w-4xl text-3xl font-light tracking-[0.12em] sm:text-5xl">
         {currentLabel}
       </h2>
@@ -43,17 +43,30 @@ export default function RegistrationFlow({
             I recognized this face as {name}. Is that correct?
           </p>
           <p className="text-xs uppercase tracking-[0.3em] text-white/40">
-            Say: yes, confirm, no, or try again
+            Say: yes, no, or try again
+          </p>
+        </div>
+      ) : null}
+
+      {step === "nameConfirm" ? (
+        <div className="space-y-3">
+          <p className="text-sm uppercase tracking-[0.25em] text-white/65">
+            Is "{name}" your name?
+          </p>
+          <p className="pt-2 text-xs uppercase tracking-[0.3em] text-white/40">
+            Say: Yes or no
           </p>
         </div>
       ) : null}
 
       {step === "name" ? (
         <p className="text-sm uppercase tracking-[0.25em] text-white/65">
-          What is your name?
+          Say your name
         </p>
       ) : null}
-      <p className="text-xs uppercase tracking-[0.25em] text-white/45">{helperText}</p>
+      {step !== "name" && step !== "nameConfirm" ? (
+        <p className="text-xs uppercase tracking-[0.25em] text-white/45">{helperText}</p>
+      ) : null}
     </section>
   );
 }

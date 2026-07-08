@@ -10,7 +10,7 @@ export type VoiceIntent =
   | "GET_TIME"
   | "UNKNOWN";
 
-export type VoicePhase = "start" | "name" | "scan" | "confirm" | "dashboard";
+export type VoicePhase = "start" | "name" | "nameConfirm" | "scan" | "confirm" | "dashboard";
 
 export type VoiceEntities = {
   name: string | null;

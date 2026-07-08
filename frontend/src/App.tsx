@@ -76,7 +76,16 @@ type AgendaResponse = {
   }>;
 };
 
-type VoicePhase = "idle" | "waking" | "hello" | "name" | "scan" | "confirm" | "dashboard" | "unknown";
+type VoicePhase =
+  | "idle"
+  | "waking"
+  | "hello"
+  | "name"
+  | "nameConfirm"
+  | "scan"
+  | "confirm"
+  | "dashboard"
+  | "unknown";
 type VoiceIntent =
   | "START_REGISTRATION"
   | "PROVIDE_NAME"
@@ -132,6 +141,7 @@ export default function App() {
   const scanVideoRef = useRef<HTMLVideoElement | null>(null);
   const idleVideoRef = useRef<HTMLVideoElement | null>(null);
   const wakeStartedAtRef = useRef<number | null>(null);
+  const registrationCompletingRef = useRef(false);
   const [phase, setPhase] = useState<VoicePhase>("idle");
   const [statusText, setStatusText] = useState("Loading Mirror AI...");
   const [progress, setProgress] = useState(0);
@@ -213,10 +223,8 @@ export default function App() {
         setCapturedName(mirrorState.activeUser.name);
         setCapturedFaceLabel(mirrorState.activeUser.faceLabel);
         setCapturedFaceDescriptor(mirrorState.activeUser.faceDescriptor);
-        setPhase("confirm");
-        setStatusText(
-          `I recognized this face as ${mirrorState.activeUser.name}. Is that correct?`
-        );
+        setPhase("nameConfirm");
+        setStatusText("Say yes, no, or try again");
         return;
       }
 
@@ -320,17 +328,24 @@ export default function App() {
           setProgress((current) => {
             const next = Math.min(100, current + 18);
 
-            if (current < 100 && next >= 100) {
+            if (current < 100 && next >= 100 && !registrationCompletingRef.current) {
+              registrationCompletingRef.current = true;
+              setStatusText("Completing registration");
               window.setTimeout(() => {
                 if (cancelled) {
                   return;
                 }
 
-                setPhase("confirm");
-                setStatusText(
-                  capturedName
-                    ? `I recognized this face as ${capturedName}. Is that correct?`
-                    : "I recognized this face. Is that correct?"
+                void createUserAndConfirm(capturedName || "Mirror user", detection.faceDescriptor).catch(
+                  (error) => {
+                    registrationCompletingRef.current = false;
+                    setStatusText(
+                      error instanceof Error
+                        ? error.message
+                        : "Registration failed. Please try again."
+                    );
+                    setPhase("scan");
+                  }
                 );
               }, 250);
             }
@@ -407,13 +422,14 @@ export default function App() {
     setDetectedFaceLabel(null);
     setProgress(0);
     setScanFaceVisible(false);
+    registrationCompletingRef.current = false;
     setPhase("name");
-    setStatusText("What is your name?");
+    setStatusText("Say your name");
   };
 
-  const createUserAndConfirm = async (name: string) => {
+  const createUserAndConfirm = async (name: string, faceDescriptorOverride?: string | null) => {
     const faceLabel = capturedFaceLabel ?? browserFaceService.generateFaceLabel(name);
-    let faceDescriptor = capturedFaceDescriptor;
+    let faceDescriptor = faceDescriptorOverride ?? capturedFaceDescriptor;
 
     if (!faceDescriptor && faceMode === "live" && (scanVideoRef.current || idleVideoRef.current)) {
       const fallbackVideo = scanVideoRef.current ?? idleVideoRef.current;
@@ -458,6 +474,7 @@ export default function App() {
     setCapturedFaceLabel(confirmed.user.faceLabel);
     setCapturedFaceDescriptor(confirmed.user.faceDescriptor);
     setFaceMode("live");
+    registrationCompletingRef.current = false;
     await loadDashboardData(confirmed.user.id, confirmed.user.location);
     setPhase("hello");
     setStatusText(`Hello ${confirmed.user.name}`);
@@ -542,12 +559,35 @@ export default function App() {
 
     if (currentPhase === "name") {
       if (command.intent !== "PROVIDE_NAME" || !command.name) {
-        setStatusText("What is your name?");
+        setStatusText("Say your name");
         return;
       }
 
       setCapturedName(command.name);
       setCapturedFaceLabel(browserFaceService.generateFaceLabel(command.name));
+      setPhase("nameConfirm");
+      setStatusText("Say yes, no, or try again");
+      return;
+    }
+
+    if (currentPhase === "nameConfirm") {
+      if (command.intent === "CONFIRM_NO") {
+        setCapturedName("");
+        setCapturedFaceLabel(null);
+        setPhase("name");
+        setStatusText("Say your name");
+        return;
+      }
+
+      if (command.intent !== "CONFIRM_YES") {
+        setStatusText("Say yes, no, or try again");
+        return;
+      }
+
+      setCapturedFaceDescriptor(null);
+      setProgress(0);
+      setScanFaceVisible(false);
+      registrationCompletingRef.current = false;
       setPhase("scan");
       setStatusText("Look at the mirror");
       return;
@@ -638,6 +678,17 @@ export default function App() {
       );
     }
 
+    if (phase === "nameConfirm") {
+      return (
+        <RegistrationFlow
+          step="nameConfirm"
+          name={capturedName}
+          progress={0}
+          helperText={statusText}
+        />
+      );
+    }
+
     if (phase === "scan") {
       return (
         <RegistrationFlow
@@ -676,10 +727,10 @@ export default function App() {
       return (
         <section className="flex flex-col items-center gap-5 text-center">
           <h2 className="max-w-4xl text-4xl font-light tracking-[0.12em] sm:text-6xl lg:text-7xl">
-            Unknown user
+            Welcome
           </h2>
           <p className="max-w-2xl text-sm uppercase tracking-[0.3em] text-white/65 sm:text-base">
-            Say start registration
+            Say: start registration
           </p>
         </section>
       );

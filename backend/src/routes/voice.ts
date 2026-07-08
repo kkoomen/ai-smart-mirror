@@ -3,8 +3,17 @@ import { prisma } from "../lib/prisma.js";
 import { inferVoiceCommand } from "../lib/intent.js";
 import { isString, parsePositiveInt } from "../lib/validation.js";
 
-const isVoicePhase = (value: string): value is "start" | "name" | "scan" | "confirm" | "dashboard" => {
-  return value === "start" || value === "name" || value === "scan" || value === "confirm" || value === "dashboard";
+const isVoicePhase = (
+  value: string
+): value is "start" | "name" | "nameConfirm" | "scan" | "confirm" | "dashboard" => {
+  return (
+    value === "start" ||
+    value === "name" ||
+    value === "nameConfirm" ||
+    value === "scan" ||
+    value === "confirm" ||
+    value === "dashboard"
+  );
 };
 
 export const voiceRoutes: FastifyPluginAsync = async (app) => {
