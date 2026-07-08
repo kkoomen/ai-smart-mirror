@@ -72,11 +72,13 @@ export const inferVoiceCommand = (params: {
     };
   }
 
-  if (text.includes("weather")) {
+  if (text.includes("weather") || text.includes("umbrella")) {
     return {
       intent: "GET_WEATHER",
       name: null,
-      response: "Showing the weather."
+      response: text.includes("umbrella")
+        ? "Checking whether you need an umbrella."
+        : "Showing the weather."
     };
   }
 

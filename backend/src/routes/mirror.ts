@@ -48,6 +48,7 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
       name?: unknown;
       faceLabel?: unknown;
       faceDescriptor?: unknown;
+      location?: unknown;
     };
 
     if (!isString(body?.name) || body.name.trim().length < 2) {
@@ -64,12 +65,16 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
     const faceDescriptor = isString(body?.faceDescriptor) && body.faceDescriptor.trim().length > 0
       ? body.faceDescriptor.trim()
       : null;
+    const location = isString(body?.location) && body.location.trim().length > 0
+      ? body.location.trim()
+      : "Amsterdam";
 
     const user = await prisma.user.create({
       data: {
         name,
         faceLabel,
-        faceDescriptor
+        faceDescriptor,
+        location
       }
     });
 

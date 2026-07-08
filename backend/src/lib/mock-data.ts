@@ -36,25 +36,3 @@ export const buildAgendaForUser = (user: User) => {
     }
   ];
 };
-
-export const buildWeatherForUser = (user: User) => {
-  const firstName = user.name.split(" ")[0] ?? user.name;
-
-  return {
-    location: "Amsterdam",
-    updatedAt: new Date().toISOString(),
-    current: {
-      temperatureC: 18,
-      condition: "Clear sky",
-      feelsLikeC: 19,
-      humidity: 58,
-      windKph: 11
-    },
-    forecast: [
-      { label: "Now", temperatureC: 18, condition: "Clear" },
-      { label: "12:00", temperatureC: 20, condition: "Sunny" },
-      { label: "15:00", temperatureC: 21, condition: "Light breeze" }
-    ],
-    note: `Good mirror weather for ${firstName}.`
-  };
-};

@@ -12,6 +12,7 @@ model User {
   name              String
   faceLabel         String            @unique
   faceDescriptor    String?
+  location          String            @default("Amsterdam")
   createdAt         DateTime          @default(now())
   events            CalendarEvent[]
   reminders         Reminder[]
@@ -61,4 +62,12 @@ model MirrorState {
   activeUserId         Int?  @unique
   registrationComplete Boolean @default(false)
   activeUser           User? @relation("ActiveUser", fields: [activeUserId], references: [id], onDelete: SetNull)
+}
+
+model WeatherCache {
+  id         Int      @id @default(autoincrement())
+  locationKey String  @unique
+  location   String
+  payload    String
+  fetchedAt  DateTime
 }

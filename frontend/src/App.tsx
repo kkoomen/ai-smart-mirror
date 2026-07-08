@@ -20,6 +20,7 @@ type User = {
   name: string;
   faceLabel: string;
   faceDescriptor: string | null;
+  location: string;
   createdAt: string;
 };
 
@@ -34,25 +35,33 @@ type UsersResponse = {
   users: User[];
 };
 
+type WeatherData = {
+  location: string;
+  updatedAt: string;
+  current: {
+    temperatureC: number;
+    condition: string;
+    feelsLikeC: number;
+    humidity: number;
+    windKph: number;
+    rainChancePct: number | null;
+  };
+  forecast: Array<{
+    label: string;
+    temperatureC: number;
+    condition: string;
+    rainChancePct: number | null;
+  }>;
+  note: string;
+};
+
 type WeatherResponse = {
   userId: number;
-  weather: {
-    location: string;
-    updatedAt: string;
-    current: {
-      temperatureC: number;
-      condition: string;
-      feelsLikeC: number;
-      humidity: number;
-      windKph: number;
-    };
-    forecast: Array<{
-      label: string;
-      temperatureC: number;
-      condition: string;
-    }>;
-    note: string;
-  };
+  weather: WeatherData;
+};
+
+type WeatherEnvelope = {
+  weather: WeatherData;
 };
 
 type AgendaResponse = {
@@ -147,13 +156,21 @@ export default function App() {
     [faceMode, phase]
   );
 
-  const loadDashboardData = async (userId: number) => {
-    const [weatherResponse, agendaResponse] = await Promise.all([
-      requestJson<WeatherResponse>(`/api/users/${userId}/weather`),
+  const loadWeatherForLocation = async (location: string) => {
+    const response = await requestJson<WeatherEnvelope>(
+      `/api/weather?location=${encodeURIComponent(location || "Amsterdam")}`
+    );
+
+    setWeather(response.weather);
+    return response.weather;
+  };
+
+  const loadDashboardData = async (userId: number, location: string) => {
+    const [, agendaResponse] = await Promise.all([
+      loadWeatherForLocation(location),
       requestJson<AgendaResponse>(`/api/users/${userId}/agenda/today`)
     ]);
 
-    setWeather(weatherResponse.weather);
     setAgenda(agendaResponse.events);
   };
 
@@ -200,7 +217,7 @@ export default function App() {
       if (mirrorState.registrationComplete && mirrorState.activeUser) {
         setRegisteredUser(mirrorState.activeUser);
         setFaceMode("live");
-        await loadDashboardData(mirrorState.activeUser.id);
+        await loadDashboardData(mirrorState.activeUser.id, mirrorState.activeUser.location);
         setPhase("dashboard");
         setStatusText(`Good morning, ${mirrorState.activeUser.name}`);
         return;
@@ -311,7 +328,7 @@ export default function App() {
           }
 
           if (!isSameUser || phase !== "dashboard") {
-            await loadDashboardData(matchedUser.id);
+            await loadDashboardData(matchedUser.id, matchedUser.location);
             setPhase("dashboard");
             setStatusText(`Good morning, ${matchedUser.name}`);
             return;
@@ -432,9 +449,25 @@ export default function App() {
     setCapturedFaceLabel(confirmed.user.faceLabel);
     setCapturedFaceDescriptor(confirmed.user.faceDescriptor);
     setFaceMode("live");
-    await loadDashboardData(confirmed.user.id);
+    await loadDashboardData(confirmed.user.id, confirmed.user.location);
     setPhase("dashboard");
     setStatusText(`Good morning, ${confirmed.user.name}`);
+  };
+
+  const getUmbrellaAnswer = async (location: string) => {
+    const payload = weather ?? (await loadWeatherForLocation(location));
+    const rainChance = payload.current.rainChancePct;
+    const rainChanceLabel = rainChance === null ? "unknown" : `${rainChance}%`;
+    const shouldCarryUmbrella =
+      typeof rainChance === "number"
+        ? rainChance >= 50
+        : /rain|shower|storm/i.test(payload.current.condition);
+
+    if (shouldCarryUmbrella) {
+      return `Yes. Rain chance is ${rainChanceLabel} in ${payload.location}. Bring an umbrella.`;
+    }
+
+    return `Probably not. Rain chance is ${rainChanceLabel} in ${payload.location}.`;
   };
 
   const handleVoiceCommand = async (spokenText: string) => {
@@ -500,6 +533,12 @@ export default function App() {
       }
 
       if (command.intent === "GET_WEATHER") {
+        if (spokenText.toLowerCase().includes("umbrella")) {
+          const answer = await getUmbrellaAnswer(registeredUser?.location ?? weather?.location ?? "Amsterdam");
+          setStatusText(answer);
+          return;
+        }
+
         setStatusText("Weather is displayed on the mirror.");
         return;
       }
@@ -636,13 +675,11 @@ export default function App() {
               location={weather.location}
               summary={weather.current.condition}
               temperature={`${weather.current.temperatureC}°`}
-              high={`${Math.max(...weather.forecast.map((item) => item.temperatureC))}°`}
-              low={`${Math.min(...weather.forecast.map((item) => item.temperatureC))}°`}
-              forecast={weather.forecast.map((item) => ({
-                label: item.label,
-                temp: `${item.temperatureC}°`,
-                note: item.condition
-              }))}
+              rainChance={
+                weather.current.rainChancePct === null
+                  ? null
+                  : `${weather.current.rainChancePct}%`
+              }
             />
           ) : null
         }

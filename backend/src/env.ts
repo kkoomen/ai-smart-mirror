@@ -7,6 +7,6 @@ const parsePort = (value: string | undefined, fallback: number) => {
 
 export const env = {
   port: parsePort(process.env.PORT, 3001),
-  clientOrigin: process.env.CLIENT_ORIGIN ?? "http://localhost:5173"
+  clientOrigin: process.env.CLIENT_ORIGIN ?? "http://localhost:5173",
+  openWeatherApiKey: process.env.OPENWEATHER_API_KEY ?? ""
 };
-

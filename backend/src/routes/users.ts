@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { prisma } from "../lib/prisma.js";
-import { buildAgendaForUser, buildWeatherForUser } from "../lib/mock-data.js";
+import { buildAgendaForUser } from "../lib/mock-data.js";
+import { getWeatherForLocation } from "../lib/weather.js";
 import { parsePositiveInt } from "../lib/validation.js";
 
 export const usersRoutes: FastifyPluginAsync = async (app) => {
@@ -108,7 +109,7 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
 
     return {
       userId: user.id,
-      weather: buildWeatherForUser(user)
+      weather: await getWeatherForLocation(user.location)
     };
   });
 };

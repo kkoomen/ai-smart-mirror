@@ -7,6 +7,7 @@ try {
     prisma.voiceCommandLog.deleteMany(),
     prisma.reminder.deleteMany(),
     prisma.calendarEvent.deleteMany(),
+    prisma.weatherCache.deleteMany(),
     prisma.mirrorState.deleteMany(),
     prisma.user.deleteMany()
   ]);
