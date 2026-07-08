@@ -41,7 +41,6 @@ The registration flow uses `face-api.js` in the browser.
 - Or run `npm run models:download`
 - The default model URL is `/models`
 - The scan step requires webcam permission
-- The small prototype panel can still simulate no person, registered user, or unknown person
 
 ## Endpoints
 
