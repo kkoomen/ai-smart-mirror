@@ -1,5 +1,3 @@
-export type FaceRecognitionMode = "live" | "no_person" | "registered_user" | "unknown_person";
-
 export type FaceRecognitionSubject = {
   id: number;
   name: string;
@@ -19,13 +17,10 @@ export type FaceRecognitionResult = {
     height: number;
   } | null;
   isFaceDetected: boolean;
-  source: "simulated" | "browser";
 };
 
 export type FaceRecognitionSnapshot = {
-  mode: FaceRecognitionMode;
   knownUsers: FaceRecognitionSubject[];
-  activeUser: FaceRecognitionSubject | null;
   video: HTMLVideoElement | null;
 };
 

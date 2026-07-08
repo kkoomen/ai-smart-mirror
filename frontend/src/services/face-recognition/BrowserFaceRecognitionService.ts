@@ -159,86 +159,25 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
     return `face_${slug}_${randomDigits()}`;
   }
 
-  private buildNoFaceResult(source: "browser" | "simulated") {
+  private buildNoFaceResult() {
     return {
       detectedFaceLabel: null,
       matchedUser: null,
       confidence: 0,
       faceDescriptor: null,
       faceBox: null,
-      isFaceDetected: false,
-      source
+      isFaceDetected: false
     } satisfies FaceRecognitionResult;
   }
 
-  private buildSyntheticResult(
-    snapshot: FaceRecognitionSnapshot,
-    source: "browser" | "simulated"
-  ): FaceRecognitionResult {
-    const { mode, knownUsers, activeUser } = snapshot;
-
-    if (mode === "no_person" || knownUsers.length === 0) {
-      return this.buildNoFaceResult(source);
-    }
-
-    if (mode === "registered_user") {
-      const matchedUser = activeUser ?? knownUsers[0] ?? null;
-
-      if (!matchedUser) {
-        return this.buildNoFaceResult(source);
-      }
-
-      return {
-        detectedFaceLabel: matchedUser.faceLabel,
-        matchedUser,
-        confidence: 0.98,
-        faceDescriptor: matchedUser.faceDescriptor,
-        faceBox: {
-          x: 220,
-          y: 120,
-          width: 180,
-          height: 220
-        },
-        isFaceDetected: true,
-        source
-      };
-    }
-
-    const knownLabels = new Set(knownUsers.map((user) => user.faceLabel));
-    let detectedFaceLabel = `face_unknown_${randomDigits()}`;
-
-    while (knownLabels.has(detectedFaceLabel)) {
-      detectedFaceLabel = `face_unknown_${randomDigits()}`;
-    }
-
-    return {
-      detectedFaceLabel,
-      matchedUser: null,
-      confidence: 0.29,
-      faceDescriptor: null,
-      faceBox: {
-        x: 96,
-        y: 80,
-        width: 112,
-        height: 112
-      },
-      isFaceDetected: true,
-      source
-    };
-  }
-
   async detectFace(snapshot: FaceRecognitionSnapshot): Promise<FaceRecognitionResult> {
-    if (snapshot.mode !== "live") {
-      return this.buildSyntheticResult(snapshot, "browser");
-    }
-
     if (!this.loaded) {
-      return this.buildNoFaceResult("browser");
+      return this.buildNoFaceResult();
     }
 
     const video = snapshot.video;
     if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
-      return this.buildNoFaceResult("browser");
+      return this.buildNoFaceResult();
     }
 
     const detection = await faceapi
@@ -253,7 +192,7 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
       .withFaceDescriptor();
 
     if (!detection) {
-      return this.buildNoFaceResult("browser");
+      return this.buildNoFaceResult();
     }
 
     const { width: frameWidth, height: frameHeight } = getVideoDimensions(video);
@@ -270,7 +209,7 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
     };
 
     if (!isInsideEllipse(faceCenter, ovalBounds)) {
-      return this.buildNoFaceResult("browser");
+      return this.buildNoFaceResult();
     }
 
     const faceDescriptor = encodeDescriptor(detection.descriptor);
@@ -293,8 +232,7 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
         confidence: detection.detection.score,
         faceDescriptor,
         faceBox: box,
-        isFaceDetected: true,
-        source: "browser"
+        isFaceDetected: true
       };
     }
 
@@ -309,8 +247,7 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
         confidence: 1 - bestMatch.distance,
         faceDescriptor,
         faceBox: box,
-        isFaceDetected: true,
-        source: "browser"
+        isFaceDetected: true
       };
     }
 
@@ -320,8 +257,7 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
       confidence: 1 - bestMatch.distance,
       faceDescriptor,
       faceBox: box,
-      isFaceDetected: true,
-      source: "browser"
+      isFaceDetected: true
     };
   }
 }

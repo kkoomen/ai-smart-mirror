@@ -1,18 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import MirrorLayout from "./components/mirror-layout";
 import LocalTime from "./components/local-time";
 import WeatherForecast from "./components/weather-forecast";
 import Agenda from "./components/agenda";
 import RegistrationFlow from "./components/registration-flow";
 import VoiceControl from "./components/voice-control";
 import DeviceStatus from "./components/device-status";
-import FadeTransition from "./components/fade-transition";
+import HomeScreen from "./components/home-screen";
+import RegisterScreen from "./components/register-screen";
 import {
   BrowserFaceRecognitionService,
-  SimulatedFaceRecognitionService,
-  type FaceRecognitionMode,
   type FaceRecognitionSubject
 } from "./services/face-recognition";
+import { useClientRoute } from "./hooks/use-client-route";
 
 type User = {
   id: number;
@@ -137,7 +136,7 @@ const isSleepPhrase = (value: string) =>
 
 export default function App() {
   const browserFaceService = useMemo(() => new BrowserFaceRecognitionService(), []);
-  const simulatedFaceService = useMemo(() => new SimulatedFaceRecognitionService(), []);
+  const { pathname, navigate } = useClientRoute();
   const scanVideoRef = useRef<HTMLVideoElement | null>(null);
   const idleVideoRef = useRef<HTMLVideoElement | null>(null);
   const wakeStartedAtRef = useRef<number | null>(null);
@@ -148,28 +147,21 @@ export default function App() {
   const [capturedName, setCapturedName] = useState("");
   const [capturedFaceLabel, setCapturedFaceLabel] = useState<string | null>(null);
   const [capturedFaceDescriptor, setCapturedFaceDescriptor] = useState<string | null>(null);
-  const [detectedFaceLabel, setDetectedFaceLabel] = useState<string | null>(null);
   const [registeredUser, setRegisteredUser] = useState<User | null>(null);
   const [knownUsers, setKnownUsers] = useState<User[]>([]);
   const [weather, setWeather] = useState<WeatherResponse["weather"] | null>(null);
   const [agenda, setAgenda] = useState<AgendaResponse["events"]>([]);
-  const [faceMode, setFaceMode] = useState<FaceRecognitionMode>("live");
   const [scanFaceVisible, setScanFaceVisible] = useState(false);
   const [isMirrorFadingOut, setIsMirrorFadingOut] = useState(false);
 
   const deviceStatus = useMemo(
     () => ({
-      camera:
-        faceMode === "live" && phase === "scan"
-          ? "scanning"
-          : faceMode === "live"
-            ? "polling"
-            : "standby",
+      camera: phase === "scan" ? "scanning" : "polling",
       microphone: "listening",
       network: "connected",
       battery: "92%"
     }),
-    [faceMode, phase]
+    [phase]
   );
 
   const loadWeatherForLocation = async (location: string) => {
@@ -208,7 +200,6 @@ export default function App() {
       setKnownUsers(usersResponse.users);
 
       if (usersResponse.users.length === 0) {
-        setFaceMode("live");
         setPhase("idle");
         setStatusText(
           faceApiReady
@@ -230,13 +221,11 @@ export default function App() {
 
       if (mirrorState.registrationComplete && mirrorState.activeUser) {
         setRegisteredUser(null);
-        setFaceMode("live");
         setPhase("idle");
         setStatusText("Say 'hey mirror' to wake");
         return;
       }
 
-      setFaceMode("live");
       setPhase("idle");
       setStatusText(
         faceApiReady
@@ -244,7 +233,6 @@ export default function App() {
           : "Face models are not loaded yet. Say 'hey mirror' to continue with voice mode."
       );
     } catch {
-      setFaceMode("live");
       setPhase("idle");
       setStatusText("Mirror backend unavailable");
     }
@@ -270,7 +258,6 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
-    const faceService = faceMode === "live" ? browserFaceService : simulatedFaceService;
     let timeoutId: number | null = null;
     const delayMs = phase === "scan" || phase === "waking" ? 300 : 1000;
     const activeVideoRef = phase === "scan" ? scanVideoRef : idleVideoRef;
@@ -291,7 +278,7 @@ export default function App() {
 
     const runDetection = async () => {
       const video = activeVideoRef.current;
-      if (faceMode === "live" && video) {
+      if (video) {
         if (phase === "scan") {
           browserFaceService.stopCamera(idleVideoRef.current);
         }
@@ -304,18 +291,14 @@ export default function App() {
         return;
       }
 
-      const detection = await faceService.detectFace({
-        mode: faceMode,
+      const detection = await browserFaceService.detectFace({
         knownUsers: knownUsers.map(toSubject),
-        activeUser: registeredUser ? toSubject(registeredUser) : null,
         video
       });
 
       if (cancelled) {
         return;
       }
-
-      setDetectedFaceLabel(detection.detectedFaceLabel);
 
       if (phase === "scan") {
         setScanFaceVisible(detection.isFaceDetected);
@@ -374,7 +357,7 @@ export default function App() {
         const wakeStartedAt = wakeStartedAtRef.current ?? Date.now();
         const wakeTimedOut = Date.now() - wakeStartedAt > 3000;
 
-        if (detection.isFaceDetected || faceMode === "unknown_person" || wakeTimedOut) {
+        if (detection.isFaceDetected || wakeTimedOut) {
           setPhase("unknown");
           setStatusText("Unknown user detected");
           return;
@@ -403,11 +386,9 @@ export default function App() {
   }, [
     browserFaceService,
     capturedName,
-    faceMode,
     knownUsers,
     phase,
-    registeredUser,
-    simulatedFaceService
+    registeredUser
   ]);
 
   const startRegistration = async () => {
@@ -419,10 +400,10 @@ export default function App() {
     setCapturedName("");
     setCapturedFaceLabel(null);
     setCapturedFaceDescriptor(null);
-    setDetectedFaceLabel(null);
     setProgress(0);
     setScanFaceVisible(false);
     registrationCompletingRef.current = false;
+    navigate("/register");
     setPhase("name");
     setStatusText("Say your name");
   };
@@ -431,12 +412,10 @@ export default function App() {
     const faceLabel = capturedFaceLabel ?? browserFaceService.generateFaceLabel(name);
     let faceDescriptor = faceDescriptorOverride ?? capturedFaceDescriptor;
 
-    if (!faceDescriptor && faceMode === "live" && (scanVideoRef.current || idleVideoRef.current)) {
+    if (!faceDescriptor && (scanVideoRef.current || idleVideoRef.current)) {
       const fallbackVideo = scanVideoRef.current ?? idleVideoRef.current;
       const fallbackDetection = await browserFaceService.detectFace({
-        mode: "live",
         knownUsers: knownUsers.map(toSubject),
-        activeUser: registeredUser ? toSubject(registeredUser) : null,
         video: fallbackVideo
       });
 
@@ -473,9 +452,9 @@ export default function App() {
     setRegisteredUser(confirmed.user);
     setCapturedFaceLabel(confirmed.user.faceLabel);
     setCapturedFaceDescriptor(confirmed.user.faceDescriptor);
-    setFaceMode("live");
     registrationCompletingRef.current = false;
     await loadDashboardData(confirmed.user.id, confirmed.user.location);
+    navigate("/");
     setPhase("hello");
     setStatusText(`Hello ${confirmed.user.name}`);
   };
@@ -503,14 +482,13 @@ export default function App() {
     setRegisteredUser(null);
     setWeather(null);
     setAgenda([]);
-    setDetectedFaceLabel(null);
     setStatusText("Say 'hey mirror' to wake");
+    navigate("/");
   };
 
   const wakeMirror = () => {
     wakeStartedAtRef.current = Date.now();
     setIsMirrorFadingOut(false);
-    setDetectedFaceLabel(null);
 
     if (knownUsers.length === 0) {
       setPhase("unknown");
@@ -538,6 +516,12 @@ export default function App() {
 
     if (isWakePhrase(normalizedSpeech)) {
       wakeMirror();
+      return;
+    }
+
+    if (phase === "idle" && normalizedSpeech.includes("start registration")) {
+      navigate("/register");
+      await startRegistration();
       return;
     }
 
@@ -641,6 +625,7 @@ export default function App() {
 
     if (currentPhase === "unknown") {
       if (command.intent === "START_REGISTRATION") {
+        navigate("/register");
         await startRegistration();
         return;
       }
@@ -648,19 +633,6 @@ export default function App() {
       setStatusText("Say 'start registration' to begin");
     }
   };
-
-  const showPanels = phase === "dashboard";
-  const shouldShowMirror = phase !== "idle" && !isMirrorFadingOut;
-  const hiddenLiveCamera =
-    faceMode === "live" && phase !== "scan" ? (
-      <video
-        ref={idleVideoRef}
-        autoPlay
-        muted
-        playsInline
-        className="pointer-events-none absolute -left-[9999px] h-px w-px opacity-0"
-      />
-    ) : null;
 
   const centerContent = (() => {
     if (phase === "idle" || phase === "waking") {
@@ -741,51 +713,64 @@ export default function App() {
 
   return (
     <>
-      {hiddenLiveCamera}
-      <FadeTransition
-        show={shouldShowMirror}
-        className="min-h-screen"
-        onExited={() => {
-          if (isMirrorFadingOut) {
-            sleepMirror();
-          }
-        }}
-      >
-        <FadeTransition transitionKey={phase} className="min-h-screen">
-          <MirrorLayout
-            showPanels={showPanels}
-            showGradient={phase === "hello"}
-            weather={
-              weather ? (
-                <WeatherForecast
-                  location={weather.location}
-                  summary={weather.current.condition}
-                  temperature={`${weather.current.temperatureC}°`}
-                  rainChance={
-                    weather.current.rainChancePct === null
-                      ? null
-                      : `${weather.current.rainChancePct}%`
-                  }
-                />
-              ) : null
+      <video
+        ref={idleVideoRef}
+        autoPlay
+        muted
+        playsInline
+        className="pointer-events-none absolute -left-[9999px] h-px w-px opacity-0"
+      />
+      {pathname === "/register" ? (
+        <RegisterScreen
+          visible={phase !== "idle" && !isMirrorFadingOut}
+          onExited={() => {
+            if (isMirrorFadingOut) {
+              sleepMirror();
             }
-            time={<LocalTime />}
-            agenda={
-              <Agenda
-                events={agenda.map((event) => ({
-                  time: new Intl.DateTimeFormat("en-GB", {
-                    hour: "2-digit",
-                    minute: "2-digit"
-                  }).format(new Date(event.startTime)),
-                  title: event.title
-                }))}
+          }}
+          center={<div className="relative">{centerContent}</div>}
+        />
+      ) : (
+        <HomeScreen
+          showPanels={phase === "dashboard"}
+          showGradient={phase === "hello"}
+          blank={phase === "idle"}
+          visible={phase !== "idle" && !isMirrorFadingOut}
+          onExited={() => {
+            if (isMirrorFadingOut) {
+              sleepMirror();
+            }
+          }}
+          weather={
+            weather ? (
+              <WeatherForecast
+                location={weather.location}
+                summary={weather.current.condition}
+                temperature={`${weather.current.temperatureC}°`}
+                rainChance={
+                  weather.current.rainChancePct === null
+                    ? null
+                    : `${weather.current.rainChancePct}%`
+                }
               />
-            }
-            deviceStatus={<DeviceStatus {...deviceStatus} />}
-            center={<div className="relative">{centerContent}</div>}
-          />
-        </FadeTransition>
-      </FadeTransition>
+            ) : null
+          }
+          time={<LocalTime />}
+          agenda={
+            <Agenda
+              events={agenda.map((event) => ({
+                time: new Intl.DateTimeFormat("en-GB", {
+                  hour: "2-digit",
+                  minute: "2-digit"
+                }).format(new Date(event.startTime)),
+                title: event.title
+              }))}
+            />
+          }
+          deviceStatus={<DeviceStatus {...deviceStatus} />}
+          center={<div className="relative">{centerContent}</div>}
+        />
+      )}
       <VoiceControl
         prompt="Say: hey mirror"
         onCommand={handleVoiceCommand}
