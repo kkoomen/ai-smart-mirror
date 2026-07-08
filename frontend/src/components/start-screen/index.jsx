@@ -1,5 +1,3 @@
-import VoiceControl from "../voice-control";
-
 export default function StartScreen() {
   return (
     <section className="flex flex-col items-center gap-6 text-center">
@@ -10,7 +8,6 @@ export default function StartScreen() {
       <p className="max-w-2xl text-sm uppercase tracking-[0.3em] text-white/65 sm:text-base">
         Let&apos;s register your face
       </p>
-      <VoiceControl prompt="Say: start registration" />
     </section>
   );
 }
