@@ -4,7 +4,7 @@ import type {
   FaceRecognitionService,
   FaceRecognitionSnapshot,
   FaceRecognitionSubject
-} from "./FaceRecognitionService";
+} from "../../types/face-recognition";
 
 const randomDigits = () => Math.floor(100 + Math.random() * 900);
 
