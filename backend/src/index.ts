@@ -1,9 +1,9 @@
-import { buildServer } from "./server.js";
+import { buildApp } from "./app.js";
 import { env } from "./env.js";
-import { prisma } from "./prisma.js";
+import { prisma } from "./lib/prisma.js";
 
 const start = async () => {
-  const app = await buildServer();
+  const app = await buildApp();
 
   try {
     await app.listen({
@@ -25,4 +25,3 @@ process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
 void start();
-

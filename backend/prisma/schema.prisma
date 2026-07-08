@@ -7,8 +7,57 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Ping {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
+model User {
+  id        Int               @id @default(autoincrement())
+  name      String
+  faceLabel String            @unique
+  createdAt DateTime          @default(now())
+  events    CalendarEvent[]
+  reminders Reminder[]
+  voiceLogs VoiceCommandLog[]
+  activeMirrorState MirrorState? @relation("ActiveUser")
 }
 
+model CalendarEvent {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  title       String
+  startTime   DateTime
+  endTime     DateTime
+  location    String?
+  description String?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Reminder {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  text       String
+  dueAt      DateTime?
+  completed  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VoiceCommandLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  transcript String
+  intent    String
+  response  String
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}
+
+model MirrorState {
+  id                   Int   @id @default(autoincrement())
+  activeUserId         Int?  @unique
+  registrationComplete Boolean @default(false)
+  activeUser           User? @relation("ActiveUser", fields: [activeUserId], references: [id], onDelete: SetNull)
+}
