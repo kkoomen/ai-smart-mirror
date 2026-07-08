@@ -12,7 +12,8 @@ export default function VoiceControl({
   prompt,
   onCommand,
   helperText,
-  disabled = false
+  disabled = false,
+  autoListen = true
 }) {
   const [draft, setDraft] = useState("");
   const [voiceState, setVoiceState] = useState("idle");
@@ -21,6 +22,8 @@ export default function VoiceControl({
   const [isSupported, setIsSupported] = useState(false);
   const recognitionRef = useRef(null);
   const voiceStateRef = useRef("idle");
+  const userStoppedRef = useRef(false);
+  const autoStartAttemptedRef = useRef(false);
 
   useEffect(() => {
     voiceStateRef.current = voiceState;
@@ -40,9 +43,22 @@ export default function VoiceControl({
     recognition.interimResults = false;
     recognition.continuous = false;
 
+    const startRecognition = () => {
+      if (disabled || !recognitionRef.current) {
+        return;
+      }
+
+      try {
+        recognitionRef.current.start();
+      } catch {
+        // Browser speech APIs can reject duplicate starts; keep the UI stable.
+      }
+    };
+
     recognition.onstart = () => {
       setErrorMessage("");
       setVoiceState("listening");
+      userStoppedRef.current = false;
     };
 
     recognition.onresult = (event) => {
@@ -68,6 +84,15 @@ export default function VoiceControl({
     };
 
     recognition.onend = () => {
+      if (autoListen && !disabled && !userStoppedRef.current) {
+        window.setTimeout(() => {
+          if (voiceStateRef.current !== "thinking" && recognitionRef.current && !userStoppedRef.current) {
+            startRecognition();
+          }
+        }, 250);
+        return;
+      }
+
       if (voiceStateRef.current === "listening") {
         setVoiceState("idle");
       }
@@ -79,7 +104,29 @@ export default function VoiceControl({
       recognition.stop();
       recognitionRef.current = null;
     };
-  }, []);
+  }, [autoListen, disabled]);
+
+  useEffect(() => {
+    if (!autoListen || disabled || !isSupported || !recognitionRef.current) {
+      return;
+    }
+
+    if (autoStartAttemptedRef.current) {
+      return;
+    }
+
+    autoStartAttemptedRef.current = true;
+
+    window.setTimeout(() => {
+      if (recognitionRef.current && !userStoppedRef.current) {
+        try {
+          recognitionRef.current.start();
+        } catch {
+          // Auto-start can fail until the browser grants permission; the manual button still works.
+        }
+      }
+    }, 0);
+  }, [autoListen, disabled, isSupported]);
 
   const submitTranscript = async (value) => {
     const transcript = value.trim();
@@ -132,11 +179,13 @@ export default function VoiceControl({
     }
 
     if (voiceState === "listening") {
+      userStoppedRef.current = true;
       recognitionRef.current.stop();
       setVoiceState("idle");
       return;
     }
 
+    userStoppedRef.current = false;
     recognitionRef.current.start();
   };
 
