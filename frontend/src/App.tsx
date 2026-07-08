@@ -300,6 +300,7 @@ export default function App() {
             setProgress((current) => Math.max(0, current - 12));
           }
 
+          scheduleNext();
           return;
         }
 
