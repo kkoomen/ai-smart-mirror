@@ -1,0 +1,19 @@
+{
+  "name": "ai-smart-mirror",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm --prefix frontend install && npm --prefix backend install",
+    "dev": "npm-run-all --parallel dev:frontend dev:backend",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "build": "npm-run-all build:frontend build:backend",
+    "build:frontend": "npm --prefix frontend run build",
+    "build:backend": "npm --prefix backend run build",
+    "db:push": "npm --prefix backend run db:push",
+    "db:generate": "npm --prefix backend run db:generate",
+    "db:studio": "npm --prefix backend run db:studio"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}
