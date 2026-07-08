@@ -26,7 +26,7 @@ export const voiceRoutes: FastifyPluginAsync = async (app) => {
     const transcript = body.transcript.trim();
     const phaseValue = isString(body?.phase) ? body.phase.trim() : "";
     const phase = isVoicePhase(phaseValue) ? phaseValue : "dashboard";
-    const result = inferVoiceCommand({
+    const result = await inferVoiceCommand({
       transcript,
       phase
     });
@@ -55,7 +55,8 @@ export const voiceRoutes: FastifyPluginAsync = async (app) => {
       ok: true,
       command: log,
       intent: result.intent,
-      name: result.name,
+      name: result.entities.name,
+      entities: result.entities,
       response: result.response
     };
   });

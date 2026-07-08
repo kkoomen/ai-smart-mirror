@@ -121,11 +121,30 @@ const toSubject = (user: User): FaceRecognitionSubject => ({
   faceDescriptor: user.faceDescriptor
 });
 
+const getGreeting = (date: Date) => {
+  const hour = date.getHours();
+
+  if (hour < 5) {
+    return "Good night";
+  }
+
+  if (hour < 12) {
+    return "Good morning";
+  }
+
+  if (hour < 18) {
+    return "Good afternoon";
+  }
+
+  return "Good evening";
+};
+
 export default function App() {
   const browserFaceService = useMemo(() => new BrowserFaceRecognitionService(), []);
   const simulatedFaceService = useMemo(() => new SimulatedFaceRecognitionService(), []);
   const scanVideoRef = useRef<HTMLVideoElement | null>(null);
   const idleVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [now, setNow] = useState(() => new Date());
   const [phase, setPhase] = useState<VoicePhase>("start");
   const [statusText, setStatusText] = useState("Loading Mirror AI...");
   const [progress, setProgress] = useState(0);
@@ -140,6 +159,7 @@ export default function App() {
   const [faceMode, setFaceMode] = useState<FaceRecognitionMode>("live");
   const [debugPanelOpen, setDebugPanelOpen] = useState(false);
   const [scanFaceVisible, setScanFaceVisible] = useState(false);
+  const greeting = useMemo(() => getGreeting(now), [now]);
 
   const deviceStatus = useMemo(
     () => ({
@@ -219,7 +239,7 @@ export default function App() {
         setFaceMode("live");
         await loadDashboardData(mirrorState.activeUser.id, mirrorState.activeUser.location);
         setPhase("dashboard");
-        setStatusText(`Good morning, ${mirrorState.activeUser.name}`);
+        setStatusText(`${getGreeting(new Date())}, ${mirrorState.activeUser.name}`);
         return;
       }
 
@@ -239,6 +259,16 @@ export default function App() {
 
   useEffect(() => {
     void bootstrap();
+  }, []);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setNow(new Date());
+    }, 60_000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
   }, []);
 
   useEffect(() => {
@@ -330,7 +360,7 @@ export default function App() {
           if (!isSameUser || phase !== "dashboard") {
             await loadDashboardData(matchedUser.id, matchedUser.location);
             setPhase("dashboard");
-            setStatusText(`Good morning, ${matchedUser.name}`);
+            setStatusText(`${greeting}, ${matchedUser.name}`);
             return;
           }
         }
@@ -451,7 +481,7 @@ export default function App() {
     setFaceMode("live");
     await loadDashboardData(confirmed.user.id, confirmed.user.location);
     setPhase("dashboard");
-    setStatusText(`Good morning, ${confirmed.user.name}`);
+    setStatusText(`${getGreeting(new Date())}, ${confirmed.user.name}`);
   };
 
   const getUmbrellaAnswer = async (location: string) => {
@@ -651,7 +681,7 @@ export default function App() {
         {hiddenLiveCamera}
         <p className="text-xs uppercase tracking-[0.6em] text-white/45">mirror state</p>
         <h2 className="max-w-4xl text-4xl font-light tracking-[0.12em] sm:text-6xl lg:text-7xl">
-          Good morning, {registeredUser?.name ?? "Mirror user"}
+          {greeting}, {registeredUser?.name ?? "Mirror user"}
         </h2>
         <p className="max-w-2xl text-sm uppercase tracking-[0.3em] text-white/65 sm:text-base">
           Voice commands are active.
