@@ -4,7 +4,32 @@ export const useClientRoute = () => {
   const [pathname, setPathname] = useState(() => window.location.pathname);
 
   useEffect(() => {
+    const navigationEntry = window.performance.getEntriesByType("navigation")[0];
+    const legacyNavigation = (window.performance as Performance & {
+      navigation?: { type: number };
+    }).navigation;
+    const navigationType =
+      navigationEntry?.type ?? (legacyNavigation?.type === 1 ? "reload" : "navigate");
+
+    if (
+      window.location.pathname === "/register" &&
+      (navigationType === "reload" || window.history.state?.source !== "mirror")
+    ) {
+      window.history.replaceState({ source: "mirror" }, "", "/");
+      setPathname("/");
+      return;
+    }
+
     const handlePopState = () => {
+      if (
+        window.location.pathname === "/register" &&
+        window.history.state?.source !== "mirror"
+      ) {
+        window.history.replaceState({ source: "mirror" }, "", "/");
+        setPathname("/");
+        return;
+      }
+
       setPathname(window.location.pathname);
     };
 
@@ -17,7 +42,7 @@ export const useClientRoute = () => {
       return;
     }
 
-    window.history.pushState({}, "", nextPath);
+    window.history.pushState({ source: "mirror" }, "", nextPath);
     setPathname(nextPath);
   };
 
