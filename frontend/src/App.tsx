@@ -232,7 +232,7 @@ export default function App() {
     let cancelled = false;
     const faceService = faceMode === "live" ? browserFaceService : simulatedFaceService;
     let timeoutId: number | null = null;
-    const delayMs = phase === "scan" ? 350 : 5000;
+    const delayMs = phase === "scan" ? 300 : 450;
     const activeVideoRef = phase === "scan" ? scanVideoRef : idleVideoRef;
 
     const scheduleNext = () => {
@@ -247,121 +247,107 @@ export default function App() {
 
     const runDetection = async () => {
       const video = activeVideoRef.current;
-      let cameraStarted = false;
+      if (faceMode === "live" && video) {
+        await browserFaceService.startCamera(video);
+      }
 
-      try {
-        if (faceMode === "live" && video) {
-          await browserFaceService.startCamera(video);
-          cameraStarted = true;
+      const detection = await faceService.detectFace({
+        mode: faceMode,
+        knownUsers: knownUsers.map(toSubject),
+        activeUser: registeredUser ? toSubject(registeredUser) : null,
+        video
+      });
+
+      if (cancelled) {
+        return;
+      }
+
+      setDetectedFaceLabel(detection.detectedFaceLabel);
+
+      if (phase === "scan") {
+        setScanFaceVisible(detection.isFaceDetected);
+
+        if (detection.faceDescriptor) {
+          setCapturedFaceDescriptor(detection.faceDescriptor);
         }
 
-        const detection = await faceService.detectFace({
-          mode: faceMode,
-          knownUsers: knownUsers.map(toSubject),
-          activeUser: registeredUser ? toSubject(registeredUser) : null,
-          video
-        });
+        if (detection.isFaceDetected) {
+          setProgress((current) => {
+            const next = Math.min(100, current + 18);
 
-        if (cancelled) {
-          return;
-        }
+            if (current < 100 && next >= 100) {
+              window.setTimeout(() => {
+                if (cancelled) {
+                  return;
+                }
 
-        setDetectedFaceLabel(detection.detectedFaceLabel);
-
-        if (phase === "scan") {
-          setScanFaceVisible(detection.isFaceDetected);
-
-          if (detection.faceDescriptor) {
-            setCapturedFaceDescriptor(detection.faceDescriptor);
-          }
-
-          if (detection.isFaceDetected) {
-            setProgress((current) => {
-              const next = Math.min(100, current + 18);
-
-              if (current < 100 && next >= 100) {
-                window.setTimeout(() => {
-                  if (cancelled) {
-                    return;
-                  }
-
-                  setPhase("confirm");
-                  setStatusText(
-                    capturedName
-                      ? `I recognized this face as ${capturedName}. Is that correct?`
-                      : "I recognized this face. Is that correct?"
-                  );
-                }, 250);
-              }
-
-              return next;
-            });
-          } else {
-            setProgress((current) => Math.max(0, current - 12));
-          }
-
-          scheduleNext();
-          return;
-        }
-
-        if (detection.matchedUser) {
-          const matchedUser = knownUsers.find((user) => user.faceLabel === detection.matchedUser?.faceLabel);
-
-          if (matchedUser) {
-            const isSameUser = registeredUser?.faceLabel === matchedUser.faceLabel;
-
-            if (!isSameUser) {
-              setRegisteredUser(matchedUser);
+                setPhase("confirm");
+                setStatusText(
+                  capturedName
+                    ? `I recognized this face as ${capturedName}. Is that correct?`
+                    : "I recognized this face. Is that correct?"
+                );
+              }, 250);
             }
 
-            if (!isSameUser || phase !== "dashboard") {
-              browserFaceService.stopCamera(video);
-              await loadDashboardData(matchedUser.id);
-              setPhase("dashboard");
-              setStatusText(`Good morning, ${matchedUser.name}`);
-              return;
-            }
+            return next;
+          });
+        } else {
+          setProgress((current) => Math.max(0, current - 12));
+        }
+
+        scheduleNext();
+        return;
+      }
+
+      if (detection.matchedUser) {
+        const matchedUser = knownUsers.find((user) => user.faceLabel === detection.matchedUser?.faceLabel);
+
+        if (matchedUser) {
+          const isSameUser = registeredUser?.faceLabel === matchedUser.faceLabel;
+
+          if (!isSameUser) {
+            setRegisteredUser(matchedUser);
           }
 
-          if (detection.isFaceDetected && !detection.matchedUser && knownUsers.length > 0) {
-            browserFaceService.stopCamera(video);
-            setPhase("unknown");
-            setStatusText("Unknown user detected");
+          if (!isSameUser || phase !== "dashboard") {
+            await loadDashboardData(matchedUser.id);
+            setPhase("dashboard");
+            setStatusText(`Good morning, ${matchedUser.name}`);
             return;
           }
         }
 
-        if (!detection.isFaceDetected && knownUsers.length > 0 && phase === "dashboard") {
-          browserFaceService.stopCamera(video);
+        if (detection.isFaceDetected && !detection.matchedUser && knownUsers.length > 0) {
           setPhase("unknown");
           setStatusText("Unknown user detected");
           return;
-        }
-
-        if (phase === "scan") {
-          scheduleNext();
-          return;
-        }
-
-        if (!detection.isFaceDetected) {
-          scheduleNext();
-          return;
-        }
-
-        if (faceMode === "unknown_person") {
-          browserFaceService.stopCamera(video);
-          setPhase("unknown");
-          setStatusText("Unknown user detected");
-          return;
-        }
-
-        browserFaceService.stopCamera(video);
-        scheduleNext();
-      } finally {
-        if (cameraStarted && phase !== "scan") {
-          browserFaceService.stopCamera(video);
         }
       }
+
+      if (!detection.isFaceDetected && knownUsers.length > 0 && phase === "dashboard") {
+        setPhase("unknown");
+        setStatusText("Unknown user detected");
+        return;
+      }
+
+      if (phase === "scan") {
+        scheduleNext();
+        return;
+      }
+
+      if (!detection.isFaceDetected) {
+        scheduleNext();
+        return;
+      }
+
+      if (faceMode === "unknown_person") {
+        setPhase("unknown");
+        setStatusText("Unknown user detected");
+        return;
+      }
+
+      scheduleNext();
     };
 
     void runDetection();
