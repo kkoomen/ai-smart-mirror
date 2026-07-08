@@ -9,7 +9,9 @@
     "build": "npm-run-all build:frontend build:backend",
     "build:frontend": "npm --prefix frontend run build",
     "build:backend": "npm --prefix backend run build",
+    "models:download": "npm --prefix frontend run models:download",
     "db:push": "npm --prefix backend run db:push",
+    "db:reset": "npm --prefix backend run db:reset",
     "db:generate": "npm --prefix backend run db:generate",
     "db:studio": "npm --prefix backend run db:studio"
   },

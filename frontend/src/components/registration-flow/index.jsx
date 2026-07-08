@@ -1,12 +1,24 @@
 import VoiceControl from "../voice-control";
+import CameraPreview from "../camera-preview";
 
 const stepLabels = {
   name: "Listening for name",
-  scan: "Face scan simulation",
+  scan: "Face scan",
   confirm: "Confirmation step"
 };
 
-export default function RegistrationFlow({ step, name, progress, onCommand, helperText }) {
+export default function RegistrationFlow({
+  step,
+  name,
+  progress,
+  onCommand,
+  helperText,
+  videoRef,
+  scanStatus,
+  faceCentered,
+  faceLargeEnough,
+  detectedFaceLabel
+}) {
   const currentLabel = stepLabels[step];
 
   return (
@@ -17,23 +29,19 @@ export default function RegistrationFlow({ step, name, progress, onCommand, help
       </h2>
 
       {step === "scan" ? (
-        <div className="flex w-full max-w-2xl flex-col gap-3">
-          <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-white/55">
-            <span>Scanning face</span>
-            <span>{progress}%</span>
+        <div className="flex w-full max-w-2xl flex-col gap-4">
+          <CameraPreview
+            videoRef={videoRef}
+            progress={progress}
+            statusText={scanStatus}
+            faceCentered={faceCentered}
+            faceLargeEnough={faceLargeEnough}
+            detectedFaceLabel={detectedFaceLabel}
+          />
+          <div className="space-y-1 text-sm uppercase tracking-[0.25em] text-white/65">
+            <p>Look at the mirror</p>
+            <p>Scanning face...</p>
           </div>
-          <div className="h-px w-full bg-white/15">
-            <div
-              className="h-px bg-white transition-all duration-150"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <p className="text-sm uppercase tracking-[0.25em] text-white/65">
-            Look at the mirror
-          </p>
-          <p className="text-sm uppercase tracking-[0.25em] text-white/65">
-            Scanning face...
-          </p>
         </div>
       ) : null}
 

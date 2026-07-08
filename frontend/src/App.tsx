@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import MirrorLayout from "./components/mirror-layout";
 import LocalTime from "./components/local-time";
 import WeatherForecast from "./components/weather-forecast";
@@ -7,11 +7,19 @@ import StartScreen from "./components/start-screen";
 import RegistrationFlow from "./components/registration-flow";
 import VoiceControl from "./components/voice-control";
 import DeviceStatus from "./components/device-status";
+import PrototypePanel from "./components/prototype-panel";
+import {
+  BrowserFaceRecognitionService,
+  SimulatedFaceRecognitionService,
+  type FaceRecognitionMode,
+  type FaceRecognitionSubject
+} from "./services/face-recognition";
 
 type User = {
   id: number;
   name: string;
   faceLabel: string;
+  faceDescriptor: string | null;
   createdAt: string;
 };
 
@@ -60,7 +68,7 @@ type AgendaResponse = {
   }>;
 };
 
-type VoicePhase = "start" | "name" | "scan" | "confirm" | "dashboard";
+type VoicePhase = "start" | "name" | "scan" | "confirm" | "dashboard" | "unknown";
 type VoiceIntent =
   | "START_REGISTRATION"
   | "PROVIDE_NAME"
@@ -97,26 +105,47 @@ const requestJson = async <T,>(path: string, init?: RequestInit): Promise<T> => 
   return (await response.json()) as T;
 };
 
-const buildFaceLabel = (name: string) =>
-  `face_${name.toLowerCase().trim().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "")}_${Date.now().toString(36)}`;
+const toSubject = (user: User): FaceRecognitionSubject => ({
+  id: user.id,
+  name: user.name,
+  faceLabel: user.faceLabel,
+  faceDescriptor: user.faceDescriptor
+});
 
 export default function App() {
+  const browserFaceService = useMemo(() => new BrowserFaceRecognitionService(), []);
+  const simulatedFaceService = useMemo(() => new SimulatedFaceRecognitionService(), []);
+  const cameraVideoRef = useRef<HTMLVideoElement | null>(null);
   const [phase, setPhase] = useState<VoicePhase>("start");
   const [statusText, setStatusText] = useState("Loading Mirror AI...");
   const [progress, setProgress] = useState(0);
   const [capturedName, setCapturedName] = useState("");
+  const [capturedFaceLabel, setCapturedFaceLabel] = useState<string | null>(null);
+  const [capturedFaceDescriptor, setCapturedFaceDescriptor] = useState<string | null>(null);
   const [registeredUser, setRegisteredUser] = useState<User | null>(null);
+  const [knownUsers, setKnownUsers] = useState<User[]>([]);
   const [weather, setWeather] = useState<WeatherResponse["weather"] | null>(null);
   const [agenda, setAgenda] = useState<AgendaResponse["events"]>([]);
+  const [faceMode, setFaceMode] = useState<FaceRecognitionMode>("live");
+  const [debugPanelOpen, setDebugPanelOpen] = useState(false);
+  const [detectedFaceLabel, setDetectedFaceLabel] = useState<string | null>(null);
+  const [scanCentered, setScanCentered] = useState(false);
+  const [scanLargeEnough, setScanLargeEnough] = useState(false);
+  const [scanFaceVisible, setScanFaceVisible] = useState(false);
 
   const deviceStatus = useMemo(
     () => ({
-      camera: phase === "dashboard" ? "active" : phase === "scan" ? "scanning" : "standby",
+      camera:
+        faceMode === "live" && (phase === "dashboard" || phase === "scan" || phase === "unknown")
+          ? phase === "scan"
+            ? "scanning"
+            : "active"
+          : "standby",
       microphone: phase === "scan" ? "listening" : "ready",
       network: "connected",
       battery: "92%"
     }),
-    [phase]
+    [faceMode, phase]
   );
 
   const loadDashboardData = async (userId: number) => {
@@ -131,20 +160,37 @@ export default function App() {
 
   const bootstrap = async () => {
     try {
+      let faceApiReady = true;
+
+      try {
+        await browserFaceService.load();
+      } catch {
+        faceApiReady = false;
+      }
+
       const [mirrorState, usersResponse] = await Promise.all([
         requestJson<MirrorStateResponse>("/api/mirror/state"),
         requestJson<UsersResponse>("/api/users")
       ]);
 
+      setKnownUsers(usersResponse.users);
+
       if (usersResponse.users.length === 0) {
+        setFaceMode("live");
         setPhase("start");
-        setStatusText("Say 'start registration' to begin");
+        setStatusText(
+          faceApiReady
+            ? "Say 'start registration' to begin"
+            : "Face models are not loaded yet. Say 'start registration' to continue with voice mode."
+        );
         return;
       }
 
       if (mirrorState.activeUser && !mirrorState.registrationComplete) {
         setRegisteredUser(mirrorState.activeUser);
         setCapturedName(mirrorState.activeUser.name);
+        setCapturedFaceLabel(mirrorState.activeUser.faceLabel);
+        setCapturedFaceDescriptor(mirrorState.activeUser.faceDescriptor);
         setPhase("confirm");
         setStatusText(
           `I recognized this face as ${mirrorState.activeUser.name}. Is that correct?`
@@ -154,15 +200,22 @@ export default function App() {
 
       if (mirrorState.registrationComplete && mirrorState.activeUser) {
         setRegisteredUser(mirrorState.activeUser);
+        setFaceMode("live");
         await loadDashboardData(mirrorState.activeUser.id);
         setPhase("dashboard");
         setStatusText(`Good morning, ${mirrorState.activeUser.name}`);
         return;
       }
 
+      setFaceMode("live");
       setPhase("start");
-      setStatusText("Say 'start registration' to begin");
+      setStatusText(
+        faceApiReady
+          ? "Say 'start registration' to begin"
+          : "Face models are not loaded yet. Say 'start registration' to continue with voice mode."
+      );
     } catch {
+      setFaceMode("live");
       setPhase("start");
       setStatusText("Mirror backend unavailable");
     }
@@ -173,34 +226,143 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (phase !== "scan") {
+    if (phase === "name" || phase === "confirm") {
       return;
     }
 
-    setProgress(0);
-    const interval = window.setInterval(() => {
-      setProgress((current) => {
-        if (current >= 100) {
-          window.clearInterval(interval);
-          window.setTimeout(() => {
-            setPhase("confirm");
-            setStatusText(
-              capturedName
-                ? `I recognized this face as ${capturedName}. Is that correct?`
-                : "I recognized this face. Is that correct?"
-            );
-          }, 350);
-          return 100;
+    let cancelled = false;
+    const faceService = faceMode === "live" ? browserFaceService : simulatedFaceService;
+
+    const runDetection = async () => {
+      const detection = await faceService.detectFace({
+        mode: faceMode,
+        knownUsers: knownUsers.map(toSubject),
+        activeUser: registeredUser ? toSubject(registeredUser) : null,
+        video: cameraVideoRef.current,
+        minFaceSizeRatio: 0.24
+      });
+
+      if (cancelled) {
+        return;
+      }
+
+      setDetectedFaceLabel(detection.detectedFaceLabel);
+
+      if (phase === "scan") {
+        setScanCentered(detection.isFaceCentered);
+        setScanLargeEnough(detection.isFaceLargeEnough);
+        setScanFaceVisible(detection.isFaceDetected);
+
+        if (detection.faceDescriptor) {
+          setCapturedFaceDescriptor(detection.faceDescriptor);
         }
 
-        return Math.min(current + 10, 100);
-      });
-    }, 180);
+        if (detection.isFaceDetected && detection.isFaceCentered && detection.isFaceLargeEnough) {
+          setProgress((current) => {
+            const next = Math.min(100, current + 18);
+
+            if (current < 100 && next >= 100) {
+              window.setTimeout(() => {
+                if (cancelled) {
+                  return;
+                }
+
+                setPhase("confirm");
+                setStatusText(
+                  capturedName
+                    ? `I recognized this face as ${capturedName}. Is that correct?`
+                    : "I recognized this face. Is that correct?"
+                );
+              }, 250);
+            }
+
+            return next;
+          });
+        } else {
+          setProgress((current) => Math.max(0, current - 12));
+        }
+
+        return;
+      }
+
+      if (detection.matchedUser) {
+        const matchedUser = knownUsers.find((user) => user.faceLabel === detection.matchedUser?.faceLabel);
+
+        if (matchedUser) {
+          const isSameUser = registeredUser?.faceLabel === matchedUser.faceLabel;
+
+          if (!isSameUser) {
+            setRegisteredUser(matchedUser);
+          }
+
+          if (!isSameUser || phase !== "dashboard") {
+            await loadDashboardData(matchedUser.id);
+            setPhase("dashboard");
+            setStatusText(`Good morning, ${matchedUser.name}`);
+          }
+        }
+
+        return;
+      }
+
+      if (
+        detection.isFaceDetected &&
+        !detection.matchedUser &&
+        (faceMode === "unknown_person" || (faceMode === "live" && knownUsers.length > 0))
+      ) {
+        setPhase("unknown");
+        setStatusText("I don't recognize you yet");
+        return;
+      }
+    };
+
+    void runDetection();
+    const interval = window.setInterval(() => {
+      void runDetection();
+    }, phase === "scan" ? 350 : 2400);
 
     return () => {
+      cancelled = true;
       window.clearInterval(interval);
     };
-  }, [phase, capturedName]);
+  }, [
+    browserFaceService,
+    capturedName,
+    faceMode,
+    knownUsers,
+    phase,
+    registeredUser,
+    simulatedFaceService
+  ]);
+
+  useEffect(() => {
+    const video = cameraVideoRef.current;
+    const shouldUseCamera = faceMode === "live" && (phase === "scan" || phase === "dashboard" || phase === "unknown");
+
+    if (!video || !shouldUseCamera) {
+      browserFaceService.stopCamera(video);
+      return;
+    }
+
+    let cancelled = false;
+
+    const start = async () => {
+      try {
+        await browserFaceService.startCamera(video);
+      } catch {
+        if (!cancelled) {
+          setStatusText("Camera access is required for face scan.");
+        }
+      }
+    };
+
+    void start();
+
+    return () => {
+      cancelled = true;
+      browserFaceService.stopCamera(video);
+    };
+  }, [browserFaceService, faceMode, phase]);
 
   const startRegistration = async () => {
     await requestJson("/api/mirror/start-registration", {
@@ -209,19 +371,44 @@ export default function App() {
     });
 
     setCapturedName("");
+    setCapturedFaceLabel(null);
+    setCapturedFaceDescriptor(null);
     setProgress(0);
+    setScanCentered(false);
+    setScanLargeEnough(false);
+    setScanFaceVisible(false);
     setPhase("name");
     setStatusText("What is your name?");
   };
 
   const createUserAndConfirm = async (name: string) => {
-    const faceLabel = buildFaceLabel(name);
+    const faceLabel = capturedFaceLabel ?? browserFaceService.generateFaceLabel(name);
+    let faceDescriptor = capturedFaceDescriptor;
+
+    if (!faceDescriptor && faceMode === "live" && cameraVideoRef.current) {
+      const fallbackDetection = await browserFaceService.detectFace({
+        mode: "live",
+        knownUsers: knownUsers.map(toSubject),
+        activeUser: registeredUser ? toSubject(registeredUser) : null,
+        video: cameraVideoRef.current,
+        minFaceSizeRatio: 0.24
+      });
+
+      if (fallbackDetection.isFaceDetected && fallbackDetection.faceDescriptor) {
+        faceDescriptor = fallbackDetection.faceDescriptor;
+      }
+    }
+
+    if (!faceDescriptor) {
+      throw new Error("No face descriptor captured. Please scan your face again.");
+    }
 
     const created = await requestJson<{ ok: boolean; user: User }>("/api/mirror/register-user", {
       method: "POST",
       body: JSON.stringify({
         name,
-        faceLabel
+        faceLabel,
+        faceDescriptor
       })
     });
 
@@ -233,7 +420,14 @@ export default function App() {
       })
     });
 
+    setKnownUsers((current) => {
+      const withoutDuplicate = current.filter((user) => user.id !== confirmed.user.id);
+      return [...withoutDuplicate, confirmed.user];
+    });
     setRegisteredUser(confirmed.user);
+    setCapturedFaceLabel(confirmed.user.faceLabel);
+    setCapturedFaceDescriptor(confirmed.user.faceDescriptor);
+    setFaceMode("live");
     await loadDashboardData(confirmed.user.id);
     setPhase("dashboard");
     setStatusText(`Good morning, ${confirmed.user.name}`);
@@ -269,6 +463,7 @@ export default function App() {
       }
 
       setCapturedName(command.name);
+      setCapturedFaceLabel(browserFaceService.generateFaceLabel(command.name));
       setPhase("scan");
       setStatusText("Look at the mirror");
       return;
@@ -311,8 +506,30 @@ export default function App() {
       }
 
       setStatusText(command.response);
+      return;
+    }
+
+    if (currentPhase === "unknown") {
+      if (command.intent === "START_REGISTRATION") {
+        await startRegistration();
+        return;
+      }
+
+      setStatusText("Say 'start registration' to begin");
     }
   };
+
+  const showPanels = phase === "dashboard";
+  const hiddenLiveCamera =
+    faceMode === "live" && (phase === "dashboard" || phase === "unknown") ? (
+      <video
+        ref={cameraVideoRef}
+        autoPlay
+        muted
+        playsInline
+        className="pointer-events-none absolute -left-[9999px] h-px w-px opacity-0"
+      />
+    ) : null;
 
   const centerContent = (() => {
     if (phase === "start") {
@@ -348,6 +565,17 @@ export default function App() {
           progress={progress}
           onCommand={handleVoiceCommand}
           helperText={statusText}
+          videoRef={cameraVideoRef}
+          scanStatus={
+            scanFaceVisible
+              ? scanCentered && scanLargeEnough
+                ? "Face detected"
+                : "Adjust your position"
+              : "Waiting for face"
+          }
+          faceCentered={scanCentered}
+          faceLargeEnough={scanLargeEnough}
+          detectedFaceLabel={detectedFaceLabel}
         />
       );
     }
@@ -364,8 +592,29 @@ export default function App() {
       );
     }
 
+    if (phase === "unknown") {
+      return (
+        <section className="flex flex-col items-center gap-5 text-center">
+          {hiddenLiveCamera}
+          <p className="text-xs uppercase tracking-[0.6em] text-white/45">mirror state</p>
+          <h2 className="max-w-4xl text-4xl font-light tracking-[0.12em] sm:text-6xl lg:text-7xl">
+            I don&apos;t recognize you yet
+          </h2>
+          <p className="max-w-2xl text-sm uppercase tracking-[0.3em] text-white/65 sm:text-base">
+            Try again or start registration.
+          </p>
+          <VoiceControl
+            prompt="Say: start registration"
+            onCommand={handleVoiceCommand}
+            helperText={statusText}
+          />
+        </section>
+      );
+    }
+
     return (
       <section className="flex flex-col items-center gap-5 text-center">
+        {hiddenLiveCamera}
         <p className="text-xs uppercase tracking-[0.6em] text-white/45">mirror state</p>
         <h2 className="max-w-4xl text-4xl font-light tracking-[0.12em] sm:text-6xl lg:text-7xl">
           Good morning, {registeredUser?.name ?? "Mirror user"}
@@ -382,10 +631,10 @@ export default function App() {
     );
   })();
 
-  if (phase === "dashboard") {
-    return (
+  return (
+    <>
       <MirrorLayout
-        showPanels
+        showPanels={showPanels}
         weather={
           weather ? (
             <WeatherForecast
@@ -415,10 +664,21 @@ export default function App() {
           />
         }
         deviceStatus={<DeviceStatus {...deviceStatus} />}
-        center={centerContent}
+        center={
+          <div className="relative">
+            {centerContent}
+            <div className="mt-4 text-center text-[10px] uppercase tracking-[0.35em] text-white/20">
+              {detectedFaceLabel ? `detected: ${detectedFaceLabel}` : "detected: none"}
+            </div>
+          </div>
+        }
       />
-    );
-  }
-
-  return <MirrorLayout showPanels={false} center={centerContent} />;
+      <PrototypePanel
+        open={debugPanelOpen}
+        mode={faceMode}
+        onToggle={() => setDebugPanelOpen((current) => !current)}
+        onModeChange={(mode) => setFaceMode(mode as FaceRecognitionMode)}
+      />
+    </>
+  );
 }

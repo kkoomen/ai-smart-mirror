@@ -1,0 +1,17 @@
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+try {
+  await prisma.$transaction([
+    prisma.voiceCommandLog.deleteMany(),
+    prisma.reminder.deleteMany(),
+    prisma.calendarEvent.deleteMany(),
+    prisma.mirrorState.deleteMany(),
+    prisma.user.deleteMany()
+  ]);
+
+  console.log("Reset local mirror data.");
+} finally {
+  await prisma.$disconnect();
+}

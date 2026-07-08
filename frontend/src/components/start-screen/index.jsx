@@ -6,7 +6,7 @@ export default function StartScreen() {
         Welcome to Mirror AI
       </h1>
       <p className="max-w-2xl text-sm uppercase tracking-[0.3em] text-white/65 sm:text-base">
-        Let&apos;s register your face
+        Say &apos;start registration&apos; to begin
       </p>
     </section>
   );
