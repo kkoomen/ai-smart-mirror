@@ -123,13 +123,13 @@ export default function App() {
   const [capturedName, setCapturedName] = useState("");
   const [capturedFaceLabel, setCapturedFaceLabel] = useState<string | null>(null);
   const [capturedFaceDescriptor, setCapturedFaceDescriptor] = useState<string | null>(null);
+  const [detectedFaceLabel, setDetectedFaceLabel] = useState<string | null>(null);
   const [registeredUser, setRegisteredUser] = useState<User | null>(null);
   const [knownUsers, setKnownUsers] = useState<User[]>([]);
   const [weather, setWeather] = useState<WeatherResponse["weather"] | null>(null);
   const [agenda, setAgenda] = useState<AgendaResponse["events"]>([]);
   const [faceMode, setFaceMode] = useState<FaceRecognitionMode>("live");
   const [debugPanelOpen, setDebugPanelOpen] = useState(false);
-  const [detectedFaceLabel, setDetectedFaceLabel] = useState<string | null>(null);
   const [scanFaceVisible, setScanFaceVisible] = useState(false);
 
   const deviceStatus = useMemo(
@@ -392,6 +392,7 @@ export default function App() {
     setCapturedName("");
     setCapturedFaceLabel(null);
     setCapturedFaceDescriptor(null);
+    setDetectedFaceLabel(null);
     setProgress(0);
     setScanFaceVisible(false);
     setPhase("name");
@@ -584,7 +585,6 @@ export default function App() {
           helperText={statusText}
           videoRef={scanVideoRef}
           scanStatus={scanFaceVisible ? "Face detected" : "Waiting for face"}
-          detectedFaceLabel={detectedFaceLabel}
         />
       );
     }
