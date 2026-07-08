@@ -67,6 +67,7 @@ export type MirrorVoiceOptions = {
   weather: WeatherData | null;
   wakeMirror: () => void;
   sleepMirror: () => void;
+  clearDashboardPresenceTimer: () => void;
   startRegistration: () => Promise<void>;
   createUserAndConfirm: (name: string, faceDescriptorOverride?: string | null) => Promise<void>;
   getUmbrellaAnswer: (location: string) => Promise<string>;

@@ -12,6 +12,7 @@ export const useMirrorVoice = ({
   weather,
   wakeMirror,
   sleepMirror,
+  clearDashboardPresenceTimer,
   startRegistration,
   createUserAndConfirm,
   getUmbrellaAnswer,
@@ -38,6 +39,7 @@ export const useMirrorVoice = ({
         return;
       }
 
+      clearDashboardPresenceTimer();
       setMirrorFadingOut(true);
       return;
     }

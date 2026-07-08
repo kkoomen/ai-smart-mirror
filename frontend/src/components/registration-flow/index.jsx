@@ -28,10 +28,6 @@ export default function RegistrationFlow({
         {step === "scan" ? (
           <div className="flex w-full max-w-2xl flex-col gap-4">
             <CameraPreview videoRef={videoRef} progress={progress} statusText={scanStatus} />
-            <div className="space-y-1 text-sm uppercase tracking-[0.25em] text-white/65">
-              <p>Look at the mirror</p>
-              <p>Scanning face...</p>
-            </div>
           </div>
         ) : null}
 
