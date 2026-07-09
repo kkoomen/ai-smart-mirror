@@ -156,9 +156,6 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     navigate("/register");
     setPhase("name");
     setStatusMessage({ key: "status.sayYourName" });
-    speakText(
-      getSpeechPrompt("startRegistration", normalizeLanguage(i18n.resolvedLanguage ?? i18n.language))
-    );
   };
 
   const createUserAndConfirm = async (name: string, faceDescriptorOverride?: string | null) => {
@@ -341,6 +338,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     startRegistration,
     handleVoiceCommand,
     setMirrorFadingOut: setIsMirrorFadingOut,
-    browserFaceService
+    browserFaceService,
+    speakText
   };
 };

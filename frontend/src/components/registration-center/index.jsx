@@ -7,13 +7,20 @@ export default function RegistrationCenter({ controller }) {
 
   if (phase === "name") {
     return (
-      <RegistrationFlow step="name" name={capturedName} progress={0} helperText={statusText} />
+      <RegistrationFlow
+        controller={controller}
+        step="name"
+        name={capturedName}
+        progress={0}
+        helperText={statusText}
+      />
     );
   }
 
   if (phase === "nameConfirm") {
     return (
       <RegistrationFlow
+        controller={controller}
         step="nameConfirm"
         name={capturedName}
         progress={0}
@@ -25,6 +32,7 @@ export default function RegistrationCenter({ controller }) {
   if (phase === "scan") {
     return (
       <RegistrationFlow
+        controller={controller}
         step="scan"
         name={capturedName}
         progress={progress}
@@ -38,6 +46,7 @@ export default function RegistrationCenter({ controller }) {
   if (phase === "confirm") {
     return (
       <RegistrationFlow
+        controller={controller}
         step="confirm"
         name={capturedName}
         progress={100}

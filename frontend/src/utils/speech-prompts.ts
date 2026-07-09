@@ -54,7 +54,7 @@ export const getSpeechPrompt = (
     case "sayYourName":
       return "Say your name.";
     case "startRegistration":
-      return "Say: start registration to start the registration process.";
+      return "Say: start registration";
     case "confirmName":
       return `Is ${name} your name?`;
     case "sayYesOrNo":

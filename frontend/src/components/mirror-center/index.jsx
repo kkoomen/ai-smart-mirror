@@ -1,8 +1,27 @@
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { normalizeLanguage } from "../../i18n/languages";
+import { getSpeechPrompt } from "../../utils/speech-prompts";
 
 export default function MirrorCenter({ controller }) {
-  const { t } = useTranslation();
-  const { phase, registeredUser } = controller;
+  const { t, i18n } = useTranslation();
+  const { phase, registeredUser, speakText } = controller;
+  const hasSpokenStartPromptRef = useRef(false);
+
+  useEffect(() => {
+    if (phase !== "unknown" || hasSpokenStartPromptRef.current) {
+      return;
+    }
+
+    hasSpokenStartPromptRef.current = true;
+    speakText(getSpeechPrompt("startRegistration", normalizeLanguage(i18n.language)));
+  }, [i18n.language, phase, speakText]);
+
+  useEffect(() => {
+    if (phase !== "unknown") {
+      hasSpokenStartPromptRef.current = false;
+    }
+  }, [phase]);
 
   if (phase === "hello") {
     return (

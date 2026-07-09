@@ -32,6 +32,7 @@ export type MirrorController = {
   handleVoiceCommand: (spokenText: string) => Promise<void>;
   setMirrorFadingOut: (value: boolean) => void;
   browserFaceService: BrowserFaceRecognitionService;
+  speakText: (text: string, language?: AppLanguage) => void;
 };
 
 export type MirrorBootstrapOptions = {
