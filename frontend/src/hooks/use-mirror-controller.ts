@@ -1,33 +1,21 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import i18n from "../i18n";
-import { normalizeLanguage, type AppLanguage } from "../i18n/languages";
+import type { AppLanguage } from "../i18n/languages";
 import { BrowserFaceRecognitionService } from "../services/face-recognition";
-import type { DashboardSummaryRequest } from "../types/api";
 import type { MirrorController } from "../types/mirror-controller";
 import type { LocalizedMessage } from "../types/i18n";
 import type { User } from "../types/user";
 import type { MirrorPhase } from "../types/mirror-phase";
-import { toSubject } from "../utils/face-recognition";
-import { cancelSpeech, preloadSpeech, speakText as speakBrowserText, type SpeakTextOptions } from "../utils/speech";
-import { getSpeechPrompt } from "../utils/speech-prompts";
+import { cancelSpeech } from "../utils/speech";
 import { useMirrorBootstrap } from "../controllers/mirror/use-mirror-bootstrap";
 import { useMirrorFaceDetection } from "../controllers/mirror/use-mirror-face-detection";
 import { useMirrorVoice } from "../controllers/mirror/use-mirror-voice";
-import { dashboardPresenceTimeoutMs } from "../constants";
-import {
-  confirmMirrorFace,
-  generateMirrorDashboardSummary,
-  registerMirrorUser,
-  startMirrorRegistration
-} from "../api/mirror";
-import { getUserAgendaToday, updateUserLanguage } from "../api/users";
-import { getWeather } from "../api/weather";
-import {
-  buildKnownUsersWithUpdatedUser,
-  initialMirrorState,
-  mirrorReducer
-} from "../features/mirror/mirror-reducer";
+import { useDashboardData } from "../controllers/mirror/use-dashboard-data";
+import { useDashboardPresence } from "../controllers/mirror/use-dashboard-presence";
+import { useLanguageFlow } from "../controllers/mirror/use-language-flow";
+import { useMirrorSpeech } from "../controllers/mirror/use-mirror-speech";
+import { useRegistrationFlow } from "../controllers/mirror/use-registration-flow";
+import { initialMirrorState, mirrorReducer } from "../features/mirror/mirror-reducer";
 
 export const useMirrorController = (navigate: (path: string) => void): MirrorController => {
   const { t } = useTranslation();
@@ -115,10 +103,6 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   }, []);
 
   useEffect(() => {
-    preloadSpeech();
-  }, []);
-
-  useEffect(() => {
     if (phase !== "hello") {
       return;
     }
@@ -130,42 +114,15 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     return () => window.clearTimeout(timeoutId);
   }, [phase]);
 
-  useEffect(() => {
-    if (phase !== "dashboard" || !registeredUser) {
-      return;
-    }
-
-    let cancelled = false;
-    dashboardPresenceTimerRef.current = window.setTimeout(async () => {
-      if (cancelled) {
-        return;
-      }
-
-      try {
-        const detection = await browserFaceService.detectFace({
-          knownUsers: knownUsers.map(toSubject),
-          video: idleVideoRef.current
-        });
-
-        const activeFaceLabel = registeredUser.faceLabel;
-        const matchedFaceLabel = detection.matchedUser?.faceLabel ?? null;
-
-        if (!detection.isFaceDetected || matchedFaceLabel !== activeFaceLabel) {
-          dispatch({ type: "PRESENCE_LOST" });
-        }
-      } catch (error) {
-        console.error("Dashboard presence check failed", error);
-      }
-    }, dashboardPresenceTimeoutMs);
-
-    return () => {
-      cancelled = true;
-      if (dashboardPresenceTimerRef.current !== null) {
-        window.clearTimeout(dashboardPresenceTimerRef.current);
-        dashboardPresenceTimerRef.current = null;
-      }
-    };
-  }, [browserFaceService, idleVideoRef, knownUsers, phase, registeredUser]);
+  useDashboardPresence({
+    browserFaceService,
+    dashboardPresenceTimerRef,
+    dispatch,
+    idleVideoRef,
+    knownUsers,
+    phase,
+    registeredUser
+  });
 
   const clearDashboardPresenceTimer = () => {
     if (dashboardPresenceTimerRef.current !== null) {
@@ -174,134 +131,29 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     }
   };
 
-  const speakText = useCallback(
-    (text: string, language?: AppLanguage, interrupt = true, options?: SpeakTextOptions) => {
-      speakBrowserText(
-        text,
-        language ?? normalizeLanguage(i18n.resolvedLanguage ?? i18n.language),
-        interrupt,
-        options
-      );
-    },
-    [i18n.language, i18n.resolvedLanguage]
-  );
-
-  const loadWeatherForLocation = async (location: string) => {
-    const response = await getWeather(location);
-
-    dispatch({ type: "WEATHER_LOADED", weather: response.weather });
-    return response.weather;
-  };
-
-  const loadDashboardData = async (userId: number, location: string) => {
-    const [weatherResponse, agendaResponse] = await Promise.all([
-      loadWeatherForLocation(location),
-      getUserAgendaToday(userId)
-    ]);
-
-    const summaryResponse = await generateMirrorDashboardSummary({
-      weather: weatherResponse,
-      appointmentCount: agendaResponse.events.length,
-      language: normalizeLanguage(i18n.resolvedLanguage ?? i18n.language)
-    } satisfies DashboardSummaryRequest);
-
-    dispatch({
-      type: "DASHBOARD_DATA_LOADED",
-      weather: weatherResponse,
-      agenda: agendaResponse.events,
-      summary: summaryResponse.summary
-    });
-  };
-
-  const startRegistration = async () => {
-    await startMirrorRegistration();
-
-    dispatch({ type: "REGISTRATION_STARTED" });
-    registrationCompletingRef.current = false;
-    navigate("/register");
-  };
-
-  const createUserAndConfirm = async (name: string, faceDescriptorOverride?: string | null) => {
-    const preferredLanguage = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
-    const faceLabel = capturedFaceLabel ?? browserFaceService.generateFaceLabel(name);
-    let faceDescriptor = faceDescriptorOverride ?? capturedFaceDescriptor;
-
-    if (!faceDescriptor && (scanVideoRef.current || idleVideoRef.current)) {
-      const fallbackVideo = scanVideoRef.current ?? idleVideoRef.current;
-      const fallbackDetection = await browserFaceService.detectFace({
-        knownUsers: knownUsers.map(toSubject),
-        video: fallbackVideo
-      });
-
-      if (fallbackDetection.isFaceDetected && fallbackDetection.faceDescriptor) {
-        faceDescriptor = fallbackDetection.faceDescriptor;
-      }
-    }
-
-    if (!faceDescriptor) {
-      throw new Error("No face descriptor captured. Please scan your face again.");
-    }
-
-    const created = await registerMirrorUser({
-      name,
-      faceLabel,
-      faceDescriptor,
-      preferredLanguage
-    });
-
-    const confirmed = await confirmMirrorFace({
-      userId: created.user.id,
-      faceLabel: created.user.faceLabel
-    });
-
-    dispatch({ type: "REGISTRATION_COMPLETED", user: confirmed.user });
-    registrationCompletingRef.current = false;
-    await loadDashboardData(confirmed.user.id, confirmed.user.location);
-    navigate("/");
-    speakText(
-      getSpeechPrompt("hello", normalizeLanguage(confirmed.user.preferredLanguage), {
-        name: confirmed.user.name
-      }),
-      normalizeLanguage(confirmed.user.preferredLanguage)
-    );
-  };
-
-  const persistUserLanguage = async (language: AppLanguage) => {
-    if (!registeredUser) {
-      return;
-    }
-
-    const response = await updateUserLanguage(registeredUser.id, {
-      preferredLanguage: language
-    });
-
-    dispatch({ type: "REGISTERED_USER_CHANGED", user: response.user });
-    dispatch({
-      type: "KNOWN_USERS_CHANGED",
-      users: buildKnownUsersWithUpdatedUser(knownUsers, response.user)
-    });
-    await loadDashboardData(response.user.id, response.user.location);
-  };
-
-  const beginLanguageChange = (language: AppLanguage) => {
-    pendingLanguageChangeRef.current = language;
-    dispatch({ type: "LANGUAGE_CHANGE_STARTED" });
-  };
-
-  const finishLanguageChange = async () => {
-    const targetLanguage = pendingLanguageChangeRef.current;
-    pendingLanguageChangeRef.current = null;
-
-    if (!targetLanguage || !registeredUser) {
-      dispatch({ type: "MIRROR_FADING_CHANGED", isFadingOut: false });
-      return;
-    }
-
-    await i18n.changeLanguage(targetLanguage);
-    await persistUserLanguage(targetLanguage);
-    dispatch({ type: "LANGUAGE_CHANGE_COMPLETED" });
-    navigate("/");
-  };
+  const speakText = useMirrorSpeech();
+  const { loadDashboardData } = useDashboardData(dispatch);
+  const { createUserAndConfirm, startRegistration } = useRegistrationFlow({
+    browserFaceService,
+    capturedFaceDescriptor,
+    capturedFaceLabel,
+    dispatch,
+    idleVideoRef,
+    knownUsers,
+    loadDashboardData,
+    navigate,
+    registrationCompletingRef,
+    scanVideoRef,
+    speakText
+  });
+  const { beginLanguageChange, finishLanguageChange, persistUserLanguage } = useLanguageFlow({
+    dispatch,
+    knownUsers,
+    loadDashboardData,
+    navigate,
+    pendingLanguageChangeRef,
+    registeredUser
+  });
 
   const sleepMirror = () => {
     clearDashboardPresenceTimer();
