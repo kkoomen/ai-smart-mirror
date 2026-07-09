@@ -4,7 +4,6 @@ import { normalizeLanguage } from "../../../i18n/languages";
 import { dashboardPresenceTimeoutMs } from "../../../constants";
 import type { MirrorFaceDetectionOptions } from "../../../types/mirror-controller";
 import { toSubject } from "../../../utils/face-recognition";
-import { getSpeechPrompt } from "../../../utils/speech-prompts";
 
 export const useMirrorFaceDetection = ({
   faceDetectionActions,
@@ -24,7 +23,7 @@ export const useMirrorFaceDetection = ({
     let cancelled = false;
     let timeoutId: number | null = null;
     const scanProgressDecayStep = 3;
-    const getScanProgressStep = () => Math.floor(Math.random() * 8) + 3;
+    const getScanProgressStep = () => Math.floor(Math.random() * 10) + 3;
     const delayMs =
       phase === "dashboard"
         ? dashboardPresenceTimeoutMs
@@ -128,12 +127,6 @@ export const useMirrorFaceDetection = ({
           await i18n.changeLanguage(normalizeLanguage(matchedUser.preferredLanguage));
           faceDetectionActions.completeWake(matchedUser);
           await loadDashboardData(matchedUser.id, matchedUser.location);
-          speakText(
-            getSpeechPrompt("hello", normalizeLanguage(matchedUser.preferredLanguage), {
-              name: matchedUser.name
-            }),
-            normalizeLanguage(matchedUser.preferredLanguage)
-          );
           return;
         }
 

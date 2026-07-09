@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import type { AppLanguage } from "../../i18n/languages";
+import { normalizeLanguage, type AppLanguage } from "../../i18n/languages";
 import { BrowserFaceRecognitionService } from "../../services/face-recognition";
 import type { MirrorController } from "../../types/mirror-controller";
 import type { LocalizedMessage } from "../../types/i18n";
 import type { User } from "../../types/user";
 import { cancelSpeech } from "../../utils/speech";
+import { getSpeechPrompt } from "../../utils/speech-prompts";
 import { useMirrorBootstrap } from "./controllers/use-mirror-bootstrap";
 import { useMirrorFaceDetection } from "./controllers/use-mirror-face-detection";
 import { useMirrorVoice } from "./controllers/use-mirror-voice";
@@ -25,6 +26,8 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   const registrationCompletingRef = useRef(false);
   const dashboardPresenceTimerRef = useRef<number | null>(null);
   const pendingLanguageChangeRef = useRef<AppLanguage | null>(null);
+  const helloFallbackTimerRef = useRef<number | null>(null);
+  const lastHelloSpokenForUserRef = useRef<number | null>(null);
   const progressRef = useRef(0);
   const capturedFaceLabelRef = useRef<string | null>(null);
   const capturedFaceDescriptorRef = useRef<string | null>(null);
@@ -196,18 +199,6 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     [browserFaceService, registrationCompletingRef]
   );
 
-  useEffect(() => {
-    if (phase !== "hello") {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      dispatch({ type: "PHASE_CHANGED", phase: "dashboard" });
-    }, 2000);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [phase]);
-
   useDashboardPresence({
     browserFaceService,
     dashboardPresenceTimerRef,
@@ -250,6 +241,52 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   );
   const sleepMirror = mirrorActions.sleep;
   const wakeMirror = mirrorActions.wake;
+
+  useEffect(() => {
+    if (phase !== "hello" || !registeredUser) {
+      if (helloFallbackTimerRef.current !== null) {
+        window.clearTimeout(helloFallbackTimerRef.current);
+        helloFallbackTimerRef.current = null;
+      }
+
+      lastHelloSpokenForUserRef.current = null;
+
+      return;
+    }
+
+    if (lastHelloSpokenForUserRef.current === registeredUser.id) {
+      return;
+    }
+
+    lastHelloSpokenForUserRef.current = registeredUser.id;
+    const language = normalizeLanguage(registeredUser.preferredLanguage);
+    const completeHelloPhase = () => {
+      if (helloFallbackTimerRef.current !== null) {
+        window.clearTimeout(helloFallbackTimerRef.current);
+        helloFallbackTimerRef.current = null;
+      }
+
+      dispatch({ type: "PHASE_CHANGED", phase: "dashboard" });
+    };
+
+    helloFallbackTimerRef.current = window.setTimeout(() => {
+      completeHelloPhase();
+    }, 7000);
+
+    speakText(getSpeechPrompt("hello", language, { name: registeredUser.name }), language, true, {
+      onEnd: completeHelloPhase,
+      onError: () => {
+        completeHelloPhase();
+      }
+    });
+
+    return () => {
+      if (helloFallbackTimerRef.current !== null) {
+        window.clearTimeout(helloFallbackTimerRef.current);
+        helloFallbackTimerRef.current = null;
+      }
+    };
+  }, [phase, registeredUser, speakText]);
 
   useMirrorBootstrap({
     browserFaceService,

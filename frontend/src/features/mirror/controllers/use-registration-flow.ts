@@ -6,7 +6,6 @@ import { registerMirrorUser, startMirrorRegistration } from "../../../api/mirror
 import type { BrowserFaceRecognitionService } from "../../../services/face-recognition";
 import type { User } from "../../../types/user";
 import { toSubject } from "../../../utils/face-recognition";
-import { getSpeechPrompt } from "../../../utils/speech-prompts";
 import type { MirrorAction } from "../mirror-reducer";
 
 type RegistrationFlowOptions = {
@@ -87,12 +86,6 @@ export const useRegistrationFlow = ({
       dispatch({ type: "REGISTRATION_COMPLETED", user: created.user });
       registrationCompletingRef.current = false;
       navigate("/");
-      speakText(
-        getSpeechPrompt("hello", normalizeLanguage(created.user.preferredLanguage), {
-          name: created.user.name
-        }),
-        normalizeLanguage(created.user.preferredLanguage)
-      );
       console.info("[Mirror registration] transitioned to home");
       void loadDashboardData(created.user.id, created.user.location).catch((error) => {
         console.error("Failed to load dashboard data after registration", error);
