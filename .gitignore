@@ -15,3 +15,6 @@ frontend/dist
 # Prisma
 backend/prisma/dev.db
 backend/prisma/dev.db-journal
+
+# Local OS/editor artifacts
+**/.DS_Store

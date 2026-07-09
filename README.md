@@ -75,11 +75,23 @@ Notes:
 - `npm run build` - build both apps
 - `npm run build:frontend` - build the frontend only
 - `npm run build:backend` - build the backend only
+- `npm run typecheck` - run frontend and backend TypeScript checks
+- `npm run lint` - run ESLint
+- `npm run test` - run Vitest tests
+- `npm run format` - format the repository with Prettier
+- `npm run format:check` - check Prettier formatting
+- `npm run check` - run typecheck, lint, tests, and format check
 - `npm run models:download` - download face-api.js models into `frontend/public/models`
 - `npm run db:push` - create/update the SQLite schema
 - `npm run db:reset` - clear local SQLite data and recreate the schema
 - `npm run db:generate` - generate the Prisma client
 - `npm run db:studio` - open Prisma Studio
+
+## Repository Hygiene
+
+- Local databases, env files, build output, `node_modules`, OS files, and local tool state are ignored.
+- `demo.jpg` is intentionally tracked as the README preview image.
+- `frontend/public/models` is intentionally tracked so face recognition works after install.
 
 ## App Flow
 
