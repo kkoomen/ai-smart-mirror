@@ -6,7 +6,7 @@ import { normalizeLanguage } from "../../i18n/languages";
 import type { MirrorController } from "../../types/mirror-controller";
 import { getSpeechPrompt } from "../../utils/speech-prompts";
 
-type RegistrationStep = "name" | "nameConfirm" | "scan" | "confirm";
+type RegistrationStep = "name" | "nameConfirm" | "scan";
 
 type RegistrationFlowProps = {
   step: RegistrationStep;
@@ -32,8 +32,7 @@ export default function RegistrationFlow({
   const currentLabelMap: Record<RegistrationStep, string> = {
     name: t("register.flow.name"),
     nameConfirm: t("register.flow.nameConfirm"),
-    scan: t("register.flow.scan"),
-    confirm: t("register.flow.confirm")
+    scan: t("register.flow.scan")
   };
 
   useEffect(() => {
@@ -67,17 +66,6 @@ export default function RegistrationFlow({
           </div>
         ) : null}
 
-        {step === "confirm" ? (
-          <div className="space-y-3">
-            <p className="text-sm uppercase tracking-[0.25em] text-white/65">
-              {t("register.flow.confirmFace", { name })}
-            </p>
-            <p className="text-xs uppercase tracking-[0.3em] text-white/40">
-              {t("register.flow.yesNoTryAgain")}
-            </p>
-          </div>
-        ) : null}
-
         {step === "nameConfirm" ? (
           <div className="space-y-3">
             <p className="text-sm uppercase tracking-[0.25em] text-white/65">
@@ -94,7 +82,7 @@ export default function RegistrationFlow({
             {t("register.flow.sayYourName")}
           </p>
         ) : null}
-        {step !== "name" && step !== "nameConfirm" ? (
+        {step === "scan" ? (
           <p className="text-xs uppercase tracking-[0.25em] text-white/45">{helperText}</p>
         ) : null}
       </FadeTransition>

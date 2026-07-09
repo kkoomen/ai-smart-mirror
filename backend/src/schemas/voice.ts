@@ -14,7 +14,6 @@ export const voiceCommandRouteSchema = {
           "name",
           "nameConfirm",
           "scan",
-          "confirm",
           "changeLanguage",
           "dashboard",
           "unknown"

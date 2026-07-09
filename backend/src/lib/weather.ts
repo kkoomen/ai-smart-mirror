@@ -25,5 +25,3 @@ export const getWeatherForLocation = async (location?: string | null) => {
 
   return freshWeather;
 };
-
-export const defaultWeatherLocation = DEFAULT_WEATHER_LOCATION;

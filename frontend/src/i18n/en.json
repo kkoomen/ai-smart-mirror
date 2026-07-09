@@ -11,12 +11,9 @@
       "name": "How can I call you?",
       "nameConfirm": "Name confirmation",
       "scan": "Face scan",
-      "confirm": "Confirmation step",
       "sayYourName": "Say your name",
       "confirmName": "Is \"{{name}}\" your name?",
-      "confirmFace": "I recognized this face as {{name}}. Is that correct?",
       "yesNo": "Say: Yes or no",
-      "yesNoTryAgain": "Say: yes, no, or try again",
       "lookAtMirror": "Look at the mirror",
       "scanningFace": "Scanning face..."
     },

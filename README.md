@@ -119,7 +119,7 @@ npm run test
 - The mirror starts idle on a black screen while camera and microphone remain available.
 - Say `hello/hey/hi mirror` to wake it.
 - If no user exists, the mirror shows the welcome screen where the user can register their name and face.
-- Registration captures the user's name by voice, confirms it, scans the face with webcam, stores the face descriptor, and creates the first user.
+- Registration captures the user's name by voice, confirms the name, scans the face with webcam, stores the face descriptor, and creates the first user.
 - After recognition, the mirror says `Hello <name>`, then shows weather, time, agenda, and device status.
 - The center summary is generated from weather and appointment count, spoken with TTS.
 - Say something like `I want to change language` from the dashboard to switch between English and Mandarin by voice.

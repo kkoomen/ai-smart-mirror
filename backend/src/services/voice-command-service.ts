@@ -33,7 +33,6 @@ const isVoicePhase = (value: string): value is VoicePhase => {
     value === "name" ||
     value === "nameConfirm" ||
     value === "scan" ||
-    value === "confirm" ||
     value === "changeLanguage" ||
     value === "dashboard" ||
     value === "unknown"

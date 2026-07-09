@@ -113,8 +113,6 @@ export type MirrorVoiceOptions = {
   languageActions: LanguageVoiceActions;
   clearDashboardPresenceTimer: () => void;
   startRegistration: () => Promise<void>;
-  createUserAndConfirm: (name: string, faceDescriptorOverride?: string | null) => Promise<void>;
-  capturedName: string;
   hasRegisteredUsers: boolean;
   speakText: (
     text: string,

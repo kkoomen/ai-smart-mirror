@@ -7,7 +7,6 @@ export type MirrorPhaseDto =
   | "name"
   | "nameConfirm"
   | "scan"
-  | "confirm"
   | "changeLanguage"
   | "dashboard"
   | "unknown";

@@ -52,8 +52,6 @@ export const createMirrorVoiceHandler = ({
   languageActions,
   clearDashboardPresenceTimer,
   startRegistration,
-  createUserAndConfirm,
-  capturedName,
   hasRegisteredUsers,
   speakText,
   currentLanguage,
@@ -153,22 +151,6 @@ export const createMirrorVoiceHandler = ({
     if (phase === "scan") {
       mirrorActions.setStatus({ key: "status.lookAtMirror" });
       void speakText(getSpeechPrompt("lookAtMirror", currentLanguage), currentLanguage);
-      return;
-    }
-
-    if (phase === "confirm") {
-      if (command.intent === "CONFIRM_NO") {
-        await startRegistration();
-        return;
-      }
-
-      if (command.intent !== "CONFIRM_YES") {
-        mirrorActions.setStatus({ key: "status.sayYesOrNo" });
-        void speakText(getSpeechPrompt("sayYesOrNo", currentLanguage), currentLanguage);
-        return;
-      }
-
-      await createUserAndConfirm(capturedName || command.name || "John");
       return;
     }
 

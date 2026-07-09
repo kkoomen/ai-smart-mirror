@@ -21,7 +21,6 @@ export type VoicePhase =
   | "name"
   | "nameConfirm"
   | "scan"
-  | "confirm"
   | "changeLanguage"
   | "dashboard"
   | "unknown";

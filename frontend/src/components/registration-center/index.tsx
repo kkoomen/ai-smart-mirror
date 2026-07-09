@@ -50,17 +50,5 @@ export default function RegistrationCenter({ controller }: RegistrationCenterPro
     );
   }
 
-  if (phase === "confirm") {
-    return (
-      <RegistrationFlow
-        controller={controller}
-        step="confirm"
-        name={capturedName}
-        progress={100}
-        helperText={statusText}
-      />
-    );
-  }
-
   return null;
 }
