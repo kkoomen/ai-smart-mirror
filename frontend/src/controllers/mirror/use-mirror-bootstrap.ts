@@ -8,13 +8,7 @@ import { getUsers } from "../../api/users";
 
 export const useMirrorBootstrap = ({
   browserFaceService,
-  setKnownUsers,
-  setRegisteredUser,
-  setCapturedName,
-  setCapturedFaceLabel,
-  setCapturedFaceDescriptor,
-  setPhase,
-  setStatusText,
+  bootstrapActions,
   speakText
 }: MirrorBootstrapOptions) => {
   useEffect(() => {
@@ -29,22 +23,16 @@ export const useMirrorBootstrap = ({
           getUsers()
         ]);
 
-        setKnownUsers(usersResponse.users);
+        bootstrapActions.loadKnownUsers(usersResponse.users);
 
         if (usersResponse.users.length === 0) {
-          setPhase("idle");
-          setStatusText({ key: "status.sayHeyMirrorToWake" });
+          bootstrapActions.enterIdle();
           return;
         }
 
         if (mirrorState.activeUser && !mirrorState.registrationComplete) {
           await i18n.changeLanguage(normalizeLanguage(mirrorState.activeUser.preferredLanguage));
-          setRegisteredUser(mirrorState.activeUser);
-          setCapturedName(mirrorState.activeUser.name);
-          setCapturedFaceLabel(mirrorState.activeUser.faceLabel);
-          setCapturedFaceDescriptor(mirrorState.activeUser.faceDescriptor);
-          setPhase("nameConfirm");
-          setStatusText({ key: "register.flow.yesNoTryAgain" });
+          bootstrapActions.restoreRegistrationUser(mirrorState.activeUser);
           speakText(
             getSpeechPrompt(
               "confirmName",
@@ -58,29 +46,16 @@ export const useMirrorBootstrap = ({
 
         if (mirrorState.registrationComplete && mirrorState.activeUser) {
           await i18n.changeLanguage(normalizeLanguage(mirrorState.activeUser.preferredLanguage));
-          setRegisteredUser(null);
-          setPhase("idle");
-          setStatusText({ key: "status.sayHeyMirrorToWake" });
+          bootstrapActions.enterIdle();
           return;
         }
 
-        setPhase("idle");
-        setStatusText({ key: "status.sayHeyMirrorToWake" });
+        bootstrapActions.enterIdle();
       } catch {
-        setPhase("idle");
-        setStatusText({ key: "status.backendUnavailable" });
+        bootstrapActions.failBootstrap();
       }
     };
 
     void bootstrap();
-  }, [
-    browserFaceService,
-    setCapturedFaceDescriptor,
-    setCapturedFaceLabel,
-    setCapturedName,
-    setKnownUsers,
-    setPhase,
-    setRegisteredUser,
-    setStatusText
-  ]);
+  }, [bootstrapActions, browserFaceService, speakText]);
 };

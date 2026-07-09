@@ -7,12 +7,7 @@ import { toSubject } from "../../utils/face-recognition";
 import { getSpeechPrompt } from "../../utils/speech-prompts";
 
 export const useMirrorFaceDetection = ({
-  setProgress,
-  setScanFaceVisible,
-  setCapturedFaceDescriptor,
-  setRegisteredUser,
-  setPhase,
-  setStatusText,
+  faceDetectionActions,
   loadDashboardData,
   createUserAndConfirm,
   capturedName,
@@ -71,19 +66,19 @@ export const useMirrorFaceDetection = ({
       }
 
       if (phase === "scan") {
-        setScanFaceVisible(detection.isFaceDetected);
+        faceDetectionActions.setScanFaceVisible(detection.isFaceDetected);
 
         if (detection.faceDescriptor) {
-          setCapturedFaceDescriptor(detection.faceDescriptor);
+          faceDetectionActions.captureFaceDescriptor(detection.faceDescriptor);
         }
 
         if (detection.isFaceDetected) {
-          setProgress((current) => {
+          faceDetectionActions.updateScanProgress((current) => {
             const next = Math.min(100, current + 18);
 
             if (current < 100 && next >= 100 && !registrationCompletingRef.current) {
               registrationCompletingRef.current = true;
-              setStatusText({ key: "status.completingRegistration" });
+              faceDetectionActions.setStatus({ key: "status.completingRegistration" });
               window.setTimeout(() => {
                 if (cancelled) {
                   return;
@@ -92,10 +87,10 @@ export const useMirrorFaceDetection = ({
                 void createUserAndConfirm(capturedName || "Mirror user", detection.faceDescriptor).catch(
                   (error) => {
                     registrationCompletingRef.current = false;
-                    setStatusText({
+                    faceDetectionActions.setStatus({
                       key: "status.registrationFailed"
                     });
-                    setPhase("scan");
+                    faceDetectionActions.resetToScan();
                   }
                 );
               }, 250);
@@ -104,7 +99,7 @@ export const useMirrorFaceDetection = ({
             return next;
           });
         } else {
-          setProgress((current) => Math.max(0, current - 12));
+          faceDetectionActions.updateScanProgress((current) => Math.max(0, current - 12));
         }
 
         scheduleNext();
@@ -116,10 +111,8 @@ export const useMirrorFaceDetection = ({
 
         if (matchedUser) {
           await i18n.changeLanguage(normalizeLanguage(matchedUser.preferredLanguage));
-          setRegisteredUser(matchedUser);
+          faceDetectionActions.completeWake(matchedUser);
           await loadDashboardData(matchedUser.id, matchedUser.location);
-          setPhase("hello");
-          setStatusText({ key: "status.hello", values: { name: matchedUser.name } });
           speakText(
             getSpeechPrompt("hello", normalizeLanguage(matchedUser.preferredLanguage), {
               name: matchedUser.name
@@ -133,8 +126,7 @@ export const useMirrorFaceDetection = ({
         const wakeTimedOut = Date.now() - wakeStartedAt > 3000;
 
         if (detection.isFaceDetected || wakeTimedOut) {
-          setPhase("unknown");
-          setStatusText({ key: "status.unknownUserDetected" });
+          faceDetectionActions.markUnknownUser();
           return;
         }
 
@@ -167,12 +159,7 @@ export const useMirrorFaceDetection = ({
     phase,
     registrationCompletingRef,
     scanVideoRef,
-    setCapturedFaceDescriptor,
-    setPhase,
-    setProgress,
-    setRegisteredUser,
-    setScanFaceVisible,
-    setStatusText,
+    faceDetectionActions,
     wakeStartedAtRef,
     speakText
   ]);

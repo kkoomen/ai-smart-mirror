@@ -39,26 +39,32 @@ export type MirrorController = {
   speakText: (text: string, language?: AppLanguage, interrupt?: boolean, options?: SpeakTextOptions) => void;
 };
 
+export type MirrorBootstrapActions = {
+  enterIdle: () => void;
+  failBootstrap: () => void;
+  loadKnownUsers: (users: User[]) => void;
+  restoreRegistrationUser: (user: User) => void;
+};
+
 export type MirrorBootstrapOptions = {
   browserFaceService: BrowserFaceRecognitionService;
-  setKnownUsers: (users: User[]) => void;
-  setRegisteredUser: (user: User | null) => void;
-  setCapturedName: (value: string) => void;
-  setCapturedFaceLabel: (value: string | null) => void;
-  setCapturedFaceDescriptor: (value: string | null) => void;
-  setPhase: (phase: MirrorPhase) => void;
-  setStatusText: (message: LocalizedMessage) => void;
+  bootstrapActions: MirrorBootstrapActions;
   speakText: (text: string, language?: AppLanguage, interrupt?: boolean, options?: SpeakTextOptions) => void;
+};
+
+export type FaceDetectionActions = {
+  captureFaceDescriptor: (value: string | null) => void;
+  completeWake: (user: User) => void;
+  markUnknownUser: () => void;
+  resetToScan: () => void;
+  setScanFaceVisible: (value: boolean) => void;
+  setStatus: (message: LocalizedMessage) => void;
+  updateScanProgress: (updater: (current: number) => number) => void;
 };
 
 export type MirrorFaceDetectionOptions = {
   browserFaceService: BrowserFaceRecognitionService;
-  setProgress: (updater: (current: number) => number) => void;
-  setScanFaceVisible: (value: boolean) => void;
-  setCapturedFaceDescriptor: (value: string | null) => void;
-  setRegisteredUser: (user: User | null) => void;
-  setPhase: (phase: MirrorPhase) => void;
-  setStatusText: (message: LocalizedMessage) => void;
+  faceDetectionActions: FaceDetectionActions;
   speakText: (text: string, language?: AppLanguage) => void;
   loadDashboardData: (userId: number, location: string) => Promise<void>;
   createUserAndConfirm: (name: string, faceDescriptorOverride?: string | null) => Promise<void>;
@@ -71,26 +77,33 @@ export type MirrorFaceDetectionOptions = {
   registrationCompletingRef: MutableRefObject<boolean>;
 };
 
+export type MirrorVoiceActions = {
+  fadeOut: () => void;
+  openLanguageChange: () => void;
+  setStatus: (message: LocalizedMessage) => void;
+  sleep: () => void;
+  wake: () => void;
+};
+
+export type RegistrationVoiceActions = {
+  captureName: (name: string) => void;
+  rejectName: () => void;
+  startScan: () => void;
+};
+
+export type LanguageVoiceActions = {
+  beginChange: (language: AppLanguage) => void;
+};
+
 export type MirrorVoiceOptions = {
   phase: MirrorPhase;
   registeredUser: User | null;
-  wakeMirror: () => void;
-  sleepMirror: () => void;
-  beginLanguageChange: (language: AppLanguage) => void;
+  mirrorActions: MirrorVoiceActions;
+  registrationActions: RegistrationVoiceActions;
+  languageActions: LanguageVoiceActions;
   clearDashboardPresenceTimer: () => void;
   startRegistration: () => Promise<void>;
   createUserAndConfirm: (name: string, faceDescriptorOverride?: string | null) => Promise<void>;
-  browserFaceService: BrowserFaceRecognitionService;
-  navigate: (path: string) => void;
-  setPhase: (phase: MirrorPhase) => void;
-  setStatusText: (message: LocalizedMessage) => void;
-  setMirrorFadingOut: (value: boolean) => void;
-  setCapturedName: (value: string) => void;
-  setCapturedFaceLabel: (value: string | null) => void;
-  setCapturedFaceDescriptor: (value: string | null) => void;
-  setProgress: (value: number) => void;
-  setScanFaceVisible: (value: boolean) => void;
-  registrationCompletingRef: MutableRefObject<boolean>;
   capturedName: string;
   hasRegisteredUsers: boolean;
   persistUserLanguage: (language: AppLanguage) => Promise<void>;

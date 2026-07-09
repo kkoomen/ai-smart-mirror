@@ -9,23 +9,12 @@ import { classifyVoiceCommand } from "../../api/voice";
 export const useMirrorVoice = ({
   phase,
   registeredUser,
-  wakeMirror,
-  sleepMirror,
-  beginLanguageChange,
+  mirrorActions,
+  registrationActions,
+  languageActions,
   clearDashboardPresenceTimer,
   startRegistration,
   createUserAndConfirm,
-  browserFaceService,
-  navigate,
-  setPhase,
-  setStatusText,
-  setMirrorFadingOut,
-  setCapturedName,
-  setCapturedFaceLabel,
-  setCapturedFaceDescriptor,
-  setProgress,
-  setScanFaceVisible,
-  registrationCompletingRef,
   capturedName,
   hasRegisteredUsers,
   persistUserLanguage,
@@ -79,35 +68,32 @@ export const useMirrorVoice = ({
 
     if (command.intent === "SLEEP_MIRROR") {
       if (phase === "idle") {
-        sleepMirror();
+        mirrorActions.sleep();
         return;
       }
 
       clearDashboardPresenceTimer();
-      setMirrorFadingOut(true);
+      mirrorActions.fadeOut();
       return;
     }
 
     if (command.intent === "WAKE_MIRROR") {
-      wakeMirror();
+      mirrorActions.wake();
       return;
     }
 
     if (command.intent === "START_REGISTRATION") {
-      navigate("/register");
       await startRegistration();
       return;
     }
 
     if (command.intent === "CHANGE_LANGUAGE") {
       if (!hasRegisteredUsers || !registeredUser || (phase !== "hello" && phase !== "dashboard")) {
-        setStatusText({ key: "status.notUnderstood" });
+        mirrorActions.setStatus({ key: "status.notUnderstood" });
         return;
       }
 
-      navigate("/change-lang");
-      setPhase("changeLanguage");
-      setStatusText({ key: "status.changeLanguagePrompt" });
+      mirrorActions.openLanguageChange();
       void speakText(getSpeechPrompt("changeLanguagePrompt", currentLanguage), currentLanguage);
       return;
     }
@@ -116,11 +102,11 @@ export const useMirrorVoice = ({
       const targetLanguage = resolveTargetLanguage(spokenText, command.intent);
 
       if (!targetLanguage) {
-        setStatusText({ key: "status.changeLanguagePrompt" });
+        mirrorActions.setStatus({ key: "status.changeLanguagePrompt" });
         return;
       }
 
-      beginLanguageChange(targetLanguage);
+      languageActions.beginChange(targetLanguage);
       return;
     }
 
@@ -130,48 +116,36 @@ export const useMirrorVoice = ({
 
     if (phase === "name") {
       if (command.intent !== "PROVIDE_NAME" || !command.name) {
-        setStatusText({ key: "status.sayYourName" });
+        mirrorActions.setStatus({ key: "status.sayYourName" });
         void speakText(getSpeechPrompt("sayYourName", currentLanguage), currentLanguage);
         return;
       }
 
-      setCapturedName(command.name);
-      setCapturedFaceLabel(browserFaceService.generateFaceLabel(command.name));
-      setPhase("nameConfirm");
-      setStatusText({ key: "status.sayYesOrNo" });
+      registrationActions.captureName(command.name);
       void speakText(getSpeechPrompt("confirmName", currentLanguage, { name: command.name }), currentLanguage);
       return;
     }
 
     if (phase === "nameConfirm") {
       if (command.intent === "CONFIRM_NO") {
-        setCapturedName("");
-        setCapturedFaceLabel(null);
-        setCapturedFaceDescriptor(null);
-        setPhase("name");
-        setStatusText({ key: "status.sayYourName" });
+        registrationActions.rejectName();
         void speakText(getSpeechPrompt("sayYourName", currentLanguage), currentLanguage);
         return;
       }
 
       if (command.intent !== "CONFIRM_YES") {
-        setStatusText({ key: "status.sayYesOrNo" });
+        mirrorActions.setStatus({ key: "status.sayYesOrNo" });
         void speakText(getSpeechPrompt("sayYesOrNo", currentLanguage), currentLanguage);
         return;
       }
 
-      setCapturedFaceDescriptor(null);
-      setProgress(0);
-      setScanFaceVisible(false);
-      registrationCompletingRef.current = false;
-      setPhase("scan");
-      setStatusText({ key: "status.lookAtMirror" });
+      registrationActions.startScan();
       void speakText(getSpeechPrompt("scanningFace", currentLanguage), currentLanguage);
       return;
     }
 
     if (phase === "scan") {
-      setStatusText({ key: "status.lookAtMirror" });
+      mirrorActions.setStatus({ key: "status.lookAtMirror" });
       void speakText(getSpeechPrompt("lookAtMirror", currentLanguage), currentLanguage);
       return;
     }
@@ -183,7 +157,7 @@ export const useMirrorVoice = ({
       }
 
       if (command.intent !== "CONFIRM_YES") {
-        setStatusText({ key: "status.sayYesOrNo" });
+        mirrorActions.setStatus({ key: "status.sayYesOrNo" });
         void speakText(getSpeechPrompt("sayYesOrNo", currentLanguage), currentLanguage);
         return;
       }
@@ -194,21 +168,21 @@ export const useMirrorVoice = ({
 
     if (phase === "dashboard") {
       if (command.intent === "GET_AGENDA") {
-        setStatusText({ key: "status.todayAgenda" });
+        mirrorActions.setStatus({ key: "status.todayAgenda" });
         return;
       }
 
       if (command.intent === "GET_WEATHER") {
-        setStatusText({ key: "status.weatherShown" });
+        mirrorActions.setStatus({ key: "status.weatherShown" });
         return;
       }
 
-      setStatusText({ key: "status.notUnderstood" });
+      mirrorActions.setStatus({ key: "status.notUnderstood" });
       return;
     }
 
     if (phase === "unknown") {
-      setStatusText({ key: "status.voiceStartRegistration" });
+      mirrorActions.setStatus({ key: "status.voiceStartRegistration" });
     }
   };
 };
