@@ -1,16 +1,30 @@
 import { env } from "../env.js";
 
 export type VoiceIntent =
+  | "WAKE_MIRROR"
+  | "SLEEP_MIRROR"
   | "START_REGISTRATION"
+  | "CHANGE_LANGUAGE"
+  | "SET_LANGUAGE_EN"
+  | "SET_LANGUAGE_ZH"
   | "PROVIDE_NAME"
   | "CONFIRM_YES"
   | "CONFIRM_NO"
   | "GET_AGENDA"
   | "GET_WEATHER"
-  | "GET_TIME"
   | "UNKNOWN";
 
-export type VoicePhase = "start" | "name" | "nameConfirm" | "scan" | "confirm" | "dashboard";
+export type VoicePhase =
+  | "idle"
+  | "waking"
+  | "hello"
+  | "name"
+  | "nameConfirm"
+  | "scan"
+  | "confirm"
+  | "changeLanguage"
+  | "dashboard"
+  | "unknown";
 export type VoiceLanguage = "en" | "zh";
 
 export type VoiceEntities = {
@@ -25,90 +39,26 @@ export type VoiceCommandResult = {
 };
 
 const VALID_INTENTS = new Set<VoiceIntent>([
+  "WAKE_MIRROR",
+  "SLEEP_MIRROR",
   "START_REGISTRATION",
+  "CHANGE_LANGUAGE",
+  "SET_LANGUAGE_EN",
+  "SET_LANGUAGE_ZH",
   "PROVIDE_NAME",
   "CONFIRM_YES",
   "CONFIRM_NO",
   "GET_AGENDA",
   "GET_WEATHER",
-  "GET_TIME",
   "UNKNOWN"
 ]);
-
-const lowered = (value: string) => value.trim().toLowerCase();
 
 const normalizeLanguage = (value: string | undefined | null): VoiceLanguage => {
   if (!value) {
     return "en";
   }
 
-  const lowerCased = value.trim().toLowerCase();
-  if (lowerCased.startsWith("zh")) {
-    return "zh";
-  }
-
-  return "en";
-};
-
-const languagePhrases = {
-  en: {
-    startRegistration: ["start registration"],
-    yes: ["yes", "confirm", "okay", "ok", "sure", "yeah", "yep"],
-    no: ["no", "try again", "retry"],
-    agenda: ["what do i have today", "agenda", "schedule"],
-    weather: ["weather", "umbrella"],
-    time: ["what time is it", "time"],
-    umbrella: ["umbrella"],
-    name: /(?:my name is|i am|i'm|im)\s+(.+)/i
-  },
-  zh: {
-    startRegistration: ["开始注册", "开始登记", "注册"],
-    yes: ["是", "对", "确认", "好的", "可以", "是的"],
-    no: ["否", "不", "不是", "不对", "重试", "再来一次", "不要"],
-    agenda: ["我今天有什么安排", "今天日程", "日程", "行程"],
-    weather: ["天气", "下雨", "雨", "要带伞"],
-    time: ["几点", "时间"],
-    umbrella: ["带伞", "雨伞"],
-    name: /(?:我叫|我的名字是|我名字叫)\s*(.+)/i
-  }
-} as const;
-
-const extractName = (transcript: string) => {
-  const text = transcript.trim();
-  const match = text.match(/(?:my name is|i am|i'm|im)\s+(.+)/i);
-
-  if (match?.[1]) {
-    return match[1].trim();
-  }
-
-  if (text.length > 0 && text.length <= 40) {
-    return text;
-  }
-
-  return null;
-};
-
-const extractLocalizedName = (transcript: string, language: VoiceLanguage) => {
-  const text = transcript.trim();
-  const match = text.match(languagePhrases[language].name);
-
-  if (match?.[1]) {
-    return match[1].trim();
-  }
-
-  return extractName(transcript);
-};
-
-const extractDate = (text: string) => {
-  if (text.includes("tomorrow") || text.includes("明天")) {
-    return "tomorrow";
-  }
-
-  if (text.includes("today") || text.includes("今天")) {
-    return "today";
-  }
-
-  return null;
+  return value.trim().toLowerCase().startsWith("zh") ? "zh" : "en";
 };
 
 const buildResult = (
@@ -121,164 +71,117 @@ const buildResult = (
   response
 });
 
-const ruleBasedInferVoiceCommand = (params: {
-  transcript: string;
-  phase: VoicePhase;
-  language: VoiceLanguage;
-}): VoiceCommandResult => {
-  const { transcript, phase, language } = params;
-  const text = lowered(transcript);
-  const phrases = languagePhrases[language];
-
-  if (phrases.startRegistration.some((phrase) => text.includes(phrase))) {
-    return buildResult(
-      "START_REGISTRATION",
-      language === "zh" ? "开始注册。" : "Starting registration."
-    );
-  }
-
-  if (phrases.yes.some((phrase) => text === phrase || text.includes(phrase))) {
-    return buildResult("CONFIRM_YES", language === "zh" ? "已确认。" : "Confirmed.");
-  }
-
-  if (phrases.no.some((phrase) => text === phrase || text.includes(phrase))) {
-    return buildResult("CONFIRM_NO", language === "zh" ? "重试中。" : "Trying again.");
-  }
-
-  if (phrases.agenda.some((phrase) => text.includes(phrase))) {
-    return buildResult(
-      "GET_AGENDA",
-      language === "zh" ? "正在显示今天的日程。" : "Showing today's agenda.",
-      {
-        name: null,
-        date: extractDate(text)
-      }
-    );
-  }
-
-  if (phrases.weather.some((phrase) => text.includes(phrase))) {
-    return buildResult(
-      "GET_WEATHER",
-      phrases.umbrella.some((phrase) => text.includes(phrase))
-        ? language === "zh"
-          ? "正在检查是否需要带伞。"
-          : "Checking whether you need an umbrella."
-        : language === "zh"
-          ? "正在显示天气。"
-          : "Showing the weather.",
-      {
-        name: null,
-        date: extractDate(text)
-      }
-    );
-  }
-
-  if (phrases.time.some((phrase) => text.includes(phrase))) {
-    return buildResult(
-      "GET_TIME",
-      language === "zh" ? "正在显示当前时间。" : "Showing the current time."
-    );
-  }
-
-  if (phase === "name") {
-    const name = extractLocalizedName(transcript, language);
-    if (name) {
-      return buildResult("PROVIDE_NAME", language === "zh" ? `已记录名字 ${name}。` : `Captured name ${name}.`, {
-        name,
-        date: null
-      });
+const buildIntentResponse = (intent: VoiceIntent, language: VoiceLanguage, name?: string | null) => {
+  const responses = {
+    en: {
+      WAKE_MIRROR: "Waking mirror.",
+      SLEEP_MIRROR: "Going idle.",
+      START_REGISTRATION: "Starting registration.",
+      CHANGE_LANGUAGE: "Opening language change.",
+      SET_LANGUAGE_EN: "Switching to English.",
+      SET_LANGUAGE_ZH: "Switching to Mandarin.",
+      PROVIDE_NAME: name ? `Captured name ${name}.` : "Name captured.",
+      CONFIRM_YES: "Confirmed.",
+      CONFIRM_NO: "Trying again.",
+      GET_AGENDA: "Showing agenda.",
+      GET_WEATHER: "Showing weather.",
+      UNKNOWN: "I didn't understand that."
+    },
+    zh: {
+      WAKE_MIRROR: "正在唤醒镜子。",
+      SLEEP_MIRROR: "正在进入待机。",
+      START_REGISTRATION: "开始注册。",
+      CHANGE_LANGUAGE: "正在打开语言切换。",
+      SET_LANGUAGE_EN: "切换到英语。",
+      SET_LANGUAGE_ZH: "切换到普通话。",
+      PROVIDE_NAME: name ? `已记录名字 ${name}。` : "已记录名字。",
+      CONFIRM_YES: "已确认。",
+      CONFIRM_NO: "重试中。",
+      GET_AGENDA: "正在显示日程。",
+      GET_WEATHER: "正在显示天气。",
+      UNKNOWN: "我没听懂。"
     }
-  }
+  } as const;
 
-  return buildResult("UNKNOWN", "I didn't understand that.");
+  return responses[language][intent];
 };
 
-const validateOpenAiResult = (value: unknown): VoiceCommandResult | null => {
-  if (!value || typeof value !== "object") {
+const parseClassifierResponse = (
+  value: string,
+  language: VoiceLanguage
+): VoiceCommandResult | null => {
+  const content = value
+    .replace(/```[\s\S]*?\n/g, "")
+    .replace(/```/g, "")
+    .trim();
+
+  if (!content) {
     return null;
   }
 
-  const candidate = value as {
-    intent?: unknown;
-    entities?: unknown;
-    response?: unknown;
-  };
+  const [rawIntent, rawName = ""] = content.split("|", 2).map((part) => part.trim());
 
-  if (typeof candidate.intent !== "string" || !VALID_INTENTS.has(candidate.intent as VoiceIntent)) {
+  if (!VALID_INTENTS.has(rawIntent as VoiceIntent)) {
     return null;
   }
 
-  if (typeof candidate.response !== "string" || candidate.response.trim().length === 0) {
-    return null;
-  }
+  const intent = rawIntent as VoiceIntent;
+  const name = intent === "PROVIDE_NAME" && rawName.length > 0 ? rawName : null;
 
-  if (candidate.response.trim().length > 120) {
-    return null;
-  }
-
-  const entitiesValue = candidate.entities;
-  let name: string | null = null;
-  let date: string | null = null;
-
-  if (entitiesValue && typeof entitiesValue === "object") {
-    const entities = entitiesValue as { name?: unknown; date?: unknown };
-
-    if (entities.name === null || typeof entities.name === "string") {
-      name = entities.name?.trim?.() ? entities.name.trim() : null;
-    } else {
-      return null;
-    }
-
-    if (entities.date === null || typeof entities.date === "string") {
-      date = entities.date?.trim?.() ? entities.date.trim() : null;
-    } else {
-      return null;
-    }
-  } else {
-    return null;
-  }
-
-  return buildResult(candidate.intent as VoiceIntent, candidate.response.trim(), {
+  return buildResult(intent, buildIntentResponse(intent, language, name), {
     name,
-    date
+    date: null
   });
 };
 
-const requestOpenAiIntent = async (params: {
+const requestDeepSeekIntent = async (params: {
   transcript: string;
   phase: VoicePhase;
   language: VoiceLanguage;
 }): Promise<VoiceCommandResult | null> => {
-  if (!env.openAiApiKey) {
+  if (!env.deepSeekApiKey) {
     return null;
   }
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://api.deepseek.com/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${env.openAiApiKey}`,
+        Authorization: `Bearer ${env.deepSeekApiKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: env.openAiModel,
+        model: env.deepSeekModel,
         temperature: 0,
-        response_format: { type: "json_object" },
+        max_tokens: 24,
         messages: [
           {
             role: "system",
             content:
-              "You route smart-mirror voice commands. Return JSON only with keys intent, entities, response. " +
-              "Intent must be one of START_REGISTRATION, PROVIDE_NAME, CONFIRM_YES, CONFIRM_NO, GET_AGENDA, GET_WEATHER, GET_TIME, UNKNOWN. " +
-              "entities must contain name and date, each null or a string. Keep response short and mirror-style. " +
-              `Respond in ${params.language === "zh" ? "Mandarin" : "English"}.`
+              "You are an intent classifier for a smart mirror. " +
+              "Reply with exactly one line and nothing else. " +
+              "Allowed intents: WAKE_MIRROR, SLEEP_MIRROR, START_REGISTRATION, CHANGE_LANGUAGE, SET_LANGUAGE_EN, SET_LANGUAGE_ZH, PROVIDE_NAME, CONFIRM_YES, CONFIRM_NO, GET_AGENDA, GET_WEATHER, UNKNOWN. " +
+              "For most inputs reply with only the INTENT. " +
+              "If and only if the intent is PROVIDE_NAME, reply as PROVIDE_NAME|<name>. " +
+              "If uncertain, reply UNKNOWN. " +
+              "Examples: " +
+              "hello mirror -> WAKE_MIRROR. " +
+              "hey mirror -> WAKE_MIRROR. " +
+              "goodbye mirror -> SLEEP_MIRROR. " +
+              "bye mirror -> SLEEP_MIRROR. " +
+              "change language -> CHANGE_LANGUAGE. " +
+              "English -> SET_LANGUAGE_EN. " +
+              "Mandarin -> SET_LANGUAGE_ZH. " +
+              "Chinese -> SET_LANGUAGE_ZH. " +
+              "英语 -> SET_LANGUAGE_EN. " +
+              "普通话 -> SET_LANGUAGE_ZH. " +
+              `The user's spoken language is ${params.language === "zh" ? "Mandarin Chinese" : "English"}.`
           },
           {
             role: "user",
             content: JSON.stringify({
-              transcript: params.transcript,
               phase: params.phase,
-              language: params.language
+              transcript: params.transcript
             })
           }
         ]
@@ -302,8 +205,7 @@ const requestOpenAiIntent = async (params: {
       return null;
     }
 
-    const parsed = JSON.parse(content) as unknown;
-    return validateOpenAiResult(parsed);
+    return parseClassifierResponse(content, params.language);
   } catch {
     return null;
   }
@@ -315,19 +217,15 @@ export const inferVoiceCommand = async (params: {
   language?: string | null;
 }): Promise<VoiceCommandResult> => {
   const language = normalizeLanguage(params.language);
-  const openAiResult = await requestOpenAiIntent({
+  const result = await requestDeepSeekIntent({
     transcript: params.transcript,
     phase: params.phase,
     language
   });
 
-  if (openAiResult) {
-    return openAiResult;
+  if (result) {
+    return result;
   }
 
-  return ruleBasedInferVoiceCommand({
-    transcript: params.transcript,
-    phase: params.phase,
-    language
-  });
+  return buildResult("UNKNOWN", buildIntentResponse("UNKNOWN", language));
 };

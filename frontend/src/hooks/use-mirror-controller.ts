@@ -216,34 +216,6 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     );
   };
 
-  const getUmbrellaAnswer = async (location: string) => {
-    const payload = weather ?? (await loadWeatherForLocation(location));
-    const rainChance = payload.current.rainChancePct;
-    const rainChanceLabel = rainChance === null ? t("weather.unknown") : `${rainChance}%`;
-    const shouldCarryUmbrella =
-      typeof rainChance === "number"
-        ? rainChance >= 50
-        : /rain|shower|storm/i.test(payload.current.condition);
-
-    if (shouldCarryUmbrella) {
-      return {
-        key: "status.umbrellaYes",
-        values: {
-          chance: rainChanceLabel,
-          location: payload.location
-        }
-      };
-    }
-
-    return {
-      key: "status.umbrellaNo",
-      values: {
-        chance: rainChanceLabel,
-        location: payload.location
-      }
-    };
-  };
-
   const sleepMirror = () => {
     clearDashboardPresenceTimer();
     wakeStartedAtRef.current = null;
@@ -303,13 +275,11 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   const handleVoiceCommand = useMirrorVoice({
     phase,
     registeredUser,
-    weather,
     wakeMirror,
     sleepMirror,
     clearDashboardPresenceTimer,
     startRegistration,
     createUserAndConfirm,
-    getUmbrellaAnswer,
     browserFaceService,
     navigate,
     setPhase,

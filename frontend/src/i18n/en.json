@@ -58,8 +58,7 @@
       "startRegistration": ["start registration"],
       "changeLanguage": ["change language", "switch language"],
       "yes": ["yes", "confirm", "okay", "ok", "sure", "yeah", "yep"],
-      "no": ["no", "try again", "retry"],
-      "umbrella": ["umbrella", "need an umbrella", "do i need an umbrella"]
+      "no": ["no", "try again", "retry"]
     }
   },
   "status": {
@@ -73,7 +72,6 @@
     "lookAtMirror": "Look at the mirror",
     "todayAgenda": "Today's agenda is on the mirror.",
     "weatherShown": "Weather is shown on the mirror.",
-    "timeShown": "Time is shown in the top-right.",
     "checkingFace": "Checking face",
     "hello": "Hello {{name}}",
     "startingRegistration": "Starting registration.",
@@ -87,8 +85,6 @@
     "changeLanguagePrompt": "Say: Mandarin or English",
     "changeLanguageOpen": "Language change",
     "languageChanged": "Language updated.",
-    "umbrellaYes": "Yes. Rain chance is {{chance}} in {{location}}. Bring an umbrella.",
-    "umbrellaNo": "Probably not. Rain chance is {{chance}} in {{location}}.",
     "capturedName": "Captured name {{name}}.",
     "voiceStartRegistration": "Starting registration."
   },

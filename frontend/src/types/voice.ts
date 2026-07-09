@@ -11,13 +11,17 @@ export type VoicePhase =
   | "unknown";
 
 export type VoiceIntent =
+  | "WAKE_MIRROR"
+  | "SLEEP_MIRROR"
   | "START_REGISTRATION"
+  | "CHANGE_LANGUAGE"
+  | "SET_LANGUAGE_EN"
+  | "SET_LANGUAGE_ZH"
   | "PROVIDE_NAME"
   | "CONFIRM_YES"
   | "CONFIRM_NO"
   | "GET_AGENDA"
   | "GET_WEATHER"
-  | "GET_TIME"
   | "UNKNOWN";
 
 export type VoiceCommandResponse = {

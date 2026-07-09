@@ -28,14 +28,8 @@ export default function ChangeLanguagePage({ controller }) {
                 <h1 className="max-w-4xl text-4xl font-light tracking-[0.12em] sm:text-6xl lg:text-7xl">
                   {t("changeLanguage.subtitle")}
                 </h1>
-                <p className="max-w-2xl text-sm uppercase tracking-[0.3em] text-white/65 sm:text-base">
-                  {statusText}
-                </p>
                 <p className="text-xs uppercase tracking-[0.35em] text-white/45">
                   {t("changeLanguage.prompt")}
-                </p>
-                <p className="text-[11px] uppercase tracking-[0.32em] text-white/35">
-                  {t("changeLanguage.options.english")} / {t("changeLanguage.options.mandarin")}
                 </p>
               </section>
             }

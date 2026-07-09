@@ -98,7 +98,7 @@ export default function VoiceControl({
     recognition.onend = () => {
       if (autoListen && !disabled && !userStoppedRef.current) {
         window.setTimeout(() => {
-          if (voiceStateRef.current !== "thinking" && recognitionRef.current && !userStoppedRef.current) {
+          if (recognitionRef.current && !userStoppedRef.current) {
             startRecognition();
           }
         }, 250);
@@ -139,7 +139,7 @@ export default function VoiceControl({
         }
       }
     }, 0);
-  }, [autoListen, disabled, isSupported]);
+  }, [autoListen, disabled, i18n.language, isSupported]);
 
   const submitTranscript = async (value) => {
     const transcript = value.trim();

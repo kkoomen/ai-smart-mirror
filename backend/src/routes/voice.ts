@@ -5,14 +5,28 @@ import { isString, parsePositiveInt } from "../lib/validation.js";
 
 const isVoicePhase = (
   value: string
-): value is "start" | "name" | "nameConfirm" | "scan" | "confirm" | "dashboard" => {
+): value is
+  | "idle"
+  | "waking"
+  | "hello"
+  | "name"
+  | "nameConfirm"
+  | "scan"
+  | "confirm"
+  | "changeLanguage"
+  | "dashboard"
+  | "unknown" => {
   return (
-    value === "start" ||
+    value === "idle" ||
+    value === "waking" ||
+    value === "hello" ||
     value === "name" ||
     value === "nameConfirm" ||
     value === "scan" ||
     value === "confirm" ||
-    value === "dashboard"
+    value === "changeLanguage" ||
+    value === "dashboard" ||
+    value === "unknown"
   );
 };
 

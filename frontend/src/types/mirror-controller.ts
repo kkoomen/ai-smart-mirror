@@ -2,7 +2,6 @@ import type { MutableRefObject, RefObject } from "react";
 import type { AgendaResponse } from "./agenda";
 import type { User } from "./user";
 import type { VoicePhase } from "./voice";
-import type { WeatherData } from "./weather";
 import type { BrowserFaceRecognitionService } from "../services/face-recognition";
 import type { LocalizedMessage } from "./i18n";
 import type { AppLanguage } from "../i18n/languages";
@@ -67,13 +66,11 @@ export type MirrorFaceDetectionOptions = {
 export type MirrorVoiceOptions = {
   phase: VoicePhase;
   registeredUser: User | null;
-  weather: WeatherData | null;
   wakeMirror: () => void;
   sleepMirror: () => void;
   clearDashboardPresenceTimer: () => void;
   startRegistration: () => Promise<void>;
   createUserAndConfirm: (name: string, faceDescriptorOverride?: string | null) => Promise<void>;
-  getUmbrellaAnswer: (location: string) => Promise<LocalizedMessage>;
   browserFaceService: BrowserFaceRecognitionService;
   navigate: (path: string) => void;
   setPhase: (phase: VoicePhase) => void;

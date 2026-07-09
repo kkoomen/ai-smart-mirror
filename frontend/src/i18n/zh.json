@@ -58,8 +58,7 @@
       "startRegistration": ["开始注册", "开始登记"],
       "changeLanguage": ["切换语言", "更改语言", "换语言"],
       "yes": ["是", "对", "确认", "好的", "可以", "是的"],
-      "no": ["否", "不对", "重试", "再来一次", "不", "不是", "不要"],
-      "umbrella": ["要带伞吗", "需要伞吗", "带伞", "雨伞"]
+      "no": ["否", "不对", "重试", "再来一次", "不", "不是", "不要"]
     }
   },
   "status": {
@@ -73,7 +72,6 @@
     "lookAtMirror": "看着镜子",
     "todayAgenda": "今天的日程显示在镜子上。",
     "weatherShown": "天气显示在镜子上。",
-    "timeShown": "时间显示在右上角。",
     "checkingFace": "正在检查人脸",
     "hello": "你好，{{name}}",
     "startingRegistration": "正在开始注册。",
@@ -87,8 +85,6 @@
     "changeLanguagePrompt": "说：普通话或英语",
     "changeLanguageOpen": "切换语言",
     "languageChanged": "语言已更新。",
-    "umbrellaYes": "要。降雨概率为 {{chance}}，地点：{{location}}。请带伞。",
-    "umbrellaNo": "不太需要。降雨概率为 {{chance}}，地点：{{location}}。",
     "capturedName": "已记录名字 {{name}}。",
     "voiceStartRegistration": "正在开始注册。"
   },

@@ -9,6 +9,8 @@ export const env = {
   port: parsePort(process.env.PORT, 3001),
   clientOrigin: process.env.CLIENT_ORIGIN ?? "http://localhost:5173",
   openWeatherApiKey: process.env.OPENWEATHER_API_KEY ?? "",
+  deepSeekApiKey: process.env.DEEPSEEK_API_KEY ?? "",
+  deepSeekModel: process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
   openAiApiKey: process.env.OPENAI_API_KEY ?? "",
   openAiModel: process.env.OPENAI_MODEL ?? "gpt-4o-mini"
 };

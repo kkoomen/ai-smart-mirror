@@ -2,27 +2,17 @@ import type { MirrorVoiceOptions } from "../../types/mirror-controller";
 import type { VoiceCommandResponse } from "../../types/voice";
 import i18n from "../../i18n";
 import { normalizeLanguage } from "../../i18n/languages";
-import {
-  isChangeLanguagePhrase,
-  isSleepPhrase,
-  isStartRegistrationPhrase,
-  isUmbrellaPhrase,
-  isWakePhrase,
-  resolveLanguageSelection
-} from "../../utils/voice";
 import { requestJson } from "../../utils/request-json";
 import type { VoiceCommandRequest } from "../../types/api";
 
 export const useMirrorVoice = ({
   phase,
   registeredUser,
-  weather,
   wakeMirror,
   sleepMirror,
   clearDashboardPresenceTimer,
   startRegistration,
   createUserAndConfirm,
-  getUmbrellaAnswer,
   browserFaceService,
   navigate,
   setPhase,
@@ -41,10 +31,19 @@ export const useMirrorVoice = ({
   const currentLanguage = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
 
   return async (spokenText: string) => {
-    const normalizedSpeech = spokenText.toLowerCase();
-    console.info("[Mirror voice] handling command:", normalizedSpeech);
+    console.info("[Mirror voice] handling command:", spokenText.toLowerCase());
 
-    if (isSleepPhrase(normalizedSpeech)) {
+    const command = await requestJson<VoiceCommandResponse>("/api/voice/command", {
+      method: "POST",
+      body: JSON.stringify({
+        transcript: spokenText,
+        phase,
+        userId: registeredUser?.id ?? null,
+        language: currentLanguage
+      } satisfies VoiceCommandRequest)
+    });
+
+    if (command.intent === "SLEEP_MIRROR") {
       if (phase === "idle") {
         sleepMirror();
         return;
@@ -55,23 +54,23 @@ export const useMirrorVoice = ({
       return;
     }
 
-    if (isWakePhrase(normalizedSpeech)) {
+    if (command.intent === "WAKE_MIRROR") {
       wakeMirror();
       return;
     }
 
-    if (isStartRegistrationPhrase(normalizedSpeech)) {
+    if (command.intent === "START_REGISTRATION") {
       navigate("/register");
       await startRegistration();
       return;
     }
 
-    if (
-      hasRegisteredUsers &&
-      registeredUser &&
-      (phase === "hello" || phase === "dashboard") &&
-      isChangeLanguagePhrase(normalizedSpeech)
-    ) {
+    if (command.intent === "CHANGE_LANGUAGE") {
+      if (!hasRegisteredUsers || !registeredUser || (phase !== "hello" && phase !== "dashboard")) {
+        setStatusText({ key: "status.notUnderstood" });
+        return;
+      }
+
       navigate("/change-lang");
       setPhase("changeLanguage");
       setStatusText({ key: "status.changeLanguagePrompt" });
@@ -79,7 +78,12 @@ export const useMirrorVoice = ({
     }
 
     if (phase === "changeLanguage") {
-      const targetLanguage = resolveLanguageSelection(normalizedSpeech, currentLanguage);
+      const targetLanguage =
+        command.intent === "SET_LANGUAGE_ZH"
+          ? "zh"
+          : command.intent === "SET_LANGUAGE_EN"
+            ? "en"
+            : null;
 
       if (!targetLanguage) {
         setStatusText({ key: "status.changeLanguagePrompt" });
@@ -97,16 +101,6 @@ export const useMirrorVoice = ({
     if (phase === "idle" || phase === "waking" || phase === "hello") {
       return;
     }
-
-    const command = await requestJson<VoiceCommandResponse>("/api/voice/command", {
-      method: "POST",
-      body: JSON.stringify({
-        transcript: spokenText,
-        phase,
-        userId: registeredUser?.id ?? null,
-        language: currentLanguage
-      } satisfies VoiceCommandRequest)
-    });
 
     if (phase === "name") {
       if (command.intent !== "PROVIDE_NAME" || !command.name) {
@@ -172,20 +166,7 @@ export const useMirrorVoice = ({
       }
 
       if (command.intent === "GET_WEATHER") {
-        if (isUmbrellaPhrase(normalizedSpeech)) {
-          const answer = await getUmbrellaAnswer(
-            registeredUser?.location ?? weather?.location ?? "Amsterdam"
-          );
-          setStatusText(answer);
-          return;
-        }
-
         setStatusText({ key: "status.weatherShown" });
-        return;
-      }
-
-      if (command.intent === "GET_TIME") {
-        setStatusText({ key: "status.timeShown" });
         return;
       }
 
@@ -194,12 +175,6 @@ export const useMirrorVoice = ({
     }
 
     if (phase === "unknown") {
-      if (command.intent === "START_REGISTRATION") {
-        navigate("/register");
-        await startRegistration();
-        return;
-      }
-
       setStatusText({ key: "status.voiceStartRegistration" });
     }
   };
