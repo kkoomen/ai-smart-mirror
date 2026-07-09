@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
-import { getWeatherForLocation } from "../lib/weather.js";
 import { isString } from "../lib/validation.js";
 import { weatherQueryRouteSchema } from "../schemas/weather.js";
+import { getWeather } from "../services/weather-service.js";
 
 export const weatherRoutes: FastifyPluginAsync = async (app) => {
   app.get("/api/weather", { schema: weatherQueryRouteSchema }, async (request, reply) => {
@@ -15,8 +15,6 @@ export const weatherRoutes: FastifyPluginAsync = async (app) => {
       });
     }
 
-    return {
-      weather: await getWeatherForLocation(location || undefined)
-    };
+    return getWeather(location || undefined);
   });
 };
