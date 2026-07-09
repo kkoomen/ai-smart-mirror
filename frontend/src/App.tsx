@@ -4,14 +4,7 @@ import RegisterPage from "./pages/register";
 import FadeTransition from "./components/fade-transition";
 import VoiceActivityIndicator from "./components/voice-activity-indicator";
 import { useMirrorController } from "./features/mirror/use-mirror-controller";
-import {
-  BrowserRouter,
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate
-} from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 function AppRoutes() {
@@ -32,7 +25,8 @@ function AppRoutes() {
 
   const controller = useMirrorController(navigate);
   const canEnterMirrorRoute = allowedMirrorRoute === location.pathname;
-  const canEnterChangeLanguageRoute = canEnterMirrorRoute && controller.hasRegisteredUsers && !!controller.registeredUser;
+  const canEnterChangeLanguageRoute =
+    canEnterMirrorRoute && controller.hasRegisteredUsers && !!controller.registeredUser;
 
   useEffect(() => {
     if (location.pathname === "/") {
@@ -47,11 +41,23 @@ function AppRoutes() {
           <Route path="/" element={<HomePage controller={controller} />} />
           <Route
             path="/register"
-            element={canEnterMirrorRoute ? <RegisterPage controller={controller} /> : <Navigate to="/" replace />}
+            element={
+              canEnterMirrorRoute ? (
+                <RegisterPage controller={controller} />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
           />
           <Route
             path="/change-lang"
-            element={canEnterChangeLanguageRoute ? <ChangeLanguagePage controller={controller} /> : <Navigate to="/" replace />}
+            element={
+              canEnterChangeLanguageRoute ? (
+                <ChangeLanguagePage controller={controller} />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

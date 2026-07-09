@@ -45,7 +45,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
 
   const deviceStatus = useMemo(
     () => ({
-      camera: phase === "scan" ? "scanning" : "polling",
+      camera: (phase === "scan" ? "scanning" : "polling") as "scanning" | "polling",
       microphone: "listening" as const,
       network: "connected" as const,
       battery: "92%"
@@ -53,21 +53,21 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     [phase]
   );
 
-  const statusText = useMemo(
-    () => t(statusMessage.key, statusMessage.values),
-    [statusMessage, t]
-  );
+  const statusText = useMemo(() => t(statusMessage.key, statusMessage.values), [statusMessage, t]);
 
   const setStatusMessage = useCallback((message: LocalizedMessage) => {
     dispatch({ type: "STATUS_CHANGED", statusMessage: message });
   }, []);
 
-  const setProgress = useCallback((value: number | ((current: number) => number)) => {
-    dispatch({
-      type: "REGISTRATION_SCAN_PROGRESS_CHANGED",
-      progress: typeof value === "function" ? value(state.progress) : value
-    });
-  }, [state.progress]);
+  const setProgress = useCallback(
+    (value: number | ((current: number) => number)) => {
+      dispatch({
+        type: "REGISTRATION_SCAN_PROGRESS_CHANGED",
+        progress: typeof value === "function" ? value(state.progress) : value
+      });
+    },
+    [state.progress]
+  );
 
   const setScanFaceVisible = useCallback((visible: boolean) => {
     dispatch({ type: "REGISTRATION_SCAN_FACE_VISIBILITY_CHANGED", visible });
@@ -117,7 +117,10 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
       completeWake: (user: User) => {
         dispatch({ type: "REGISTERED_USER_CHANGED", user });
         dispatch({ type: "PHASE_CHANGED", phase: "hello" });
-        dispatch({ type: "STATUS_CHANGED", statusMessage: { key: "status.hello", values: { name: user.name } } });
+        dispatch({
+          type: "STATUS_CHANGED",
+          statusMessage: { key: "status.hello", values: { name: user.name } }
+        });
       },
       markUnknownUser: () => {
         dispatch({ type: "PHASE_CHANGED", phase: "unknown" });
@@ -216,7 +219,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     scanVideoRef,
     speakText
   });
-  const { beginLanguageChange, finishLanguageChange, persistUserLanguage } = useLanguageFlow({
+  const { beginLanguageChange, finishLanguageChange } = useLanguageFlow({
     dispatch,
     knownUsers,
     loadDashboardData,
@@ -266,7 +269,6 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     createUserAndConfirm,
     capturedName,
     hasRegisteredUsers: knownUsers.length > 0,
-    persistUserLanguage,
     speakText
   });
 

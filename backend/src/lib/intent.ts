@@ -71,7 +71,11 @@ const buildResult = (
   response
 });
 
-const buildIntentResponse = (intent: VoiceIntent, language: VoiceLanguage, name?: string | null) => {
+const buildIntentResponse = (
+  intent: VoiceIntent,
+  language: VoiceLanguage,
+  name?: string | null
+) => {
   const responses = {
     en: {
       WAKE_MIRROR: "Waking mirror.",

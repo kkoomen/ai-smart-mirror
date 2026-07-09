@@ -1,9 +1,22 @@
-import { useEffect, useRef } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 import FadeTransition from "../fade-transition";
 import CameraPreview from "../camera-preview";
 import { useTranslation } from "react-i18next";
 import { normalizeLanguage } from "../../i18n/languages";
+import type { MirrorController } from "../../types/mirror-controller";
 import { getSpeechPrompt } from "../../utils/speech-prompts";
+
+type RegistrationStep = "name" | "nameConfirm" | "scan" | "confirm";
+
+type RegistrationFlowProps = {
+  step: RegistrationStep;
+  name: string;
+  progress: number;
+  helperText: string;
+  videoRef?: RefObject<HTMLVideoElement | null>;
+  scanStatus?: string;
+  controller?: MirrorController;
+};
 
 export default function RegistrationFlow({
   step,
@@ -13,10 +26,10 @@ export default function RegistrationFlow({
   videoRef,
   scanStatus,
   controller
-}) {
+}: RegistrationFlowProps) {
   const { t, i18n } = useTranslation();
   const hasSpokenNamePromptRef = useRef(false);
-  const currentLabelMap = {
+  const currentLabelMap: Record<RegistrationStep, string> = {
     name: t("register.flow.name"),
     nameConfirm: t("register.flow.nameConfirm"),
     scan: t("register.flow.scan"),
@@ -40,7 +53,10 @@ export default function RegistrationFlow({
 
   return (
     <section className="flex flex-col items-center gap-6 text-center">
-      <FadeTransition transitionKey={step} className="flex w-full flex-col items-center gap-6 text-center">
+      <FadeTransition
+        transitionKey={step}
+        className="flex w-full flex-col items-center gap-6 text-center"
+      >
         <h2 className="max-w-4xl text-3xl font-light tracking-[0.12em] sm:text-5xl">
           {currentLabelMap[step]}
         </h2>

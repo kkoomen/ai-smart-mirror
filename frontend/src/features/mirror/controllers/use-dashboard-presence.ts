@@ -61,5 +61,13 @@ export const useDashboardPresence = ({
         dashboardPresenceTimerRef.current = null;
       }
     };
-  }, [browserFaceService, dashboardPresenceTimerRef, dispatch, idleVideoRef, knownUsers, phase, registeredUser]);
+  }, [
+    browserFaceService,
+    dashboardPresenceTimerRef,
+    dispatch,
+    idleVideoRef,
+    knownUsers,
+    phase,
+    registeredUser
+  ]);
 };

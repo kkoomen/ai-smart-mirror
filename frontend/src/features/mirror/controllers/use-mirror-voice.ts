@@ -17,7 +17,6 @@ export const useMirrorVoice = ({
   createUserAndConfirm,
   capturedName,
   hasRegisteredUsers,
-  persistUserLanguage,
   speakText
 }: MirrorVoiceOptions) => {
   const currentLanguage = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
@@ -122,7 +121,10 @@ export const useMirrorVoice = ({
       }
 
       registrationActions.captureName(command.name);
-      void speakText(getSpeechPrompt("confirmName", currentLanguage, { name: command.name }), currentLanguage);
+      void speakText(
+        getSpeechPrompt("confirmName", currentLanguage, { name: command.name }),
+        currentLanguage
+      );
       return;
     }
 

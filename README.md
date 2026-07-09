@@ -95,6 +95,7 @@ Notes:
 ## Voice And Language
 
 Text-to-speech uses configured browser voices:
+
 - English: `Google US English (en-US)`
 - Mandarin: `Google 普通话（中国大陆）（zh-CN)`
 

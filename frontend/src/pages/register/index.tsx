@@ -11,7 +11,8 @@ type RegisterPageProps = {
 
 export default function RegisterPage({ controller }: RegisterPageProps) {
   const { t } = useTranslation();
-  const { phase, isMirrorFadingOut, handleVoiceCommand, statusText, sleepMirror, idleVideoRef } = controller;
+  const { phase, isMirrorFadingOut, handleVoiceCommand, statusText, sleepMirror, idleVideoRef } =
+    controller;
 
   return (
     <>
@@ -22,9 +23,16 @@ export default function RegisterPage({ controller }: RegisterPageProps) {
         playsInline
         className="pointer-events-none absolute -left-[9999px] h-px w-px opacity-0"
       />
-      <FadeTransition show={phase !== "idle" && !isMirrorFadingOut} className="min-h-screen" onExited={sleepMirror}>
+      <FadeTransition
+        show={phase !== "idle" && !isMirrorFadingOut}
+        className="min-h-screen"
+        onExited={sleepMirror}
+      >
         <FadeTransition transitionKey="register" className="min-h-screen">
-          <MirrorLayout showPanels={false} center={<RegistrationCenter controller={controller} />} />
+          <MirrorLayout
+            showPanels={false}
+            center={<RegistrationCenter controller={controller} />}
+          />
         </FadeTransition>
       </FadeTransition>
       <VoiceControl

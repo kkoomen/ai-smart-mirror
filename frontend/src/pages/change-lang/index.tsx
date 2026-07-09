@@ -10,7 +10,14 @@ type ChangeLanguagePageProps = {
 
 export default function ChangeLanguagePage({ controller }: ChangeLanguagePageProps) {
   const { t } = useTranslation();
-  const { phase, isMirrorFadingOut, handleVoiceCommand, statusText, finishLanguageChange, idleVideoRef } = controller;
+  const {
+    phase,
+    isMirrorFadingOut,
+    handleVoiceCommand,
+    statusText,
+    finishLanguageChange,
+    idleVideoRef
+  } = controller;
 
   return (
     <>

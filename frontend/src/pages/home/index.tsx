@@ -38,7 +38,11 @@ export default function HomePage({ controller }: HomePageProps) {
         playsInline
         className="pointer-events-none absolute -left-[9999px] h-px w-px opacity-0"
       />
-      <FadeTransition show={phase !== "idle" && !isMirrorFadingOut} className="min-h-screen" onExited={sleepMirror}>
+      <FadeTransition
+        show={phase !== "idle" && !isMirrorFadingOut}
+        className="min-h-screen"
+        onExited={sleepMirror}
+      >
         <FadeTransition transitionKey={phase} className="min-h-screen">
           <MirrorLayout
             showPanels={phase === "dashboard"}
@@ -50,7 +54,11 @@ export default function HomePage({ controller }: HomePageProps) {
                   location={weather.location}
                   summary={weather.current.condition}
                   temperature={`${weather.current.temperatureC}°`}
-                  rainChance={weather.current.rainChancePct === null ? null : `${weather.current.rainChancePct}%`}
+                  rainChance={
+                    weather.current.rainChancePct === null
+                      ? null
+                      : `${weather.current.rainChancePct}%`
+                  }
                 />
               ) : null
             }

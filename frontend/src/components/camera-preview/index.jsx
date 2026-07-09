@@ -1,10 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-export default function CameraPreview({
-  videoRef,
-  progress,
-  statusText,
-}) {
+export default function CameraPreview({ videoRef, progress, statusText }) {
   const { t } = useTranslation();
   return (
     <section className="relative w-full max-w-2xl overflow-hidden border border-white/15 bg-black/85 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
@@ -32,7 +28,10 @@ export default function CameraPreview({
             <span>{progress}%</span>
           </div>
           <div className="mt-1 h-px w-full bg-white/15">
-            <div className="h-px bg-white transition-all duration-150" style={{ width: `${progress}%` }} />
+            <div
+              className="h-px bg-white transition-all duration-150"
+              style={{ width: `${progress}%` }}
+            />
           </div>
         </div>
       </div>

@@ -5,7 +5,9 @@ export default function StartScreen() {
 
   return (
     <section className="flex flex-col items-center gap-6 text-center">
-      <p className="text-xs uppercase tracking-[0.6em] text-white/45">{t("home.startScreen.eyebrow")}</p>
+      <p className="text-xs uppercase tracking-[0.6em] text-white/45">
+        {t("home.startScreen.eyebrow")}
+      </p>
       <h1 className="max-w-4xl text-4xl font-light tracking-[0.12em] sm:text-6xl lg:text-7xl">
         {t("home.startScreen.title")}
       </h1>

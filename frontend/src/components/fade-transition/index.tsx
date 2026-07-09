@@ -1,8 +1,17 @@
-import { useRef } from "react";
+import { type ReactNode, useRef } from "react";
 import { CSSTransition, SwitchTransition } from "react-transition-group";
 import styles from "./styles.module.css";
 
 const duration = 450;
+
+type FadeTransitionProps = {
+  children: ReactNode;
+  transitionKey?: string;
+  show?: boolean;
+  mode?: "out-in" | "in-out";
+  className?: string;
+  onExited?: () => void;
+};
 
 export default function FadeTransition({
   children,
@@ -11,8 +20,8 @@ export default function FadeTransition({
   mode = "out-in",
   className = "",
   onExited
-}) {
-  const nodeRef = useRef(null);
+}: FadeTransitionProps) {
+  const nodeRef = useRef<HTMLDivElement | null>(null);
 
   if (transitionKey) {
     return (

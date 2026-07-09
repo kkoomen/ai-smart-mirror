@@ -1,5 +1,9 @@
 import type { AgendaResponse } from "../types/agenda";
-import type { UserLanguageMutationRequest, UserMutationResponse, UsersResponse } from "../types/api";
+import type {
+  UserLanguageMutationRequest,
+  UserMutationResponse,
+  UsersResponse
+} from "../types/api";
 import type { WeatherResponse } from "../types/weather";
 import { requestJson } from "../utils/request-json";
 

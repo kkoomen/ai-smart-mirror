@@ -11,7 +11,8 @@
     "db:push": "prisma db push",
     "db:reset": "prisma db push && node scripts/reset-db.js",
     "db:studio": "prisma studio",
-    "lint": "echo 'no lint configured for backend'"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.0",

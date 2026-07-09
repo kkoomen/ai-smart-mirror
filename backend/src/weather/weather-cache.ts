@@ -44,10 +44,7 @@ export const getCachedWeather = async (locationKey: string) => {
   return parseCachedWeather(cachedWeather.payload);
 };
 
-export const cacheWeather = async (params: {
-  locationKey: string;
-  weather: WeatherPayload;
-}) => {
+export const cacheWeather = async (params: { locationKey: string; weather: WeatherPayload }) => {
   const fetchedAt = new Date();
 
   await weatherCacheClient.weatherCache.upsert({

@@ -24,7 +24,11 @@ export const useMirrorFaceDetection = ({
     let cancelled = false;
     let timeoutId: number | null = null;
     const delayMs =
-      phase === "dashboard" ? dashboardPresenceTimeoutMs : phase === "scan" || phase === "waking" ? 300 : 1000;
+      phase === "dashboard"
+        ? dashboardPresenceTimeoutMs
+        : phase === "scan" || phase === "waking"
+          ? 300
+          : 1000;
     const activeVideoRef = phase === "scan" ? scanVideoRef : idleVideoRef;
 
     const scheduleNext = () => {
@@ -84,15 +88,16 @@ export const useMirrorFaceDetection = ({
                   return;
                 }
 
-                void createUserAndConfirm(capturedName || "Mirror user", detection.faceDescriptor).catch(
-                  (error) => {
-                    registrationCompletingRef.current = false;
-                    faceDetectionActions.setStatus({
-                      key: "status.registrationFailed"
-                    });
-                    faceDetectionActions.resetToScan();
-                  }
-                );
+                void createUserAndConfirm(
+                  capturedName || "Mirror user",
+                  detection.faceDescriptor
+                ).catch(() => {
+                  registrationCompletingRef.current = false;
+                  faceDetectionActions.setStatus({
+                    key: "status.registrationFailed"
+                  });
+                  faceDetectionActions.resetToScan();
+                });
               }, 250);
             }
 
@@ -107,7 +112,9 @@ export const useMirrorFaceDetection = ({
       }
 
       if (phase === "waking") {
-        const matchedUser = knownUsers.find((user) => user.faceLabel === detection.matchedUser?.faceLabel);
+        const matchedUser = knownUsers.find(
+          (user) => user.faceLabel === detection.matchedUser?.faceLabel
+        );
 
         if (matchedUser) {
           await i18n.changeLanguage(normalizeLanguage(matchedUser.preferredLanguage));
@@ -133,7 +140,6 @@ export const useMirrorFaceDetection = ({
         scheduleNext();
         return;
       }
-
     };
 
     void runDetection().catch((error) => {

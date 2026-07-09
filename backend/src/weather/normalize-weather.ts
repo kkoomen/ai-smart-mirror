@@ -78,8 +78,7 @@ export const normalizeOpenWeatherPayload = (params: {
   const rainChanceCandidates = forecastItems
     .map((item) => item.rainChancePct)
     .filter((value): value is number => typeof value === "number");
-  const rainChancePct =
-    rainChanceCandidates.length > 0 ? Math.max(...rainChanceCandidates) : null;
+  const rainChancePct = rainChanceCandidates.length > 0 ? Math.max(...rainChanceCandidates) : null;
 
   const condition = params.currentData.weather?.[0]?.description ?? "Unknown";
   const temperatureC = Math.round(params.currentData.main?.temp ?? 0);
@@ -88,7 +87,9 @@ export const normalizeOpenWeatherPayload = (params: {
   const windKph = Math.round((params.currentData.wind?.speed ?? 0) * 3.6);
 
   return {
-    location: toTitleCase(params.currentData.name ?? (params.location.trim() || DEFAULT_WEATHER_LOCATION)),
+    location: toTitleCase(
+      params.currentData.name ?? (params.location.trim() || DEFAULT_WEATHER_LOCATION)
+    ),
     updatedAt: new Date().toISOString(),
     current: {
       temperatureC,

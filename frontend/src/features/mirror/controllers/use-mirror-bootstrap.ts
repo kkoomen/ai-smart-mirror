@@ -16,12 +16,11 @@ export const useMirrorBootstrap = ({
       try {
         try {
           await browserFaceService.load();
-        } catch {}
+        } catch {
+          // Bootstrap can continue; UI will show backend/camera status later if detection fails.
+        }
 
-        const [mirrorState, usersResponse] = await Promise.all([
-          getMirrorState(),
-          getUsers()
-        ]);
+        const [mirrorState, usersResponse] = await Promise.all([getMirrorState(), getUsers()]);
 
         bootstrapActions.loadKnownUsers(usersResponse.users);
 

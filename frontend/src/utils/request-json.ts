@@ -1,7 +1,7 @@
 import { apiBase } from "../constants";
 import i18n from "../i18n";
 
-export const requestJson = async <T,>(path: string, init?: RequestInit): Promise<T> => {
+export const requestJson = async <T>(path: string, init?: RequestInit): Promise<T> => {
   const response = await fetch(`${apiBase}${path}`, {
     headers: {
       "Content-Type": "application/json",

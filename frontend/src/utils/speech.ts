@@ -49,7 +49,7 @@ const emitSpeechActivity = () => {
 
 const setSpeechActive = (isActive: boolean) => {
   const nextCount = Math.max(0, speechActiveCount + (isActive ? 1 : -1));
-  if ((speechActiveCount > 0) === (nextCount > 0)) {
+  if (speechActiveCount > 0 === nextCount > 0) {
     speechActiveCount = nextCount;
     return;
   }

@@ -31,24 +31,32 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
     return registerMirrorUser(body);
   });
 
-  app.post("/api/mirror/confirm-face", { schema: confirmFaceRouteSchema }, async (request, reply) => {
-    const body = request.body as ConfirmFaceRequestDto;
+  app.post(
+    "/api/mirror/confirm-face",
+    { schema: confirmFaceRouteSchema },
+    async (request, reply) => {
+      const body = request.body as ConfirmFaceRequestDto;
 
-    const result = await confirmMirrorFace(body);
+      const result = await confirmMirrorFace(body);
 
-    if (!result) {
-      return reply.status(404).send({
-        ok: false,
-        error: "user not found"
-      });
+      if (!result) {
+        return reply.status(404).send({
+          ok: false,
+          error: "user not found"
+        });
+      }
+
+      return result;
     }
+  );
 
-    return result;
-  });
+  app.post(
+    "/api/mirror/dashboard-summary",
+    { schema: dashboardSummaryRouteSchema },
+    async (request) => {
+      const body = request.body as DashboardSummaryRequestDto;
 
-  app.post("/api/mirror/dashboard-summary", { schema: dashboardSummaryRouteSchema }, async (request) => {
-    const body = request.body as DashboardSummaryRequestDto;
-
-    return buildMirrorDashboardSummary(body);
-  });
+      return buildMirrorDashboardSummary(body);
+    }
+  );
 };

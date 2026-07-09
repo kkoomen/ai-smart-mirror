@@ -40,7 +40,12 @@ export type MirrorAction =
   | { type: "CAPTURED_NAME_CHANGED"; name: string }
   | { type: "CAPTURED_FACE_LABEL_CHANGED"; faceLabel: string | null }
   | { type: "CAPTURED_FACE_DESCRIPTOR_CHANGED"; faceDescriptor: string | null }
-  | { type: "DASHBOARD_DATA_LOADED"; weather: WeatherData; agenda: AgendaResponse["events"]; summary: string }
+  | {
+      type: "DASHBOARD_DATA_LOADED";
+      weather: WeatherData;
+      agenda: AgendaResponse["events"];
+      summary: string;
+    }
   | { type: "WEATHER_LOADED"; weather: WeatherData }
   | { type: "AGENDA_LOADED"; agenda: AgendaResponse["events"] }
   | { type: "DASHBOARD_SUMMARY_CHANGED"; summary: string }

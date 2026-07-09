@@ -274,7 +274,13 @@ export const useSpeechRecognition = ({
   }, [autoListen, disabled]);
 
   useEffect(() => {
-    if (!autoListen || disabled || isRecognitionSuppressed() || !isSupported || !recognitionRef.current) {
+    if (
+      !autoListen ||
+      disabled ||
+      isRecognitionSuppressed() ||
+      !isSupported ||
+      !recognitionRef.current
+    ) {
       return;
     }
 

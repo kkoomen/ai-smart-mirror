@@ -10,5 +10,5 @@ export const env = {
   clientOrigin: process.env.CLIENT_ORIGIN ?? "http://localhost:5173",
   openWeatherApiKey: process.env.OPENWEATHER_API_KEY ?? "",
   deepSeekApiKey: process.env.DEEPSEEK_API_KEY ?? "",
-  deepSeekModel: process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
+  deepSeekModel: process.env.DEEPSEEK_MODEL ?? "deepseek-chat"
 };

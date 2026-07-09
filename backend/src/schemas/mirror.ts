@@ -68,10 +68,7 @@ export const confirmFaceRouteSchema = {
       userId: { type: "integer", minimum: 1 },
       faceLabel: { type: "string", minLength: 1 }
     },
-    anyOf: [
-      { required: ["userId"] },
-      { required: ["faceLabel"] }
-    ]
+    anyOf: [{ required: ["userId"] }, { required: ["faceLabel"] }]
   }
 } as const;
 

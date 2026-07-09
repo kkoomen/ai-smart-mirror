@@ -36,7 +36,12 @@ export type MirrorController = {
   handleVoiceCommand: (spokenText: string) => Promise<void>;
   setMirrorFadingOut: (value: boolean) => void;
   browserFaceService: BrowserFaceRecognitionService;
-  speakText: (text: string, language?: AppLanguage, interrupt?: boolean, options?: SpeakTextOptions) => void;
+  speakText: (
+    text: string,
+    language?: AppLanguage,
+    interrupt?: boolean,
+    options?: SpeakTextOptions
+  ) => void;
 };
 
 export type MirrorBootstrapActions = {
@@ -49,7 +54,12 @@ export type MirrorBootstrapActions = {
 export type MirrorBootstrapOptions = {
   browserFaceService: BrowserFaceRecognitionService;
   bootstrapActions: MirrorBootstrapActions;
-  speakText: (text: string, language?: AppLanguage, interrupt?: boolean, options?: SpeakTextOptions) => void;
+  speakText: (
+    text: string,
+    language?: AppLanguage,
+    interrupt?: boolean,
+    options?: SpeakTextOptions
+  ) => void;
 };
 
 export type FaceDetectionActions = {
@@ -106,6 +116,10 @@ export type MirrorVoiceOptions = {
   createUserAndConfirm: (name: string, faceDescriptorOverride?: string | null) => Promise<void>;
   capturedName: string;
   hasRegisteredUsers: boolean;
-  persistUserLanguage: (language: AppLanguage) => Promise<void>;
-  speakText: (text: string, language?: AppLanguage, interrupt?: boolean, options?: SpeakTextOptions) => void;
+  speakText: (
+    text: string,
+    language?: AppLanguage,
+    interrupt?: boolean,
+    options?: SpeakTextOptions
+  ) => void;
 };

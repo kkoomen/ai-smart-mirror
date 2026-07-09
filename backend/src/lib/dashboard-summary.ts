@@ -57,13 +57,18 @@ const classifyWeather = (value: DashboardSummaryWeather): DashboardSummaryBucket
 };
 
 const averageTemperature = (value: DashboardSummaryWeather) => {
-  const temperatures = [value.current.temperatureC, ...value.forecast.map((item) => item.temperatureC)];
+  const temperatures = [
+    value.current.temperatureC,
+    ...value.forecast.map((item) => item.temperatureC)
+  ];
 
   if (temperatures.length === 0) {
     return 0;
   }
 
-  return Math.round(temperatures.reduce((sum, temperature) => sum + temperature, 0) / temperatures.length);
+  return Math.round(
+    temperatures.reduce((sum, temperature) => sum + temperature, 0) / temperatures.length
+  );
 };
 
 const cleanSummary = (value: string) =>

@@ -72,7 +72,8 @@ export const handleVoiceCommand = async (
   const transcript = input.transcript.trim();
   const phaseValue = isString(input.phase) ? input.phase.trim() : "";
   const phase = isVoicePhase(phaseValue) ? phaseValue : "dashboard";
-  const language = normalizeLanguage(input.language) ?? normalizeLanguage(input.acceptLanguage) ?? "en";
+  const language =
+    normalizeLanguage(input.language) ?? normalizeLanguage(input.acceptLanguage) ?? "en";
   const result = await inferVoiceCommand({
     transcript,
     phase,

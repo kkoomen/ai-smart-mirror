@@ -1,3 +1,16 @@
+import type { ReactNode } from "react";
+
+type MirrorLayoutProps = {
+  weather?: ReactNode;
+  time?: ReactNode;
+  agenda?: ReactNode;
+  deviceStatus?: ReactNode;
+  center: ReactNode;
+  showPanels?: boolean;
+  blank?: boolean;
+  showGradient?: boolean;
+};
+
 export default function MirrorLayout({
   weather,
   time,
@@ -7,12 +20,10 @@ export default function MirrorLayout({
   showPanels = true,
   blank = false,
   showGradient = false
-}) {
+}: MirrorLayoutProps) {
   if (blank) {
     return (
-      <main className="relative min-h-screen overflow-hidden bg-black text-white">
-        {center}
-      </main>
+      <main className="relative min-h-screen overflow-hidden bg-black text-white">{center}</main>
     );
   }
 

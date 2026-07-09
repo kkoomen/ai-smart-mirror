@@ -8,9 +8,10 @@ type VoiceActivityIndicatorProps = {
   visible?: boolean;
 };
 
-type WebkitAudioWindow = Window & typeof globalThis & {
-  webkitAudioContext?: typeof AudioContext;
-};
+type WebkitAudioWindow = Window &
+  typeof globalThis & {
+    webkitAudioContext?: typeof AudioContext;
+  };
 
 export default function VoiceActivityIndicator({ visible = true }: VoiceActivityIndicatorProps) {
   const [isEnabled, setIsEnabled] = useState(false);

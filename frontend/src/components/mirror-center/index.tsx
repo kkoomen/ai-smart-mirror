@@ -95,7 +95,10 @@ export default function MirrorCenter({ controller }: MirrorCenterProps) {
 
   if (phase === "dashboard") {
     return (
-      <FadeTransition show={isSummaryVisible} className="flex flex-col items-center gap-3 text-center">
+      <FadeTransition
+        show={isSummaryVisible}
+        className="flex flex-col items-center gap-3 text-center"
+      >
         <section className="flex flex-col items-center gap-3 text-center">
           <h2 className="max-w-3xl text-sm font-light tracking-[0.14em] text-white/85 sm:text-sm lg:text-base">
             {dashboardSummaryText}

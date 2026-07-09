@@ -43,7 +43,9 @@ export default function RegistrationCenter({ controller }: RegistrationCenterPro
         progress={progress}
         helperText={statusText}
         videoRef={scanVideoRef}
-        scanStatus={scanFaceVisible ? t("register.scan.faceDetected") : t("register.scan.waitingFace")}
+        scanStatus={
+          scanFaceVisible ? t("register.scan.faceDetected") : t("register.scan.waitingFace")
+        }
       />
     );
   }

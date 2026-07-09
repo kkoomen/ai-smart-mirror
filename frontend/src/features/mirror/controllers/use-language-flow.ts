@@ -3,10 +3,7 @@ import type { Dispatch, MutableRefObject } from "react";
 import i18n from "../../../i18n";
 import type { AppLanguage } from "../../../i18n/languages";
 import { updateUserLanguage } from "../../../api/users";
-import {
-  buildKnownUsersWithUpdatedUser,
-  type MirrorAction
-} from "../mirror-reducer";
+import { buildKnownUsersWithUpdatedUser, type MirrorAction } from "../mirror-reducer";
 import type { User } from "../../../types/user";
 
 type LanguageFlowOptions = {

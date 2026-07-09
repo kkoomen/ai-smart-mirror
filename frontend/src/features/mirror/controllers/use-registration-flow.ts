@@ -2,7 +2,11 @@ import { useCallback } from "react";
 import type { Dispatch, MutableRefObject, RefObject } from "react";
 import i18n from "../../../i18n";
 import { normalizeLanguage, type AppLanguage } from "../../../i18n/languages";
-import { confirmMirrorFace, registerMirrorUser, startMirrorRegistration } from "../../../api/mirror";
+import {
+  confirmMirrorFace,
+  registerMirrorUser,
+  startMirrorRegistration
+} from "../../../api/mirror";
 import type { BrowserFaceRecognitionService } from "../../../services/face-recognition";
 import type { User } from "../../../types/user";
 import { toSubject } from "../../../utils/face-recognition";

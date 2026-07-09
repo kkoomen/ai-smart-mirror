@@ -7,9 +7,7 @@ import {
 } from "./types.js";
 import { normalizeOpenWeatherPayload } from "./normalize-weather.js";
 
-export const fetchOpenWeatherPayload = async (
-  location: string
-): Promise<WeatherPayload | null> => {
+export const fetchOpenWeatherPayload = async (location: string): Promise<WeatherPayload | null> => {
   if (!env.openWeatherApiKey) {
     return null;
   }

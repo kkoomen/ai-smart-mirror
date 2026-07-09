@@ -46,9 +46,8 @@ export const getStoredLanguage = () => {
     return normalizeLanguage(storedLanguage);
   }
 
-  const browserLanguage = typeof window.navigator?.language === "string"
-    ? window.navigator.language
-    : null;
+  const browserLanguage =
+    typeof window.navigator?.language === "string" ? window.navigator.language : null;
 
   if (browserLanguage) {
     return normalizeLanguage(browserLanguage);

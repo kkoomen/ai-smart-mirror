@@ -230,7 +230,8 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
       faceRecognitionConfig.faceDistanceThreshold
     );
     const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
-    const matchedUser = snapshot.knownUsers.find((user) => user.faceLabel === bestMatch.label) ?? null;
+    const matchedUser =
+      snapshot.knownUsers.find((user) => user.faceLabel === bestMatch.label) ?? null;
 
     if (!matchedUser || bestMatch.label === "unknown") {
       return {

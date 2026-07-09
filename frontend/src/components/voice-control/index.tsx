@@ -45,13 +45,9 @@ export default function VoiceControl({
         <div className="rounded-full border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/80">
           {prompt}
         </div>
-        <p className="text-xs uppercase tracking-[0.25em] text-white/45">
-          {helperText}
-        </p>
+        <p className="text-xs uppercase tracking-[0.25em] text-white/45">{helperText}</p>
         {errorMessage ? (
-          <p className="text-xs uppercase tracking-[0.25em] text-white/60">
-            {errorMessage}
-          </p>
+          <p className="text-xs uppercase tracking-[0.25em] text-white/60">{errorMessage}</p>
         ) : null}
         {!isSupported ? (
           <p className="text-xs uppercase tracking-[0.25em] text-white/40">
