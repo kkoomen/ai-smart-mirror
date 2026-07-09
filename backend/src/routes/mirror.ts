@@ -1,18 +1,12 @@
 import type { FastifyPluginAsync } from "fastify";
-import type {
-  ConfirmFaceRequestDto,
-  DashboardSummaryRequestDto,
-  RegisterUserRequestDto
-} from "../contracts/api.js";
+import type { DashboardSummaryRequestDto, RegisterUserRequestDto } from "../contracts/api.js";
 import {
   buildMirrorDashboardSummary,
-  confirmMirrorFace,
   getMirrorStateSnapshot,
   registerMirrorUser,
   startMirrorRegistration
 } from "../services/mirror-service.js";
 import {
-  confirmFaceRouteSchema,
   dashboardSummaryRouteSchema,
   registerUserRouteSchema,
   startRegistrationRouteSchema
@@ -30,25 +24,6 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
 
     return registerMirrorUser(body);
   });
-
-  app.post(
-    "/api/mirror/confirm-face",
-    { schema: confirmFaceRouteSchema },
-    async (request, reply) => {
-      const body = request.body as ConfirmFaceRequestDto;
-
-      const result = await confirmMirrorFace(body);
-
-      if (!result) {
-        return reply.status(404).send({
-          ok: false,
-          error: "user not found"
-        });
-      }
-
-      return result;
-    }
-  );
 
   app.post(
     "/api/mirror/dashboard-summary",

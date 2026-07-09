@@ -60,18 +60,6 @@ export const registerUserRouteSchema = {
   }
 } as const;
 
-export const confirmFaceRouteSchema = {
-  body: {
-    type: "object",
-    additionalProperties: false,
-    properties: {
-      userId: { type: "integer", minimum: 1 },
-      faceLabel: { type: "string", minLength: 1 }
-    },
-    anyOf: [{ required: ["userId"] }, { required: ["faceLabel"] }]
-  }
-} as const;
-
 export const dashboardSummaryRouteSchema = {
   body: {
     type: "object",

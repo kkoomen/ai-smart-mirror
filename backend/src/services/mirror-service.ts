@@ -1,24 +1,17 @@
 import { Prisma } from "@prisma/client";
-import type {
-  ConfirmFaceRequestDto,
-  DashboardSummaryRequestDto,
-  RegisterUserRequestDto
-} from "../contracts/api.js";
+import type { DashboardSummaryRequestDto, RegisterUserRequestDto } from "../contracts/api.js";
 import { prisma } from "../lib/prisma.js";
 import { generateDashboardSummary } from "../lib/dashboard-summary.js";
 import { deriveMirrorMode, getMirrorState, updateMirrorState } from "../lib/mirror-state.js";
 import { buildAgendaForUser } from "../lib/mock-data.js";
 
 export type RegisterUserInput = RegisterUserRequestDto;
-export type ConfirmFaceInput = ConfirmFaceRequestDto;
 export type DashboardSummaryInput = DashboardSummaryRequestDto;
 
 const toFaceLabel = (name: string, faceLabel?: string) =>
   faceLabel && faceLabel.trim().length > 0
     ? faceLabel.trim()
     : `face_${name.toLowerCase().replace(/\s+/g, "_")}`;
-
-const getUserById = (id: number) => prisma.user.findUnique({ where: { id } });
 
 export const getMirrorStateSnapshot = async () => {
   const [state, userCount, activeUser] = await Promise.all([
@@ -98,32 +91,6 @@ export const registerMirrorUser = async (input: RegisterUserInput) => {
     user,
     state,
     mode: "recognized" as const
-  };
-};
-
-export const confirmMirrorFace = async (input: ConfirmFaceInput) => {
-  let user = input.userId ? await getUserById(input.userId) : null;
-
-  if (!user && input.faceLabel) {
-    user = await prisma.user.findUnique({
-      where: { faceLabel: input.faceLabel.trim() }
-    });
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  const state = await updateMirrorState({
-    activeUserId: user.id,
-    registrationComplete: true
-  });
-
-  return {
-    ok: true,
-    user,
-    state,
-    mode: "recognized"
   };
 };
 

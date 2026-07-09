@@ -133,24 +133,17 @@ The frontend uses `face-api.js` in the browser.
 
 ## API Endpoints
 
-Health:
-
-- `GET /api/health` - checks API and database connectivity
-
 Mirror:
 
 - `GET /api/mirror/state` - returns mirror mode, active user, user count, and registration status
 - `POST /api/mirror/start-registration` - resets mirror state for registration
 - `POST /api/mirror/register-user` - creates a user, stores face data, and seeds mock agenda data
-- `POST /api/mirror/confirm-face` - marks a user's face as confirmed and active
 - `POST /api/mirror/dashboard-summary` - uses DeepSeek to generate a one-line weather and appointment summary
 
 Users:
 
 - `GET /api/users` - lists registered users
-- `GET /api/users/:id` - returns one user by id
 - `GET /api/users/:id/agenda/today` - returns today's agenda for a user
-- `GET /api/users/:id/weather` - returns weather for the user's saved location
 - `POST /api/users/:id/language` - updates `preferredLanguage` to `en` or `zh`
 
 Weather:

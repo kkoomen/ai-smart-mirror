@@ -58,10 +58,6 @@ export type UsersResponseDto = {
   users: UserDto[];
 };
 
-export type UserResponseDto = {
-  user: UserDto;
-};
-
 export type UserLanguageMutationRequestDto = {
   preferredLanguage: AppLanguageDto;
 };
@@ -75,11 +71,6 @@ export type UserAgendaTodayResponseDto = {
   userId: number;
   date: string;
   events: AgendaEventDto[];
-};
-
-export type UserWeatherResponseDto = {
-  userId: number;
-  weather: WeatherDto;
 };
 
 export type WeatherEnvelopeDto = {
@@ -138,9 +129,4 @@ export type RegisterUserRequestDto = {
   faceDescriptor?: string;
   location?: string;
   preferredLanguage?: AppLanguageDto;
-};
-
-export type ConfirmFaceRequestDto = {
-  userId?: number;
-  faceLabel?: string;
 };

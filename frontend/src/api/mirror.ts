@@ -14,11 +14,6 @@ export type RegisterUserRequest = {
   preferredLanguage: "en" | "zh";
 };
 
-export type ConfirmFaceRequest = {
-  userId: number;
-  faceLabel: string;
-};
-
 export const getMirrorState = () => requestJson<MirrorStateResponse>("/api/mirror/state");
 
 export const startMirrorRegistration = () =>
@@ -29,12 +24,6 @@ export const startMirrorRegistration = () =>
 
 export const registerMirrorUser = (payload: RegisterUserRequest) =>
   requestJson<UserMutationResponse>("/api/mirror/register-user", {
-    method: "POST",
-    body: JSON.stringify(payload)
-  });
-
-export const confirmMirrorFace = (payload: ConfirmFaceRequest) =>
-  requestJson<UserMutationResponse>("/api/mirror/confirm-face", {
     method: "POST",
     body: JSON.stringify(payload)
   });
