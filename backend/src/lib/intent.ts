@@ -1,4 +1,4 @@
-import { env } from "../env.js";
+import { classifyIntent } from "../ai/ai-client.js";
 
 export type VoiceIntent =
   | "WAKE_MIRROR"
@@ -134,80 +134,18 @@ const parseClassifierResponse = (
   });
 };
 
-const requestDeepSeekIntent = async (params: {
+const requestAiIntent = async (params: {
   transcript: string;
   phase: VoicePhase;
   language: VoiceLanguage;
 }): Promise<VoiceCommandResult | null> => {
-  if (!env.deepSeekApiKey) {
-    return null;
-  }
-
   try {
-    const response = await fetch("https://api.deepseek.com/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.deepSeekApiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: env.deepSeekModel,
-        temperature: 0,
-        max_tokens: 24,
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are an intent classifier for a smart mirror. " +
-              "Reply with exactly one line and nothing else. " +
-              "Allowed intents: WAKE_MIRROR, SLEEP_MIRROR, START_REGISTRATION, CHANGE_LANGUAGE, SET_LANGUAGE_EN, SET_LANGUAGE_ZH, PROVIDE_NAME, CONFIRM_YES, CONFIRM_NO, GET_AGENDA, GET_WEATHER, UNKNOWN. " +
-              "For most inputs reply with only the INTENT. " +
-              "If and only if the intent is PROVIDE_NAME, reply as PROVIDE_NAME|<name>. " +
-              "If uncertain, reply UNKNOWN. " +
-              "WAKE_MIRROR is allowed only for explicit mirror wake phrases like hello mirror, hey mirror, or hi mirror. " +
-              "SLEEP_MIRROR is allowed only for explicit mirror sleep phrases like goodbye mirror or bye mirror. " +
-              "Do not classify plain hello, hey, hi, goodbye, or bye without the word mirror as wake or sleep. " +
-              "Examples: " +
-              "hello mirror -> WAKE_MIRROR. " +
-              "hey mirror -> WAKE_MIRROR. " +
-              "hi mirror -> WAKE_MIRROR. " +
-              "goodbye mirror -> SLEEP_MIRROR. " +
-              "bye mirror -> SLEEP_MIRROR. " +
-              "hello -> UNKNOWN. " +
-              "hi -> UNKNOWN. " +
-              "bye -> UNKNOWN. " +
-              "change language -> CHANGE_LANGUAGE. " +
-              "English -> SET_LANGUAGE_EN. " +
-              "Mandarin -> SET_LANGUAGE_ZH. " +
-              "Chinese -> SET_LANGUAGE_ZH. " +
-              "英语 -> SET_LANGUAGE_EN. " +
-              "普通话 -> SET_LANGUAGE_ZH. " +
-              `The user's spoken language is ${params.language === "zh" ? "Mandarin Chinese" : "English"}.`
-          },
-          {
-            role: "user",
-            content: JSON.stringify({
-              phase: params.phase,
-              transcript: params.transcript
-            })
-          }
-        ]
-      })
+    const content = await classifyIntent({
+      transcript: params.transcript,
+      phase: params.phase,
+      language: params.language
     });
 
-    if (!response.ok) {
-      return null;
-    }
-
-    const data = (await response.json()) as {
-      choices?: Array<{
-        message?: {
-          content?: string | null;
-        };
-      }>;
-    };
-
-    const content = data.choices?.[0]?.message?.content;
     if (!content) {
       return null;
     }
@@ -224,7 +162,7 @@ export const inferVoiceCommand = async (params: {
   language?: string | null;
 }): Promise<VoiceCommandResult> => {
   const language = normalizeLanguage(params.language);
-  const result = await requestDeepSeekIntent({
+  const result = await requestAiIntent({
     transcript: params.transcript,
     phase: params.phase,
     language
