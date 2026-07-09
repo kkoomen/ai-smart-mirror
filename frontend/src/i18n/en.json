@@ -1,8 +1,4 @@
 {
-  "app": {
-    "name": "Mirror AI",
-    "description": "Voice-first smart mirror"
-  },
   "home": {
     "startScreen": {
       "eyebrow": "Mirror AI",
@@ -12,7 +8,6 @@
     "mirror": {
       "welcome": "Welcome",
       "startRegistration": "Say: start registration",
-      "hello": "Hello {{name}}",
       "defaultUser": "Mirror user"
     }
   },
@@ -42,7 +37,6 @@
       "idle": "idle",
       "listening": "listening",
       "thinking": "thinking",
-      "confirmed": "confirmed",
       "error": "error"
     },
     "errors": {
@@ -51,14 +45,6 @@
       "speechFailed": "Speech recognition failed.",
       "speakCommand": "Speak a command first.",
       "commandFailed": "Command failed."
-    },
-    "phrases": {
-      "wake": ["hey mirror", "hello mirror"],
-      "sleep": ["bye mirror", "goodbye mirror"],
-      "startRegistration": ["start registration"],
-      "changeLanguage": ["change language", "switch language"],
-      "yes": ["yes", "confirm", "okay", "ok", "sure", "yeah", "yep"],
-      "no": ["no", "try again", "retry"]
     }
   },
   "status": {
@@ -74,18 +60,11 @@
     "weatherShown": "Weather is shown on the mirror.",
     "checkingFace": "Checking face",
     "hello": "Hello {{name}}",
-    "startingRegistration": "Starting registration.",
-    "tryingAgain": "Trying again.",
-    "confirmed": "Confirmed.",
-    "agendaUnknown": "Your agenda is on the mirror.",
-    "weatherUnknown": "Weather is on the mirror.",
-    "timeUnknown": "Time is on the mirror.",
     "notUnderstood": "I didn't understand that.",
     "registrationFailed": "Registration failed. Please try again.",
     "changeLanguagePrompt": "Say: Mandarin or English",
     "changeLanguageOpen": "Language change",
     "languageChanged": "Language updated.",
-    "capturedName": "Captured name {{name}}.",
     "voiceStartRegistration": "Starting registration."
   },
   "weather": {
@@ -119,8 +98,7 @@
   },
   "languages": {
     "english": "English",
-    "mandarin": "Mandarin",
-    "label": "Language"
+    "mandarin": "Mandarin"
   },
   "changeLanguage": {
     "title": "Change language",

@@ -1,8 +1,4 @@
 {
-  "app": {
-    "name": "镜子 AI",
-    "description": "语音优先的智能镜子"
-  },
   "home": {
     "startScreen": {
       "eyebrow": "镜子 AI",
@@ -12,7 +8,6 @@
     "mirror": {
       "welcome": "欢迎",
       "startRegistration": "说：开始注册",
-      "hello": "你好，{{name}}",
       "defaultUser": "镜子用户"
     }
   },
@@ -42,7 +37,6 @@
       "idle": "空闲",
       "listening": "聆听中",
       "thinking": "思考中",
-      "confirmed": "已确认",
       "error": "错误"
     },
     "errors": {
@@ -51,14 +45,6 @@
       "speechFailed": "语音识别失败。",
       "speakCommand": "请先说出一个指令。",
       "commandFailed": "命令失败。"
-    },
-    "phrases": {
-      "wake": ["嘿镜子", "你好镜子"],
-      "sleep": ["再见镜子", "拜拜镜子"],
-      "startRegistration": ["开始注册", "开始登记"],
-      "changeLanguage": ["切换语言", "更改语言", "换语言"],
-      "yes": ["是", "对", "确认", "好的", "可以", "是的"],
-      "no": ["否", "不对", "重试", "再来一次", "不", "不是", "不要"]
     }
   },
   "status": {
@@ -74,18 +60,11 @@
     "weatherShown": "天气显示在镜子上。",
     "checkingFace": "正在检查人脸",
     "hello": "你好，{{name}}",
-    "startingRegistration": "正在开始注册。",
-    "tryingAgain": "正在重试。",
-    "confirmed": "已确认。",
-    "agendaUnknown": "你的日程显示在镜子上。",
-    "weatherUnknown": "天气显示在镜子上。",
-    "timeUnknown": "时间显示在镜子上。",
     "notUnderstood": "我没听懂。",
     "registrationFailed": "注册失败，请再试一次。",
     "changeLanguagePrompt": "说：普通话或英语",
     "changeLanguageOpen": "切换语言",
     "languageChanged": "语言已更新。",
-    "capturedName": "已记录名字 {{name}}。",
     "voiceStartRegistration": "正在开始注册。"
   },
   "weather": {
@@ -119,8 +98,7 @@
   },
   "languages": {
     "english": "英语",
-    "mandarin": "普通话",
-    "label": "语言"
+    "mandarin": "普通话"
   },
   "changeLanguage": {
     "title": "切换语言",
