@@ -47,6 +47,17 @@
       "commandFailed": "Command failed."
     }
   },
+  "speechPrompts": {
+    "changeLanguagePrompt": "Say Mandarin or English.",
+    "languageChanged": "Language updated.",
+    "sayYourName": "Say your name.",
+    "startRegistration": "Say: start registration",
+    "confirmName": "Is {{name}} your name?",
+    "sayYesOrNo": "Say yes or no.",
+    "scanningFace": "Scanning face.",
+    "lookAtMirror": "Look at the mirror.",
+    "hello": "Hello, {{name}}."
+  },
   "status": {
     "loading": "Loading Mirror AI...",
     "sayYourName": "Say your name",

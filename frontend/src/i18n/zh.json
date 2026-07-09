@@ -47,6 +47,17 @@
       "commandFailed": "命令失败。"
     }
   },
+  "speechPrompts": {
+    "changeLanguagePrompt": "说普通话或者英语。",
+    "languageChanged": "语言已更新。",
+    "sayYourName": "请说出你的名字。",
+    "startRegistration": "说：开始注册",
+    "confirmName": "你的名字是{{name}}吗？",
+    "sayYesOrNo": "请说：是或否。",
+    "scanningFace": "正在扫描人脸。",
+    "lookAtMirror": "请看着镜子。",
+    "hello": "你好，{{name}}。"
+  },
   "status": {
     "loading": "正在加载镜子 AI...",
     "sayYourName": "说出你的名字",
