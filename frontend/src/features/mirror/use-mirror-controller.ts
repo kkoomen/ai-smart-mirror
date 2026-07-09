@@ -25,6 +25,9 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   const registrationCompletingRef = useRef(false);
   const dashboardPresenceTimerRef = useRef<number | null>(null);
   const pendingLanguageChangeRef = useRef<AppLanguage | null>(null);
+  const progressRef = useRef(0);
+  const capturedFaceLabelRef = useRef<string | null>(null);
+  const capturedFaceDescriptorRef = useRef<string | null>(null);
 
   const [state, dispatch] = useReducer(mirrorReducer, initialMirrorState);
   const {
@@ -55,19 +58,30 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
 
   const statusText = useMemo(() => t(statusMessage.key, statusMessage.values), [statusMessage, t]);
 
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
+
+  useEffect(() => {
+    capturedFaceLabelRef.current = capturedFaceLabel;
+  }, [capturedFaceLabel]);
+
+  useEffect(() => {
+    capturedFaceDescriptorRef.current = capturedFaceDescriptor;
+  }, [capturedFaceDescriptor]);
+
   const setStatusMessage = useCallback((message: LocalizedMessage) => {
     dispatch({ type: "STATUS_CHANGED", statusMessage: message });
   }, []);
 
-  const setProgress = useCallback(
-    (value: number | ((current: number) => number)) => {
-      dispatch({
-        type: "REGISTRATION_SCAN_PROGRESS_CHANGED",
-        progress: typeof value === "function" ? value(state.progress) : value
-      });
-    },
-    [state.progress]
-  );
+  const setProgress = useCallback((value: number | ((current: number) => number)) => {
+    const nextProgress = typeof value === "function" ? value(progressRef.current) : value;
+    progressRef.current = nextProgress;
+    dispatch({
+      type: "REGISTRATION_SCAN_PROGRESS_CHANGED",
+      progress: nextProgress
+    });
+  }, []);
 
   const setScanFaceVisible = useCallback((visible: boolean) => {
     dispatch({ type: "REGISTRATION_SCAN_FACE_VISIBILITY_CHANGED", visible });
@@ -208,8 +222,8 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   const { loadDashboardData } = useDashboardData(dispatch);
   const { createUserAndConfirm, startRegistration } = useRegistrationFlow({
     browserFaceService,
-    capturedFaceDescriptor,
-    capturedFaceLabel,
+    capturedFaceDescriptorRef,
+    capturedFaceLabelRef,
     dispatch,
     idleVideoRef,
     knownUsers,

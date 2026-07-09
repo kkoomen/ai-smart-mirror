@@ -23,6 +23,8 @@ export const useMirrorFaceDetection = ({
   useEffect(() => {
     let cancelled = false;
     let timeoutId: number | null = null;
+    const scanProgressDecayStep = 3;
+    const getScanProgressStep = () => Math.floor(Math.random() * 8) + 3;
     const delayMs =
       phase === "dashboard"
         ? dashboardPresenceTimeoutMs
@@ -78,15 +80,19 @@ export const useMirrorFaceDetection = ({
 
         if (detection.isFaceDetected) {
           faceDetectionActions.updateScanProgress((current) => {
-            const next = Math.min(100, current + 18);
+            const next = Math.min(100, current + getScanProgressStep());
 
             if (current < 100 && next >= 100 && !registrationCompletingRef.current) {
+              console.info("[Mirror registration] scan reached completion threshold", {
+                current,
+                next,
+                hasFaceDescriptor: Boolean(detection.faceDescriptor),
+                capturedName
+              });
               registrationCompletingRef.current = true;
               faceDetectionActions.setStatus({ key: "status.completingRegistration" });
               window.setTimeout(() => {
-                if (cancelled) {
-                  return;
-                }
+                console.info("[Mirror registration] starting completion flow");
 
                 void createUserAndConfirm(
                   capturedName || "Mirror user",
@@ -104,7 +110,9 @@ export const useMirrorFaceDetection = ({
             return next;
           });
         } else {
-          faceDetectionActions.updateScanProgress((current) => Math.max(0, current - 12));
+          faceDetectionActions.updateScanProgress((current) =>
+            Math.max(0, current - scanProgressDecayStep)
+          );
         }
 
         scheduleNext();

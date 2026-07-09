@@ -90,14 +90,14 @@ export const registerMirrorUser = async (input: RegisterUserInput) => {
 
   const state = await updateMirrorState({
     activeUserId: user.id,
-    registrationComplete: false
+    registrationComplete: true
   });
 
   return {
     ok: true,
     user,
     state,
-    nextStep: "confirm-face"
+    mode: "recognized" as const
   };
 };
 

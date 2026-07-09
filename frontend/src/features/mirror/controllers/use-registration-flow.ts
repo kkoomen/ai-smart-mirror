@@ -2,11 +2,7 @@ import { useCallback } from "react";
 import type { Dispatch, MutableRefObject, RefObject } from "react";
 import i18n from "../../../i18n";
 import { normalizeLanguage, type AppLanguage } from "../../../i18n/languages";
-import {
-  confirmMirrorFace,
-  registerMirrorUser,
-  startMirrorRegistration
-} from "../../../api/mirror";
+import { registerMirrorUser, startMirrorRegistration } from "../../../api/mirror";
 import type { BrowserFaceRecognitionService } from "../../../services/face-recognition";
 import type { User } from "../../../types/user";
 import { toSubject } from "../../../utils/face-recognition";
@@ -15,8 +11,8 @@ import type { MirrorAction } from "../mirror-reducer";
 
 type RegistrationFlowOptions = {
   browserFaceService: BrowserFaceRecognitionService;
-  capturedFaceDescriptor: string | null;
-  capturedFaceLabel: string | null;
+  capturedFaceDescriptorRef: MutableRefObject<string | null>;
+  capturedFaceLabelRef: MutableRefObject<string | null>;
   dispatch: Dispatch<MirrorAction>;
   idleVideoRef: RefObject<HTMLVideoElement | null>;
   knownUsers: User[];
@@ -29,8 +25,8 @@ type RegistrationFlowOptions = {
 
 export const useRegistrationFlow = ({
   browserFaceService,
-  capturedFaceDescriptor,
-  capturedFaceLabel,
+  capturedFaceDescriptorRef,
+  capturedFaceLabelRef,
   dispatch,
   idleVideoRef,
   knownUsers,
@@ -51,8 +47,8 @@ export const useRegistrationFlow = ({
   const createUserAndConfirm = useCallback(
     async (name: string, faceDescriptorOverride?: string | null) => {
       const preferredLanguage = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
-      const faceLabel = capturedFaceLabel ?? browserFaceService.generateFaceLabel(name);
-      let faceDescriptor = faceDescriptorOverride ?? capturedFaceDescriptor;
+      const faceLabel = capturedFaceLabelRef.current ?? browserFaceService.generateFaceLabel(name);
+      let faceDescriptor = faceDescriptorOverride ?? capturedFaceDescriptorRef.current;
 
       if (!faceDescriptor && (scanVideoRef.current || idleVideoRef.current)) {
         const fallbackVideo = scanVideoRef.current ?? idleVideoRef.current;
@@ -70,6 +66,12 @@ export const useRegistrationFlow = ({
         throw new Error("No face descriptor captured. Please scan your face again.");
       }
 
+      console.info("[Mirror registration] creating user", {
+        name,
+        faceLabel,
+        preferredLanguage
+      });
+
       const created = await registerMirrorUser({
         name,
         faceLabel,
@@ -77,26 +79,29 @@ export const useRegistrationFlow = ({
         preferredLanguage
       });
 
-      const confirmed = await confirmMirrorFace({
+      console.info("[Mirror registration] user created", {
         userId: created.user.id,
         faceLabel: created.user.faceLabel
       });
 
-      dispatch({ type: "REGISTRATION_COMPLETED", user: confirmed.user });
+      dispatch({ type: "REGISTRATION_COMPLETED", user: created.user });
       registrationCompletingRef.current = false;
-      await loadDashboardData(confirmed.user.id, confirmed.user.location);
       navigate("/");
       speakText(
-        getSpeechPrompt("hello", normalizeLanguage(confirmed.user.preferredLanguage), {
-          name: confirmed.user.name
+        getSpeechPrompt("hello", normalizeLanguage(created.user.preferredLanguage), {
+          name: created.user.name
         }),
-        normalizeLanguage(confirmed.user.preferredLanguage)
+        normalizeLanguage(created.user.preferredLanguage)
       );
+      console.info("[Mirror registration] transitioned to home");
+      void loadDashboardData(created.user.id, created.user.location).catch((error) => {
+        console.error("Failed to load dashboard data after registration", error);
+      });
     },
     [
       browserFaceService,
-      capturedFaceDescriptor,
-      capturedFaceLabel,
+      capturedFaceDescriptorRef,
+      capturedFaceLabelRef,
       dispatch,
       idleVideoRef,
       knownUsers,
