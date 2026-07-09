@@ -1,0 +1,146 @@
+export type AppLanguageDto = "en" | "zh";
+
+export type MirrorPhaseDto =
+  | "idle"
+  | "waking"
+  | "hello"
+  | "name"
+  | "nameConfirm"
+  | "scan"
+  | "confirm"
+  | "changeLanguage"
+  | "dashboard"
+  | "unknown";
+
+export type UserDto = {
+  id: number;
+  name: string;
+  faceLabel: string;
+  faceDescriptor: string | null;
+  location: string;
+  preferredLanguage: string;
+  createdAt: string;
+};
+
+export type AgendaEventDto = {
+  id?: string | number;
+  userId?: number;
+  title: string;
+  startTime: string;
+  endTime: string;
+  location: string | null;
+  description: string | null;
+};
+
+export type WeatherForecastItemDto = {
+  label: string;
+  temperatureC: number;
+  condition: string;
+  rainChancePct: number | null;
+};
+
+export type WeatherDto = {
+  location: string;
+  updatedAt: string;
+  current: {
+    temperatureC: number;
+    condition: string;
+    feelsLikeC: number;
+    humidity: number;
+    windKph: number;
+    rainChancePct: number | null;
+  };
+  forecast: WeatherForecastItemDto[];
+  note: string;
+};
+
+export type UsersResponseDto = {
+  users: UserDto[];
+};
+
+export type UserResponseDto = {
+  user: UserDto;
+};
+
+export type UserLanguageMutationRequestDto = {
+  preferredLanguage: AppLanguageDto;
+};
+
+export type UserMutationResponseDto = {
+  ok: boolean;
+  user: UserDto;
+};
+
+export type UserAgendaTodayResponseDto = {
+  userId: number;
+  date: string;
+  events: AgendaEventDto[];
+};
+
+export type UserWeatherResponseDto = {
+  userId: number;
+  weather: WeatherDto;
+};
+
+export type WeatherEnvelopeDto = {
+  weather: WeatherDto;
+};
+
+export type VoiceIntentDto =
+  | "WAKE_MIRROR"
+  | "SLEEP_MIRROR"
+  | "START_REGISTRATION"
+  | "CHANGE_LANGUAGE"
+  | "SET_LANGUAGE_EN"
+  | "SET_LANGUAGE_ZH"
+  | "PROVIDE_NAME"
+  | "CONFIRM_YES"
+  | "CONFIRM_NO"
+  | "GET_AGENDA"
+  | "GET_WEATHER"
+  | "UNKNOWN";
+
+export type VoiceCommandRequestDto = {
+  transcript: string;
+  phase: MirrorPhaseDto;
+  userId: number | null;
+  language?: string;
+};
+
+export type VoiceCommandResponseDto = {
+  ok: true;
+  intent: VoiceIntentDto;
+  name: string | null;
+  response: string;
+};
+
+export type DashboardSummaryRequestDto = {
+  weather: WeatherDto;
+  appointmentCount: number;
+  language?: string | null;
+};
+
+export type DashboardSummaryResponseDto = {
+  ok: boolean;
+  summary: string;
+};
+
+export type MirrorStateResponseDto = {
+  mode: "no_user" | "registering" | "recognized" | "unknown";
+  registrationComplete: boolean;
+  userCount: number;
+  activeUser: UserDto | null;
+};
+
+export type RegisterUserRequestDto = {
+  name: string;
+  faceLabel?: string;
+  faceDescriptor?: string;
+  location?: string;
+  preferredLanguage?: AppLanguageDto;
+};
+
+export type ConfirmFaceRequestDto = {
+  userId?: number;
+  faceLabel?: string;
+};

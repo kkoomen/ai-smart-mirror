@@ -1,39 +1,17 @@
 import { Prisma } from "@prisma/client";
+import type {
+  ConfirmFaceRequestDto,
+  DashboardSummaryRequestDto,
+  RegisterUserRequestDto
+} from "../contracts/api.js";
 import { prisma } from "../lib/prisma.js";
 import { generateDashboardSummary } from "../lib/dashboard-summary.js";
 import { deriveMirrorMode, getMirrorState, updateMirrorState } from "../lib/mirror-state.js";
 import { buildAgendaForUser } from "../lib/mock-data.js";
 
-export type RegisterUserInput = {
-  name: string;
-  faceLabel?: string;
-  faceDescriptor?: string | null;
-  location?: string;
-  preferredLanguage?: "en" | "zh";
-};
-
-export type ConfirmFaceInput = {
-  userId?: number | null;
-  faceLabel?: string | null;
-};
-
-export type DashboardSummaryInput = {
-  weather: {
-    location?: string;
-    current?: {
-      temperatureC?: number;
-      condition?: string;
-      rainChancePct?: number | null;
-    };
-    forecast?: Array<{
-      temperatureC?: number;
-      condition?: string;
-      rainChancePct?: number | null;
-    }>;
-  };
-  appointmentCount: number;
-  language?: string | null;
-};
+export type RegisterUserInput = RegisterUserRequestDto;
+export type ConfirmFaceInput = ConfirmFaceRequestDto;
+export type DashboardSummaryInput = DashboardSummaryRequestDto;
 
 const toFaceLabel = (name: string, faceLabel?: string) =>
   faceLabel && faceLabel.trim().length > 0

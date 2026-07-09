@@ -1,34 +1,15 @@
-import type { User } from "./user";
-import type { MirrorPhase } from "./mirror-phase";
-import type { WeatherData } from "./weather";
+import type {
+  DashboardSummaryRequestDto,
+  DashboardSummaryResponseDto,
+  UserLanguageMutationRequestDto,
+  UserMutationResponseDto,
+  UsersResponseDto,
+  VoiceCommandRequestDto
+} from "../../../backend/src/contracts/api";
 
-export type UsersResponse = {
-  users: User[];
-};
-
-export type UserMutationResponse = {
-  ok: boolean;
-  user: User;
-};
-
-export type UserLanguageMutationRequest = {
-  preferredLanguage: "en" | "zh";
-};
-
-export type VoiceCommandRequest = {
-  transcript: string;
-  phase: MirrorPhase;
-  userId: number | null;
-  language?: string;
-};
-
-export type DashboardSummaryRequest = {
-  weather: WeatherData;
-  appointmentCount: number;
-  language?: string;
-};
-
-export type DashboardSummaryResponse = {
-  ok: boolean;
-  summary: string;
-};
+export type UsersResponse = UsersResponseDto;
+export type UserMutationResponse = UserMutationResponseDto;
+export type UserLanguageMutationRequest = UserLanguageMutationRequestDto;
+export type VoiceCommandRequest = VoiceCommandRequestDto;
+export type DashboardSummaryRequest = DashboardSummaryRequestDto;
+export type DashboardSummaryResponse = DashboardSummaryResponseDto;

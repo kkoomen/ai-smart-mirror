@@ -1,15 +1,11 @@
 import type { FastifyPluginAsync } from "fastify";
+import type { VoiceCommandRequestDto } from "../contracts/api.js";
 import { voiceCommandRouteSchema } from "../schemas/voice.js";
 import { handleVoiceCommand } from "../services/voice-command-service.js";
 
 export const voiceRoutes: FastifyPluginAsync = async (app) => {
   app.post("/api/voice/command", { schema: voiceCommandRouteSchema }, async (request, reply) => {
-    const body = request.body as {
-      transcript?: unknown;
-      phase?: unknown;
-      userId?: unknown;
-      language?: unknown;
-    };
+    const body = request.body as Partial<VoiceCommandRequestDto>;
 
     const result = await handleVoiceCommand({
       transcript: body?.transcript,

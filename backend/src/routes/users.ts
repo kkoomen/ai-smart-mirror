@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import type { UserLanguageMutationRequestDto } from "../contracts/api.js";
 import { parsePositiveInt } from "../lib/validation.js";
 import { updateUserLanguageRouteSchema, userIdParamRouteSchema } from "../schemas/users.js";
 import {
@@ -88,9 +89,7 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
       });
     }
 
-    const body = request.body as {
-      preferredLanguage?: unknown;
-    };
+    const body = request.body as Partial<UserLanguageMutationRequestDto>;
 
     if (body?.preferredLanguage !== "en" && body?.preferredLanguage !== "zh") {
       return reply.status(400).send({

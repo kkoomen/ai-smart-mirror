@@ -1,20 +1,7 @@
-export type VoiceIntent =
-  | "WAKE_MIRROR"
-  | "SLEEP_MIRROR"
-  | "START_REGISTRATION"
-  | "CHANGE_LANGUAGE"
-  | "SET_LANGUAGE_EN"
-  | "SET_LANGUAGE_ZH"
-  | "PROVIDE_NAME"
-  | "CONFIRM_YES"
-  | "CONFIRM_NO"
-  | "GET_AGENDA"
-  | "GET_WEATHER"
-  | "UNKNOWN";
+import type {
+  VoiceCommandResponseDto,
+  VoiceIntentDto
+} from "../../../backend/src/contracts/api";
 
-export type VoiceCommandResponse = {
-  ok: true;
-  intent: VoiceIntent;
-  name: string | null;
-  response: string;
-};
+export type VoiceIntent = VoiceIntentDto;
+export type VoiceCommandResponse = VoiceCommandResponseDto;

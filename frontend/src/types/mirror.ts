@@ -1,8 +1,3 @@
-import type { User } from "./user";
+import type { MirrorStateResponseDto } from "../../../backend/src/contracts/api";
 
-export type MirrorStateResponse = {
-  mode: "no_user" | "registering" | "recognized" | "unknown";
-  registrationComplete: boolean;
-  userCount: number;
-  activeUser: User | null;
-};
+export type MirrorStateResponse = MirrorStateResponseDto;

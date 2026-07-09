@@ -1,9 +1,3 @@
-export type User = {
-  id: number;
-  name: string;
-  faceLabel: string;
-  faceDescriptor: string | null;
-  location: string;
-  preferredLanguage: string;
-  createdAt: string;
-};
+import type { UserDto } from "../../../backend/src/contracts/api";
+
+export type User = UserDto;

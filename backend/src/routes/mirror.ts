@@ -1,4 +1,9 @@
 import type { FastifyPluginAsync } from "fastify";
+import type {
+  ConfirmFaceRequestDto,
+  DashboardSummaryRequestDto,
+  RegisterUserRequestDto
+} from "../contracts/api.js";
 import {
   buildMirrorDashboardSummary,
   confirmMirrorFace,
@@ -21,22 +26,13 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
   );
 
   app.post("/api/mirror/register-user", { schema: registerUserRouteSchema }, async (request) => {
-    const body = request.body as {
-      name: string;
-      faceLabel?: string;
-      faceDescriptor?: string;
-      location?: string;
-      preferredLanguage?: "en" | "zh";
-    };
+    const body = request.body as RegisterUserRequestDto;
 
     return registerMirrorUser(body);
   });
 
   app.post("/api/mirror/confirm-face", { schema: confirmFaceRouteSchema }, async (request, reply) => {
-    const body = request.body as {
-      userId?: number;
-      faceLabel?: string;
-    };
+    const body = request.body as ConfirmFaceRequestDto;
 
     const result = await confirmMirrorFace(body);
 
@@ -51,23 +47,7 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/api/mirror/dashboard-summary", { schema: dashboardSummaryRouteSchema }, async (request) => {
-    const body = request.body as {
-      weather: {
-        location?: string;
-        current?: {
-          temperatureC?: number;
-          condition?: string;
-          rainChancePct?: number | null;
-        };
-        forecast?: Array<{
-          temperatureC?: number;
-          condition?: string;
-          rainChancePct?: number | null;
-        }>;
-      };
-      appointmentCount: number;
-      language?: string | null;
-    };
+    const body = request.body as DashboardSummaryRequestDto;
 
     return buildMirrorDashboardSummary(body);
   });
