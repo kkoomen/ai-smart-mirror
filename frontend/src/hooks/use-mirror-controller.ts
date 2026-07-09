@@ -4,14 +4,12 @@ import i18n from "../i18n";
 import { normalizeLanguage, type AppLanguage } from "../i18n/languages";
 import { BrowserFaceRecognitionService } from "../services/face-recognition";
 import type { AgendaResponse } from "../types/agenda";
-import type { DashboardSummaryRequest, DashboardSummaryResponse } from "../types/api";
+import type { DashboardSummaryRequest } from "../types/api";
 import type { MirrorController } from "../types/mirror-controller";
 import type { LocalizedMessage } from "../types/i18n";
-import type { UserLanguageMutationRequest, UserMutationResponse } from "../types/api";
 import type { User } from "../types/user";
 import type { MirrorPhase } from "../types/mirror-phase";
-import type { WeatherData, WeatherEnvelope } from "../types/weather";
-import { requestJson } from "../utils/request-json";
+import type { WeatherData } from "../types/weather";
 import { toSubject } from "../utils/face-recognition";
 import { cancelSpeech, preloadSpeech, speakText as speakBrowserText, type SpeakTextOptions } from "../utils/speech";
 import { getSpeechPrompt } from "../utils/speech-prompts";
@@ -19,6 +17,14 @@ import { useMirrorBootstrap } from "../controllers/mirror/use-mirror-bootstrap";
 import { useMirrorFaceDetection } from "../controllers/mirror/use-mirror-face-detection";
 import { useMirrorVoice } from "../controllers/mirror/use-mirror-voice";
 import { dashboardPresenceTimeoutMs } from "../constants";
+import {
+  confirmMirrorFace,
+  generateMirrorDashboardSummary,
+  registerMirrorUser,
+  startMirrorRegistration
+} from "../api/mirror";
+import { getUserAgendaToday, updateUserLanguage } from "../api/users";
+import { getWeather } from "../api/weather";
 
 export const useMirrorController = (navigate: (path: string) => void): MirrorController => {
   const { t } = useTranslation();
@@ -132,9 +138,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   );
 
   const loadWeatherForLocation = async (location: string) => {
-    const response = await requestJson<WeatherEnvelope>(
-      `/api/weather?location=${encodeURIComponent(location || "Amsterdam")}`
-    );
+    const response = await getWeather(location);
 
     setWeather(response.weather);
     return response.weather;
@@ -143,28 +147,22 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   const loadDashboardData = async (userId: number, location: string) => {
     const [weatherResponse, agendaResponse] = await Promise.all([
       loadWeatherForLocation(location),
-      requestJson<AgendaResponse>(`/api/users/${userId}/agenda/today`)
+      getUserAgendaToday(userId)
     ]);
 
     setAgenda(agendaResponse.events);
 
-    const summaryResponse = await requestJson<DashboardSummaryResponse>("/api/mirror/dashboard-summary", {
-      method: "POST",
-      body: JSON.stringify({
-        weather: weatherResponse,
-        appointmentCount: agendaResponse.events.length,
-        language: normalizeLanguage(i18n.resolvedLanguage ?? i18n.language)
-      } satisfies DashboardSummaryRequest)
-    });
+    const summaryResponse = await generateMirrorDashboardSummary({
+      weather: weatherResponse,
+      appointmentCount: agendaResponse.events.length,
+      language: normalizeLanguage(i18n.resolvedLanguage ?? i18n.language)
+    } satisfies DashboardSummaryRequest);
 
     setDashboardSummaryText(summaryResponse.summary);
   };
 
   const startRegistration = async () => {
-    await requestJson("/api/mirror/start-registration", {
-      method: "POST",
-      body: JSON.stringify({})
-    });
+    await startMirrorRegistration();
 
     setCapturedName("");
     setCapturedFaceLabel(null);
@@ -198,22 +196,16 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
       throw new Error("No face descriptor captured. Please scan your face again.");
     }
 
-    const created = await requestJson<UserMutationResponse>("/api/mirror/register-user", {
-      method: "POST",
-      body: JSON.stringify({
-        name,
-        faceLabel,
-        faceDescriptor,
-        preferredLanguage
-      })
+    const created = await registerMirrorUser({
+      name,
+      faceLabel,
+      faceDescriptor,
+      preferredLanguage
     });
 
-    const confirmed = await requestJson<UserMutationResponse>("/api/mirror/confirm-face", {
-      method: "POST",
-      body: JSON.stringify({
-        userId: created.user.id,
-        faceLabel: created.user.faceLabel
-      })
+    const confirmed = await confirmMirrorFace({
+      userId: created.user.id,
+      faceLabel: created.user.faceLabel
     });
 
     setKnownUsers((current) => {
@@ -241,11 +233,8 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
       return;
     }
 
-    const response = await requestJson<UserMutationResponse>(`/api/users/${registeredUser.id}/language`, {
-      method: "POST",
-      body: JSON.stringify({
-        preferredLanguage: language
-      } satisfies UserLanguageMutationRequest)
+    const response = await updateUserLanguage(registeredUser.id, {
+      preferredLanguage: language
     });
 
     setRegisteredUser(response.user);

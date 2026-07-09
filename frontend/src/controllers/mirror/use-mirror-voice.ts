@@ -2,9 +2,9 @@ import type { MirrorVoiceOptions } from "../../types/mirror-controller";
 import type { VoiceCommandResponse } from "../../types/voice";
 import i18n from "../../i18n";
 import { normalizeLanguage } from "../../i18n/languages";
-import { requestJson } from "../../utils/request-json";
 import { getSpeechPrompt } from "../../utils/speech-prompts";
 import type { VoiceCommandRequest } from "../../types/api";
+import { classifyVoiceCommand } from "../../api/voice";
 
 export const useMirrorVoice = ({
   phase,
@@ -70,15 +70,12 @@ export const useMirrorVoice = ({
   return async (spokenText: string) => {
     console.info("[Mirror voice] handling command:", spokenText.toLowerCase());
 
-    const command = await requestJson<VoiceCommandResponse>("/api/voice/command", {
-      method: "POST",
-      body: JSON.stringify({
-        transcript: spokenText,
-        phase,
-        userId: registeredUser?.id ?? null,
-        language: currentLanguage
-      } satisfies VoiceCommandRequest)
-    });
+    const command = await classifyVoiceCommand({
+      transcript: spokenText,
+      phase,
+      userId: registeredUser?.id ?? null,
+      language: currentLanguage
+    } satisfies VoiceCommandRequest);
 
     if (command.intent === "SLEEP_MIRROR") {
       if (phase === "idle") {

@@ -1,11 +1,10 @@
 import { useEffect } from "react";
 import i18n from "../../i18n";
 import { normalizeLanguage } from "../../i18n/languages";
-import type { MirrorStateResponse } from "../../types/mirror";
 import type { MirrorBootstrapOptions } from "../../types/mirror-controller";
-import type { UsersResponse } from "../../types/api";
-import { requestJson } from "../../utils/request-json";
 import { getSpeechPrompt } from "../../utils/speech-prompts";
+import { getMirrorState } from "../../api/mirror";
+import { getUsers } from "../../api/users";
 
 export const useMirrorBootstrap = ({
   browserFaceService,
@@ -26,8 +25,8 @@ export const useMirrorBootstrap = ({
         } catch {}
 
         const [mirrorState, usersResponse] = await Promise.all([
-          requestJson<MirrorStateResponse>("/api/mirror/state"),
-          requestJson<UsersResponse>("/api/users")
+          getMirrorState(),
+          getUsers()
         ]);
 
         setKnownUsers(usersResponse.users);
