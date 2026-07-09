@@ -46,7 +46,7 @@ const getRecognitionCtor = () => {
   return speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition || null;
 };
 
-const SPEECH_RECOGNITION_RESUME_DELAY_MS = 2000;
+const SPEECH_RECOGNITION_RESUME_DELAY_MS = 300;
 
 export const useSpeechRecognition = ({
   autoListen = true,

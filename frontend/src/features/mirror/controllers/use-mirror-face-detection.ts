@@ -22,8 +22,7 @@ export const useMirrorFaceDetection = ({
   useEffect(() => {
     let cancelled = false;
     let timeoutId: number | null = null;
-    const scanProgressDecayStep = 3;
-    const getScanProgressStep = () => Math.floor(Math.random() * 10) + 3;
+    const getScanProgressStep = () => Math.floor(Math.random() * 15) + 5;
     const delayMs =
       phase === "dashboard"
         ? dashboardPresenceTimeoutMs
@@ -110,7 +109,7 @@ export const useMirrorFaceDetection = ({
           });
         } else {
           faceDetectionActions.updateScanProgress((current) =>
-            Math.max(0, current - scanProgressDecayStep)
+            Math.max(0, current - getScanProgressStep())
           );
         }
 

@@ -5,8 +5,6 @@ backend/dist
 frontend/public/models
 backend/prisma/dev.db*
 demo
-.agents
-.continue
 package-lock.json
 frontend/package-lock.json
 backend/package-lock.json
