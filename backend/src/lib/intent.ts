@@ -164,11 +164,18 @@ const requestDeepSeekIntent = async (params: {
               "For most inputs reply with only the INTENT. " +
               "If and only if the intent is PROVIDE_NAME, reply as PROVIDE_NAME|<name>. " +
               "If uncertain, reply UNKNOWN. " +
+              "WAKE_MIRROR is allowed only for explicit mirror wake phrases like hello mirror, hey mirror, or hi mirror. " +
+              "SLEEP_MIRROR is allowed only for explicit mirror sleep phrases like goodbye mirror or bye mirror. " +
+              "Do not classify plain hello, hey, hi, goodbye, or bye without the word mirror as wake or sleep. " +
               "Examples: " +
               "hello mirror -> WAKE_MIRROR. " +
               "hey mirror -> WAKE_MIRROR. " +
+              "hi mirror -> WAKE_MIRROR. " +
               "goodbye mirror -> SLEEP_MIRROR. " +
               "bye mirror -> SLEEP_MIRROR. " +
+              "hello -> UNKNOWN. " +
+              "hi -> UNKNOWN. " +
+              "bye -> UNKNOWN. " +
               "change language -> CHANGE_LANGUAGE. " +
               "English -> SET_LANGUAGE_EN. " +
               "Mandarin -> SET_LANGUAGE_ZH. " +
