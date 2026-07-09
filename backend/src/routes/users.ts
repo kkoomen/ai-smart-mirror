@@ -4,6 +4,7 @@ import { prisma } from "../lib/prisma.js";
 import { buildAgendaForUser } from "../lib/mock-data.js";
 import { getWeatherForLocation } from "../lib/weather.js";
 import { parsePositiveInt } from "../lib/validation.js";
+import { updateUserLanguageRouteSchema, userIdParamRouteSchema } from "../schemas/users.js";
 
 export const usersRoutes: FastifyPluginAsync = async (app) => {
   app.get("/api/users", async () => {
@@ -18,7 +19,7 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
     };
   });
 
-  app.get("/api/users/:id", async (request, reply) => {
+  app.get("/api/users/:id", { schema: userIdParamRouteSchema }, async (request, reply) => {
     const id = parsePositiveInt((request.params as { id?: unknown }).id);
 
     if (!id) {
@@ -44,7 +45,7 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
     };
   });
 
-  app.get("/api/users/:id/agenda/today", async (request, reply) => {
+  app.get("/api/users/:id/agenda/today", { schema: userIdParamRouteSchema }, async (request, reply) => {
     const id = parsePositiveInt((request.params as { id?: unknown }).id);
 
     if (!id) {
@@ -87,7 +88,7 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
     };
   });
 
-  app.get("/api/users/:id/weather", async (request, reply) => {
+  app.get("/api/users/:id/weather", { schema: userIdParamRouteSchema }, async (request, reply) => {
     const id = parsePositiveInt((request.params as { id?: unknown }).id);
 
     if (!id) {
@@ -114,7 +115,7 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
     };
   });
 
-  app.post("/api/users/:id/language", async (request, reply) => {
+  app.post("/api/users/:id/language", { schema: updateUserLanguageRouteSchema }, async (request, reply) => {
     const id = parsePositiveInt((request.params as { id?: unknown }).id);
 
     if (!id) {

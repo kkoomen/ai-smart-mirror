@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from "fastify";
 import { prisma } from "../lib/prisma.js";
 import { inferVoiceCommand } from "../lib/intent.js";
 import { isString, parsePositiveInt } from "../lib/validation.js";
+import { voiceCommandRouteSchema } from "../schemas/voice.js";
 
 const isVoicePhase = (
   value: string
@@ -48,7 +49,7 @@ const normalizeLanguage = (value: unknown) => {
 };
 
 export const voiceRoutes: FastifyPluginAsync = async (app) => {
-  app.post("/api/voice/command", async (request, reply) => {
+  app.post("/api/voice/command", { schema: voiceCommandRouteSchema }, async (request, reply) => {
     const body = request.body as {
       transcript?: unknown;
       phase?: unknown;

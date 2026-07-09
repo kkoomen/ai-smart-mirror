@@ -5,6 +5,12 @@ import { deriveMirrorMode, getMirrorState, updateMirrorState } from "../lib/mirr
 import { generateDashboardSummary } from "../lib/dashboard-summary.js";
 import { buildAgendaForUser } from "../lib/mock-data.js";
 import { isString, parsePositiveInt } from "../lib/validation.js";
+import {
+  confirmFaceRouteSchema,
+  dashboardSummaryRouteSchema,
+  registerUserRouteSchema,
+  startRegistrationRouteSchema
+} from "../schemas/mirror.js";
 
 const getUserById = (id: number) => prisma.user.findUnique({ where: { id } });
 
@@ -33,7 +39,7 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
     };
   });
 
-  app.post("/api/mirror/start-registration", async () => {
+  app.post("/api/mirror/start-registration", { schema: startRegistrationRouteSchema }, async () => {
     const state = await updateMirrorState({
       activeUserId: null,
       registrationComplete: false
@@ -45,7 +51,7 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
     };
   });
 
-  app.post("/api/mirror/register-user", async (request, reply) => {
+  app.post("/api/mirror/register-user", { schema: registerUserRouteSchema }, async (request, reply) => {
     const body = request.body as {
       name?: unknown;
       faceLabel?: unknown;
@@ -114,7 +120,7 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
     };
   });
 
-  app.post("/api/mirror/confirm-face", async (request, reply) => {
+  app.post("/api/mirror/confirm-face", { schema: confirmFaceRouteSchema }, async (request, reply) => {
     const body = request.body as {
       userId?: unknown;
       faceLabel?: unknown;
@@ -150,7 +156,7 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
     };
   });
 
-  app.post("/api/mirror/dashboard-summary", async (request, reply) => {
+  app.post("/api/mirror/dashboard-summary", { schema: dashboardSummaryRouteSchema }, async (request, reply) => {
     const body = request.body as {
       weather?: unknown;
       appointmentCount?: unknown;
