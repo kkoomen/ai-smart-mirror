@@ -2,6 +2,8 @@
 
 A full-stack TypeScript smart mirror prototype. It uses voice and face recognition to wake the mirror, register the first user, and show a minimal black-and-white dashboard with weather, agenda, and device status.
 
+![demo](./demo.jpg)
+
 ## Structure
 
 - `frontend` - React + Vite + Tailwind
