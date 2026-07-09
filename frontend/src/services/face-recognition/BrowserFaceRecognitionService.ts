@@ -5,6 +5,7 @@ import type {
   FaceRecognitionSnapshot,
   FaceRecognitionSubject
 } from "../../types/face-recognition";
+import { faceRecognitionConfig } from "./config";
 
 const randomDigits = () => Math.floor(100 + Math.random() * 900);
 
@@ -14,9 +15,6 @@ const slugify = (value: string) =>
     .toLowerCase()
     .replace(/\s+/g, "_")
     .replace(/[^a-z0-9_]/g, "");
-
-const DEFAULT_MODEL_URL = import.meta.env.VITE_FACE_API_MODEL_URL ?? "/models";
-const FACE_DISTANCE_THRESHOLD = 0.52;
 
 const parseDescriptor = (value: string | null) => {
   if (!value) {
@@ -72,9 +70,9 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
     }
 
     this.loadPromise = Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri(DEFAULT_MODEL_URL),
-      faceapi.nets.faceLandmark68Net.loadFromUri(DEFAULT_MODEL_URL),
-      faceapi.nets.faceRecognitionNet.loadFromUri(DEFAULT_MODEL_URL)
+      faceapi.nets.tinyFaceDetector.loadFromUri(faceRecognitionConfig.modelUrl),
+      faceapi.nets.faceLandmark68Net.loadFromUri(faceRecognitionConfig.modelUrl),
+      faceapi.nets.faceRecognitionNet.loadFromUri(faceRecognitionConfig.modelUrl)
     ]).then(() => {
       this.loaded = true;
     });
@@ -108,14 +106,7 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
     }
 
     const startPromise = navigator.mediaDevices
-      .getUserMedia({
-        audio: false,
-        video: {
-          facingMode: "user",
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      })
+      .getUserMedia(faceRecognitionConfig.cameraConstraints)
       .then(async (stream) => {
         this.cameraStreams.set(video, stream);
         video.srcObject = stream;
@@ -183,10 +174,7 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
     const detection = await faceapi
       .detectSingleFace(
         video,
-        new faceapi.TinyFaceDetectorOptions({
-          inputSize: 224,
-          scoreThreshold: 0.7
-        })
+        new faceapi.TinyFaceDetectorOptions(faceRecognitionConfig.tinyFaceDetectorOptions)
       )
       .withFaceLandmarks()
       .withFaceDescriptor();
@@ -201,11 +189,12 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
       x: box.x + box.width / 2,
       y: box.y + box.height / 2
     };
+    const scanOvalBounds = faceRecognitionConfig.scanOvalBounds;
     const ovalBounds = {
-      x: frameWidth * 0.29,
-      y: frameHeight * 0.11,
-      width: frameWidth * 0.42,
-      height: frameHeight * 0.78
+      x: frameWidth * scanOvalBounds.xRatio,
+      y: frameHeight * scanOvalBounds.yRatio,
+      width: frameWidth * scanOvalBounds.widthRatio,
+      height: frameHeight * scanOvalBounds.heightRatio
     };
 
     if (!isInsideEllipse(faceCenter, ovalBounds)) {
@@ -236,7 +225,10 @@ export class BrowserFaceRecognitionService implements FaceRecognitionService {
       };
     }
 
-    const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, FACE_DISTANCE_THRESHOLD);
+    const faceMatcher = new faceapi.FaceMatcher(
+      labeledDescriptors,
+      faceRecognitionConfig.faceDistanceThreshold
+    );
     const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
     const matchedUser = snapshot.knownUsers.find((user) => user.faceLabel === bestMatch.label) ?? null;
 
