@@ -110,7 +110,7 @@ const buildIntentResponse = (
   return responses[language][intent];
 };
 
-const parseClassifierResponse = (
+export const parseClassifierResponse = (
   value: string,
   language: VoiceLanguage
 ): VoiceCommandResult | null => {

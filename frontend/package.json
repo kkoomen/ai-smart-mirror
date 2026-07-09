@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "models:download": "node scripts/download-models.mjs",
     "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run src",
     "lint": "eslint src"
   },
   "dependencies": {

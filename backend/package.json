@@ -12,6 +12,7 @@
     "db:reset": "prisma db push && node scripts/reset-db.js",
     "db:studio": "prisma studio",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run src",
     "lint": "eslint src"
   },
   "dependencies": {

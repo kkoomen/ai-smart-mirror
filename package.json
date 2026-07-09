@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "check": "npm-run-all typecheck lint format:check",
+    "test": "vitest run",
+    "check": "npm-run-all typecheck lint test format:check",
     "models:download": "npm --prefix frontend run models:download",
     "db:push": "npm --prefix backend run db:push",
     "db:reset": "npm --prefix backend run db:reset",
@@ -28,6 +29,7 @@
     "globals": "^17.7.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.9.5",
-    "typescript-eslint": "^8.63.0"
+    "typescript-eslint": "^8.63.0",
+    "vitest": "^4.1.10"
   }
 }
