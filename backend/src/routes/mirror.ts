@@ -101,21 +101,6 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
       }))
     });
 
-    await prisma.reminder.createMany({
-      data: [
-        {
-          userId: user.id,
-          text: "Check tomorrow's weather before bed",
-          dueAt: new Date()
-        },
-        {
-          userId: user.id,
-          text: "Review today's calendar before lunch",
-          dueAt: null
-        }
-      ]
-    });
-
     const state = await updateMirrorState({
       activeUserId: user.id,
       registrationComplete: false

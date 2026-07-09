@@ -3,10 +3,9 @@ import { prisma } from "../lib/prisma.js";
 
 export const healthRoutes: FastifyPluginAsync = async (app) => {
   app.get("/api/health", async () => {
-    const [users, events, reminders, logs] = await Promise.all([
+    const [users, events, logs] = await Promise.all([
       prisma.user.count(),
       prisma.calendarEvent.count(),
-      prisma.reminder.count(),
       prisma.voiceCommandLog.count()
     ]);
 
@@ -16,7 +15,6 @@ export const healthRoutes: FastifyPluginAsync = async (app) => {
       counts: {
         users,
         events,
-        reminders,
         logs
       }
     };

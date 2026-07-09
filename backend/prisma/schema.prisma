@@ -16,7 +16,6 @@ model User {
   preferredLanguage String            @default("en")
   createdAt         DateTime          @default(now())
   events            CalendarEvent[]
-  reminders         Reminder[]
   voiceLogs         VoiceCommandLog[]
   activeMirrorState MirrorState? @relation("ActiveUser")
 }
@@ -30,18 +29,6 @@ model CalendarEvent {
   location    String?
   description String?
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-model Reminder {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  text       String
-  dueAt      DateTime?
-  completed  Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

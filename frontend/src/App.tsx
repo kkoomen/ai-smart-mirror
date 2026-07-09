@@ -56,7 +56,7 @@ function AppRoutes() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </FadeTransition>
-      <VoiceActivityIndicator />
+      <VoiceActivityIndicator visible={controller.phase !== "scan"} />
     </>
   );
 }

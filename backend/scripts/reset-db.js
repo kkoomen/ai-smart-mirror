@@ -5,7 +5,6 @@ const prisma = new PrismaClient();
 try {
   await prisma.$transaction([
     prisma.voiceCommandLog.deleteMany(),
-    prisma.reminder.deleteMany(),
     prisma.calendarEvent.deleteMany(),
     prisma.weatherCache.deleteMany(),
     prisma.mirrorState.deleteMany(),

@@ -4,7 +4,7 @@ import { subscribeToVoiceListenerState } from "../../utils/voice-listener";
 
 const defaultLevels = [0.28, 0.55, 0.8, 0.55, 0.28];
 
-export default function VoiceActivityIndicator() {
+export default function VoiceActivityIndicator({ visible = true }) {
   const [isEnabled, setIsEnabled] = useState(false);
   const [levels, setLevels] = useState(defaultLevels);
   const animationFrameRef = useRef(null);
@@ -94,6 +94,10 @@ export default function VoiceActivityIndicator() {
       setLevels(defaultLevels);
     };
   }, [isEnabled]);
+
+  if (!visible) {
+    return null;
+  }
 
   return (
     <div

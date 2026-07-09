@@ -11,6 +11,4 @@ export const env = {
   openWeatherApiKey: process.env.OPENWEATHER_API_KEY ?? "",
   deepSeekApiKey: process.env.DEEPSEEK_API_KEY ?? "",
   deepSeekModel: process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
-  openAiApiKey: process.env.OPENAI_API_KEY ?? "",
-  openAiModel: process.env.OPENAI_MODEL ?? "gpt-4o-mini"
 };
