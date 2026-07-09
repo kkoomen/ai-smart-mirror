@@ -1,10 +1,5 @@
 {
   "home": {
-    "startScreen": {
-      "eyebrow": "镜子 AI",
-      "title": "欢迎使用镜子 AI",
-      "subtitle": "说：开始注册"
-    },
     "mirror": {
       "welcome": "欢迎",
       "startRegistration": "说：开始注册",
@@ -49,7 +44,6 @@
   },
   "speechPrompts": {
     "changeLanguagePrompt": "说普通话或者英语。",
-    "languageChanged": "语言已更新。",
     "sayYourName": "请说出你的名字。",
     "startRegistration": "说：开始注册",
     "confirmName": "你的名字是{{name}}吗？",
@@ -74,17 +68,12 @@
     "notUnderstood": "我没听懂。",
     "registrationFailed": "注册失败，请再试一次。",
     "changeLanguagePrompt": "说：普通话或英语",
-    "changeLanguageOpen": "切换语言",
     "languageChanged": "语言已更新。",
     "voiceStartRegistration": "正在开始注册。"
   },
   "weather": {
     "title": "天气",
-    "location": "地点",
-    "condition": "天气状况",
-    "temperature": "温度",
     "rainChance": "降雨概率 {{chance}}",
-    "forecast": "预报",
     "unknown": "未知"
   },
   "agenda": {
@@ -107,17 +96,9 @@
   "time": {
     "title": "本地时间"
   },
-  "languages": {
-    "english": "英语",
-    "mandarin": "普通话"
-  },
   "changeLanguage": {
     "title": "切换语言",
-    "subtitle": "说出你想使用的语言",
-    "prompt": "说：普通话或英语",
-    "options": {
-      "english": "英语",
-      "mandarin": "普通话"
-    }
+    "subtitle": "选择语言",
+    "prompt": "说：普通话或英语"
   }
 }

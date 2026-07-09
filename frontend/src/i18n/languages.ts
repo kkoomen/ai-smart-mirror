@@ -3,13 +3,11 @@ import { defaultLanguage, languageStorageKey } from "../constants";
 export const supportedLanguages = [
   {
     code: "en",
-    speechLocale: "en-US",
-    labelKey: "languages.english"
+    speechLocale: "en-US"
   },
   {
     code: "zh",
-    speechLocale: "zh-CN",
-    labelKey: "languages.mandarin"
+    speechLocale: "zh-CN"
   }
 ] as const;
 

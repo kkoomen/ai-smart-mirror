@@ -1,10 +1,5 @@
 {
   "home": {
-    "startScreen": {
-      "eyebrow": "Mirror AI",
-      "title": "Welcome to Mirror AI",
-      "subtitle": "Say: start registration"
-    },
     "mirror": {
       "welcome": "Welcome",
       "startRegistration": "Say: start registration",
@@ -49,7 +44,6 @@
   },
   "speechPrompts": {
     "changeLanguagePrompt": "Say Mandarin or English.",
-    "languageChanged": "Language updated.",
     "sayYourName": "Say your name.",
     "startRegistration": "Say: start registration",
     "confirmName": "Is {{name}} your name?",
@@ -74,17 +68,12 @@
     "notUnderstood": "I didn't understand that.",
     "registrationFailed": "Registration failed. Please try again.",
     "changeLanguagePrompt": "Say: Mandarin or English",
-    "changeLanguageOpen": "Language change",
     "languageChanged": "Language updated.",
     "voiceStartRegistration": "Starting registration."
   },
   "weather": {
     "title": "Weather",
-    "location": "Location",
-    "condition": "Condition",
-    "temperature": "Temperature",
     "rainChance": "Rain chance {{chance}}",
-    "forecast": "Forecast",
     "unknown": "Unknown"
   },
   "agenda": {
@@ -107,17 +96,9 @@
   "time": {
     "title": "Local time"
   },
-  "languages": {
-    "english": "English",
-    "mandarin": "Mandarin"
-  },
   "changeLanguage": {
     "title": "Change language",
-    "subtitle": "Say the language you want to use",
-    "prompt": "Say Mandarin or English",
-    "options": {
-      "english": "English",
-      "mandarin": "Mandarin"
-    }
+    "subtitle": "Choose a language",
+    "prompt": "Say Mandarin or English"
   }
 }
