@@ -5,7 +5,7 @@ import VoiceControl from "../../components/voice-control";
 
 export default function ChangeLanguagePage({ controller }) {
   const { t } = useTranslation();
-  const { phase, isMirrorFadingOut, handleVoiceCommand, statusText, sleepMirror, idleVideoRef } = controller;
+  const { phase, isMirrorFadingOut, handleVoiceCommand, statusText, finishLanguageChange, idleVideoRef } = controller;
 
   return (
     <>
@@ -16,7 +16,13 @@ export default function ChangeLanguagePage({ controller }) {
         playsInline
         className="pointer-events-none absolute -left-[9999px] h-px w-px opacity-0"
       />
-      <FadeTransition show={phase !== "idle" && !isMirrorFadingOut} className="min-h-screen" onExited={sleepMirror}>
+      <FadeTransition
+        show={phase !== "idle" && !isMirrorFadingOut}
+        className="min-h-screen"
+        onExited={() => {
+          void finishLanguageChange();
+        }}
+      >
         <FadeTransition transitionKey="change-language" className="min-h-screen">
           <MirrorLayout
             showPanels={false}

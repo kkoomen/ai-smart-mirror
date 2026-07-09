@@ -30,6 +30,8 @@ export type MirrorController = {
   idleVideoRef: RefObject<HTMLVideoElement | null>;
   wakeMirror: () => void;
   sleepMirror: () => void;
+  beginLanguageChange: (language: AppLanguage) => void;
+  finishLanguageChange: () => Promise<void>;
   startRegistration: () => Promise<void>;
   handleVoiceCommand: (spokenText: string) => Promise<void>;
   setMirrorFadingOut: (value: boolean) => void;
@@ -74,6 +76,7 @@ export type MirrorVoiceOptions = {
   registeredUser: User | null;
   wakeMirror: () => void;
   sleepMirror: () => void;
+  beginLanguageChange: (language: AppLanguage) => void;
   clearDashboardPresenceTimer: () => void;
   startRegistration: () => Promise<void>;
   createUserAndConfirm: (name: string, faceDescriptorOverride?: string | null) => Promise<void>;

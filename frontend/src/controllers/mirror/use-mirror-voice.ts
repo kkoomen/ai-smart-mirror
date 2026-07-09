@@ -11,6 +11,7 @@ export const useMirrorVoice = ({
   registeredUser,
   wakeMirror,
   sleepMirror,
+  beginLanguageChange,
   clearDashboardPresenceTimer,
   startRegistration,
   createUserAndConfirm,
@@ -122,12 +123,7 @@ export const useMirrorVoice = ({
         return;
       }
 
-      await i18n.changeLanguage(targetLanguage);
-      await persistUserLanguage(targetLanguage);
-      setPhase("dashboard");
-      setStatusText({ key: "status.languageChanged" });
-      void speakText(getSpeechPrompt("languageChanged", targetLanguage), targetLanguage);
-      navigate("/");
+      beginLanguageChange(targetLanguage);
       return;
     }
 

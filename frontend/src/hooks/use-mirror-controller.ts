@@ -28,6 +28,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   const wakeStartedAtRef = useRef<number | null>(null);
   const registrationCompletingRef = useRef(false);
   const dashboardPresenceTimerRef = useRef<number | null>(null);
+  const pendingLanguageChangeRef = useRef<AppLanguage | null>(null);
 
   const [phase, setPhase] = useState<VoicePhase>("idle");
   const [statusMessage, setStatusMessage] = useState<LocalizedMessage>({ key: "status.loading" });
@@ -254,6 +255,28 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     await loadDashboardData(response.user.id, response.user.location);
   };
 
+  const beginLanguageChange = (language: AppLanguage) => {
+    pendingLanguageChangeRef.current = language;
+    setIsMirrorFadingOut(true);
+  };
+
+  const finishLanguageChange = async () => {
+    const targetLanguage = pendingLanguageChangeRef.current;
+    pendingLanguageChangeRef.current = null;
+
+    if (!targetLanguage || !registeredUser) {
+      setIsMirrorFadingOut(false);
+      return;
+    }
+
+    await i18n.changeLanguage(targetLanguage);
+    await persistUserLanguage(targetLanguage);
+    setPhase("dashboard");
+    setStatusMessage({ key: "status.languageChanged" });
+    setIsMirrorFadingOut(false);
+    navigate("/");
+  };
+
   const sleepMirror = () => {
     clearDashboardPresenceTimer();
     setDashboardSummaryText("");
@@ -319,6 +342,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     registeredUser,
     wakeMirror,
     sleepMirror,
+    beginLanguageChange,
     clearDashboardPresenceTimer,
     startRegistration,
     createUserAndConfirm,
@@ -356,6 +380,8 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     idleVideoRef,
     wakeMirror,
     sleepMirror,
+    beginLanguageChange,
+    finishLanguageChange,
     startRegistration,
     handleVoiceCommand,
     setMirrorFadingOut: setIsMirrorFadingOut,
