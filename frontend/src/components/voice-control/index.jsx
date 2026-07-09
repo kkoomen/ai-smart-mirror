@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getSpeechLocale } from "../../i18n/languages";
+import { subscribeToSpeechActivity } from "../../utils/speech";
+import { setVoiceListenerState } from "../../utils/voice-listener";
 
 const getRecognitionCtor = () => {
   if (typeof window === "undefined") {
@@ -9,6 +11,8 @@ const getRecognitionCtor = () => {
 
   return window.SpeechRecognition || window.webkitSpeechRecognition || null;
 };
+
+const SPEECH_RECOGNITION_RESUME_DELAY_MS = 2000;
 
 export default function VoiceControl({
   prompt,
@@ -30,6 +34,32 @@ export default function VoiceControl({
   const onTranscriptRef = useRef(onTranscript);
   const userStoppedRef = useRef(false);
   const autoStartAttemptedRef = useRef(false);
+  const isSpeechActiveRef = useRef(false);
+  const speechWasActiveRef = useRef(false);
+  const speechSuppressedUntilRef = useRef(0);
+
+  const isRecognitionSuppressed = () =>
+    isSpeechActiveRef.current || Date.now() < speechSuppressedUntilRef.current;
+
+  const abortRecognition = () => {
+    const recognition = recognitionRef.current;
+    if (!recognition) {
+      setVoiceListenerState({ isEnabled: false });
+      return;
+    }
+
+    try {
+      recognition.abort();
+    } catch {
+      try {
+        recognition.stop();
+      } catch {
+        // Speech recognition can throw if already stopped.
+      }
+    }
+
+    setVoiceListenerState({ isEnabled: false });
+  };
 
   useEffect(() => {
     voiceStateRef.current = voiceState;
@@ -40,10 +70,46 @@ export default function VoiceControl({
     onTranscriptRef.current = onTranscript;
   }, [onCommand, onTranscript]);
 
+  useEffect(
+    () =>
+      subscribeToSpeechActivity((isSpeechActive) => {
+        isSpeechActiveRef.current = isSpeechActive;
+
+        if (isSpeechActive) {
+          speechWasActiveRef.current = true;
+          speechSuppressedUntilRef.current = Number.POSITIVE_INFINITY;
+          abortRecognition();
+          setVoiceState("idle");
+          return;
+        }
+
+        if (!speechWasActiveRef.current) {
+          return;
+        }
+
+        speechWasActiveRef.current = false;
+        speechSuppressedUntilRef.current = Date.now() + SPEECH_RECOGNITION_RESUME_DELAY_MS;
+
+        if (autoListen && !disabled && recognitionRef.current) {
+          window.setTimeout(() => {
+            if (!isRecognitionSuppressed() && recognitionRef.current && !userStoppedRef.current) {
+              try {
+                recognitionRef.current.start();
+              } catch {
+                // Browser speech APIs reject duplicate starts.
+              }
+            }
+          }, SPEECH_RECOGNITION_RESUME_DELAY_MS);
+        }
+      }),
+    [autoListen, disabled]
+  );
+
   useEffect(() => {
     const Recognition = getRecognitionCtor();
     if (!Recognition) {
       setIsSupported(false);
+      setVoiceListenerState({ isEnabled: false });
       return;
     }
 
@@ -55,7 +121,7 @@ export default function VoiceControl({
     recognition.continuous = false;
 
     const startRecognition = () => {
-      if (disabled || !recognitionRef.current) {
+      if (disabled || isRecognitionSuppressed() || !recognitionRef.current) {
         return;
       }
 
@@ -67,12 +133,24 @@ export default function VoiceControl({
     };
 
     recognition.onstart = () => {
+      if (isRecognitionSuppressed()) {
+        abortRecognition();
+        return;
+      }
+
+      setVoiceListenerState({ isEnabled: true });
       setErrorMessage("");
       setVoiceState("listening");
       userStoppedRef.current = false;
     };
 
     recognition.onresult = (event) => {
+      if (isRecognitionSuppressed()) {
+        setVoiceListenerState({ isEnabled: false });
+        setVoiceState("idle");
+        return;
+      }
+
       const transcript = Array.from(event.results)
         .map((result) => result[0]?.transcript ?? "")
         .join(" ")
@@ -91,14 +169,22 @@ export default function VoiceControl({
     };
 
     recognition.onerror = () => {
+      if (isRecognitionSuppressed()) {
+        setVoiceListenerState({ isEnabled: false });
+        setVoiceState("idle");
+        return;
+      }
+
       setErrorMessage(t("voice.errors.speechFailed"));
       setVoiceState("error");
     };
 
     recognition.onend = () => {
-      if (autoListen && !disabled && !userStoppedRef.current) {
+      setVoiceListenerState({ isEnabled: false });
+
+      if (autoListen && !disabled && !userStoppedRef.current && !isRecognitionSuppressed()) {
         window.setTimeout(() => {
-          if (recognitionRef.current && !userStoppedRef.current) {
+          if (recognitionRef.current && !userStoppedRef.current && !isRecognitionSuppressed()) {
             startRecognition();
           }
         }, 250);
@@ -113,14 +199,21 @@ export default function VoiceControl({
     recognitionRef.current = recognition;
 
     return () => {
-      recognition.stop();
+      abortRecognition();
       recognitionRef.current = null;
       autoStartAttemptedRef.current = false;
+      setVoiceListenerState({ isEnabled: false });
     };
   }, [autoListen, disabled, i18n.language]);
 
   useEffect(() => {
-    if (!autoListen || disabled || !isSupported || !recognitionRef.current) {
+    if (!autoListen || disabled) {
+      setVoiceListenerState({ isEnabled: false });
+    }
+  }, [autoListen, disabled]);
+
+  useEffect(() => {
+    if (!autoListen || disabled || isRecognitionSuppressed() || !isSupported || !recognitionRef.current) {
       return;
     }
 
@@ -131,7 +224,7 @@ export default function VoiceControl({
     autoStartAttemptedRef.current = true;
 
     window.setTimeout(() => {
-      if (recognitionRef.current && !userStoppedRef.current) {
+      if (recognitionRef.current && !userStoppedRef.current && !isRecognitionSuppressed()) {
         try {
           recognitionRef.current.start();
         } catch {

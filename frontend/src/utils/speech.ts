@@ -5,6 +5,8 @@ const MANDARIN_VOICE_INDEX = 196;
 
 let activeUtterance: SpeechSynthesisUtterance | null = null;
 let activeRequestId = 0;
+let speechActiveCount = 0;
+const speechActivityListeners = new Set<(isSpeaking: boolean) => void>();
 
 const getSpeechSynthesis = () => {
   if (typeof window === "undefined") {
@@ -40,12 +42,40 @@ const pickVoice = async (language: AppLanguage) => {
   return language === "zh" ? voices[MANDARIN_VOICE_INDEX] : voices[ENGLISH_VOICE_INDEX];
 };
 
+const emitSpeechActivity = () => {
+  const isSpeaking = speechActiveCount > 0;
+  speechActivityListeners.forEach((listener) => listener(isSpeaking));
+};
+
+const setSpeechActive = (isActive: boolean) => {
+  const nextCount = Math.max(0, speechActiveCount + (isActive ? 1 : -1));
+  if ((speechActiveCount > 0) === (nextCount > 0)) {
+    speechActiveCount = nextCount;
+    return;
+  }
+
+  speechActiveCount = nextCount;
+  emitSpeechActivity();
+};
+
+export const subscribeToSpeechActivity = (listener: (isSpeaking: boolean) => void) => {
+  speechActivityListeners.add(listener);
+  listener(speechActiveCount > 0);
+
+  return () => {
+    speechActivityListeners.delete(listener);
+  };
+};
+
 const cleanupSpeech = () => {
   if (activeUtterance) {
     activeUtterance.onend = null;
     activeUtterance.onerror = null;
     activeUtterance = null;
   }
+
+  speechActiveCount = 0;
+  emitSpeechActivity();
 
   const synthesis = getSpeechSynthesis();
   synthesis?.cancel();
@@ -102,12 +132,18 @@ export const speakText = async (
     }
 
     activeUtterance = utterance;
+    setSpeechActive(true);
 
-    utterance.onend = () => {
-      options.onEnd?.();
+    const finishUtterance = () => {
+      setSpeechActive(false);
       if (activeUtterance === utterance) {
         activeUtterance = null;
       }
+    };
+
+    utterance.onend = () => {
+      options.onEnd?.();
+      finishUtterance();
     };
 
     utterance.onerror = (event) => {
@@ -115,9 +151,7 @@ export const speakText = async (
       if (requestId === activeRequestId) {
         console.error("[Speech] playback failed", event.error);
       }
-      if (activeUtterance === utterance) {
-        activeUtterance = null;
-      }
+      finishUtterance();
     };
 
     synthesis.speak(utterance);

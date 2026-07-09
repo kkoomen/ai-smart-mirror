@@ -1,0 +1,9 @@
+.voice-bar {
+  width: 4px;
+  min-height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  transition:
+    height 120ms ease-out,
+    opacity 200ms ease-out;
+}

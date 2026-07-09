@@ -2,6 +2,7 @@ import HomePage from "./pages/home";
 import ChangeLanguagePage from "./pages/change-lang";
 import RegisterPage from "./pages/register";
 import FadeTransition from "./components/fade-transition";
+import VoiceActivityIndicator from "./components/voice-activity-indicator";
 import { useMirrorController } from "./hooks/use-mirror-controller";
 import {
   BrowserRouter,
@@ -55,6 +56,7 @@ function AppRoutes() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </FadeTransition>
+      <VoiceActivityIndicator />
     </>
   );
 }
