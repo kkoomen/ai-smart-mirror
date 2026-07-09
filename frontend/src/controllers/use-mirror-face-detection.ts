@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import i18n from "../../../i18n";
-import { normalizeLanguage } from "../../../i18n/languages";
-import { dashboardPresenceTimeoutMs } from "../../../constants";
-import type { MirrorFaceDetectionOptions } from "../../../types/mirror-controller";
-import { toSubject } from "../../../utils/face-recognition";
+import { dashboardPresenceTimeoutMs } from "../constants";
+import i18n from "../i18n";
+import { normalizeLanguage } from "../i18n/languages";
+import type { MirrorFaceDetectionOptions } from "../types/mirror-controller";
+import { toSubject } from "../utils/face-recognition";
 
 export const useMirrorFaceDetection = ({
   faceDetectionActions,

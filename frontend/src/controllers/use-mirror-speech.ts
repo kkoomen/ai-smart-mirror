@@ -1,11 +1,11 @@
 import { useCallback, useEffect } from "react";
-import i18n from "../../../i18n";
-import { normalizeLanguage, type AppLanguage } from "../../../i18n/languages";
+import i18n from "../i18n";
+import { normalizeLanguage, type AppLanguage } from "../i18n/languages";
 import {
   preloadSpeech,
   speakText as speakBrowserText,
   type SpeakTextOptions
-} from "../../../utils/speech";
+} from "../utils/speech";
 
 export const useMirrorSpeech = () => {
   useEffect(() => {

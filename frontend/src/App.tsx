@@ -3,7 +3,7 @@ import ChangeLanguagePage from "./pages/change-lang";
 import RegisterPage from "./pages/register";
 import FadeTransition from "./components/fade-transition";
 import VoiceActivityIndicator from "./components/voice-activity-indicator";
-import { useMirrorController } from "./features/mirror/use-mirror-controller";
+import { useMirrorController } from "./controllers/use-mirror-controller";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 

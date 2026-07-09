@@ -1,8 +1,8 @@
-import type { AgendaResponse } from "../../types/agenda";
-import type { LocalizedMessage } from "../../types/i18n";
-import type { MirrorPhase } from "../../types/mirror-phase";
-import type { User } from "../../types/user";
-import type { WeatherData } from "../../types/weather";
+import type { AgendaResponse } from "../types/agenda";
+import type { LocalizedMessage } from "../types/i18n";
+import type { MirrorPhase } from "../types/mirror-phase";
+import type { User } from "../types/user";
+import type { WeatherData } from "../types/weather";
 
 export type MirrorState = {
   phase: MirrorPhase;

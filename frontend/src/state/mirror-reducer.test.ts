@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { initialMirrorState, mirrorReducer } from "./mirror-reducer";
-import type { User } from "../../types/user";
+import type { User } from "../types/user";
 
 const user: User = {
   id: 1,

@@ -1,10 +1,10 @@
 import { useEffect } from "react";
-import i18n from "../../../i18n";
-import { normalizeLanguage } from "../../../i18n/languages";
-import { getMirrorState } from "../../../api/mirror";
-import { getUsers } from "../../../api/users";
-import type { MirrorBootstrapOptions } from "../../../types/mirror-controller";
-import { getSpeechPrompt } from "../../../utils/speech-prompts";
+import { getMirrorState } from "../api/mirror";
+import { getUsers } from "../api/users";
+import i18n from "../i18n";
+import { normalizeLanguage } from "../i18n/languages";
+import type { MirrorBootstrapOptions } from "../types/mirror-controller";
+import { getSpeechPrompt } from "../utils/speech-prompts";
 
 export const useMirrorBootstrap = ({
   browserFaceService,
