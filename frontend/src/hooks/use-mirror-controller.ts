@@ -4,6 +4,7 @@ import i18n from "../i18n";
 import { normalizeLanguage, type AppLanguage } from "../i18n/languages";
 import { BrowserFaceRecognitionService } from "../services/face-recognition";
 import type { AgendaResponse } from "../types/agenda";
+import type { DashboardSummaryRequest, DashboardSummaryResponse } from "../types/api";
 import type { MirrorController } from "../types/mirror-controller";
 import type { LocalizedMessage } from "../types/i18n";
 import type { UserLanguageMutationRequest, UserMutationResponse } from "../types/api";
@@ -12,7 +13,7 @@ import type { VoicePhase } from "../types/voice";
 import type { WeatherData, WeatherEnvelope } from "../types/weather";
 import { requestJson } from "../utils/request-json";
 import { toSubject } from "../utils/face-recognition";
-import { cancelSpeech, preloadSpeech, speakText as speakBrowserText } from "../utils/speech";
+import { cancelSpeech, preloadSpeech, speakText as speakBrowserText, type SpeakTextOptions } from "../utils/speech";
 import { getSpeechPrompt } from "../utils/speech-prompts";
 import { useMirrorBootstrap } from "../controllers/mirror/use-mirror-bootstrap";
 import { useMirrorFaceDetection } from "../controllers/mirror/use-mirror-face-detection";
@@ -40,6 +41,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   const [agenda, setAgenda] = useState<AgendaResponse["events"]>([]);
   const [scanFaceVisible, setScanFaceVisible] = useState(false);
   const [isMirrorFadingOut, setIsMirrorFadingOut] = useState(false);
+  const [dashboardSummaryText, setDashboardSummaryText] = useState("");
 
   const deviceStatus = useMemo(
     () => ({
@@ -117,8 +119,13 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   };
 
   const speakText = useCallback(
-    (text: string, language?: AppLanguage) => {
-      speakBrowserText(text, language ?? normalizeLanguage(i18n.resolvedLanguage ?? i18n.language));
+    (text: string, language?: AppLanguage, interrupt = true, options?: SpeakTextOptions) => {
+      speakBrowserText(
+        text,
+        language ?? normalizeLanguage(i18n.resolvedLanguage ?? i18n.language),
+        interrupt,
+        options
+      );
     },
     [i18n.language, i18n.resolvedLanguage]
   );
@@ -133,12 +140,23 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   };
 
   const loadDashboardData = async (userId: number, location: string) => {
-    const [, agendaResponse] = await Promise.all([
+    const [weatherResponse, agendaResponse] = await Promise.all([
       loadWeatherForLocation(location),
       requestJson<AgendaResponse>(`/api/users/${userId}/agenda/today`)
     ]);
 
     setAgenda(agendaResponse.events);
+
+    const summaryResponse = await requestJson<DashboardSummaryResponse>("/api/mirror/dashboard-summary", {
+      method: "POST",
+      body: JSON.stringify({
+        weather: weatherResponse,
+        appointmentCount: agendaResponse.events.length,
+        language: normalizeLanguage(i18n.resolvedLanguage ?? i18n.language)
+      } satisfies DashboardSummaryRequest)
+    });
+
+    setDashboardSummaryText(summaryResponse.summary);
   };
 
   const startRegistration = async () => {
@@ -233,10 +251,12 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     setKnownUsers((current) =>
       current.map((user) => (user.id === response.user.id ? response.user : user))
     );
+    await loadDashboardData(response.user.id, response.user.location);
   };
 
   const sleepMirror = () => {
     clearDashboardPresenceTimer();
+    setDashboardSummaryText("");
     cancelSpeech();
     wakeStartedAtRef.current = null;
     setIsMirrorFadingOut(false);
@@ -330,6 +350,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     agenda,
     scanFaceVisible,
     isMirrorFadingOut,
+    dashboardSummaryText,
     deviceStatus,
     scanVideoRef,
     idleVideoRef,

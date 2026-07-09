@@ -1,12 +1,16 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { normalizeLanguage } from "../../i18n/languages";
 import { getSpeechPrompt } from "../../utils/speech-prompts";
+import FadeTransition from "../fade-transition";
 
 export default function MirrorCenter({ controller }) {
   const { t, i18n } = useTranslation();
-  const { phase, registeredUser, speakText } = controller;
+  const { phase, registeredUser, speakText, dashboardSummaryText } = controller;
   const hasSpokenStartPromptRef = useRef(false);
+  const hasSpokenSummaryRef = useRef("");
+  const summaryHideTimerRef = useRef(null);
+  const [isSummaryVisible, setIsSummaryVisible] = useState(false);
 
   useEffect(() => {
     if (phase !== "unknown" || hasSpokenStartPromptRef.current) {
@@ -22,6 +26,44 @@ export default function MirrorCenter({ controller }) {
       hasSpokenStartPromptRef.current = false;
     }
   }, [phase]);
+
+  useEffect(() => {
+    if (summaryHideTimerRef.current !== null) {
+      window.clearTimeout(summaryHideTimerRef.current);
+      summaryHideTimerRef.current = null;
+    }
+
+    if (phase !== "dashboard" || !dashboardSummaryText) {
+      hasSpokenSummaryRef.current = "";
+      setIsSummaryVisible(false);
+      return;
+    }
+
+    if (hasSpokenSummaryRef.current === dashboardSummaryText) {
+      return;
+    }
+
+    hasSpokenSummaryRef.current = dashboardSummaryText;
+    setIsSummaryVisible(true);
+
+    speakText(dashboardSummaryText, normalizeLanguage(i18n.language), true, {
+      onEnd: () => {
+        summaryHideTimerRef.current = window.setTimeout(() => {
+          setIsSummaryVisible(false);
+          summaryHideTimerRef.current = null;
+        }, 2000);
+      }
+    });
+  }, [dashboardSummaryText, i18n.language, phase, speakText]);
+
+  useEffect(
+    () => () => {
+      if (summaryHideTimerRef.current !== null) {
+        window.clearTimeout(summaryHideTimerRef.current);
+      }
+    },
+    []
+  );
 
   if (phase === "hello") {
     return (
@@ -43,6 +85,18 @@ export default function MirrorCenter({ controller }) {
           {t("home.mirror.startRegistration")}
         </p>
       </section>
+    );
+  }
+
+  if (phase === "dashboard") {
+    return (
+      <FadeTransition show={isSummaryVisible} className="flex flex-col items-center gap-3 text-center">
+        <section className="flex flex-col items-center gap-3 text-center">
+          <h2 className="max-w-3xl text-sm font-light tracking-[0.14em] text-white/85 sm:text-sm lg:text-base">
+            {dashboardSummaryText}
+          </h2>
+        </section>
+      </FadeTransition>
     );
   }
 

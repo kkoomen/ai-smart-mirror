@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import type { FastifyPluginAsync } from "fastify";
 import { prisma } from "../lib/prisma.js";
 import { deriveMirrorMode, getMirrorState, updateMirrorState } from "../lib/mirror-state.js";
+import { generateDashboardSummary } from "../lib/dashboard-summary.js";
 import { buildAgendaForUser } from "../lib/mock-data.js";
 import { isString, parsePositiveInt } from "../lib/validation.js";
 
@@ -161,6 +162,65 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
       user,
       state,
       mode: "recognized"
+    };
+  });
+
+  app.post("/api/mirror/dashboard-summary", async (request, reply) => {
+    const body = request.body as {
+      weather?: unknown;
+      appointmentCount?: unknown;
+      language?: unknown;
+    };
+
+    if (!body?.weather || typeof body.appointmentCount !== "number") {
+      return reply.status(400).send({
+        ok: false,
+        error: "weather and appointmentCount are required"
+      });
+    }
+
+    const weather = body.weather as {
+      location?: unknown;
+      current?: {
+        temperatureC?: unknown;
+        condition?: unknown;
+        rainChancePct?: unknown;
+      };
+      forecast?: Array<{
+        temperatureC?: unknown;
+        condition?: unknown;
+        rainChancePct?: unknown;
+      }>;
+    };
+
+    const summary = await generateDashboardSummary({
+      weather: {
+        location: isString(weather.location) ? weather.location : "Amsterdam",
+        current: {
+          temperatureC:
+            typeof weather.current?.temperatureC === "number" ? weather.current.temperatureC : 0,
+          condition: isString(weather.current?.condition) ? weather.current.condition : "Unknown",
+          rainChancePct:
+            typeof weather.current?.rainChancePct === "number"
+              ? weather.current.rainChancePct
+              : null
+        },
+        forecast: Array.isArray(weather.forecast)
+          ? weather.forecast.map((item) => ({
+              temperatureC: typeof item?.temperatureC === "number" ? item.temperatureC : 0,
+              condition: isString(item?.condition) ? item.condition : "Unknown",
+              rainChancePct:
+                typeof item?.rainChancePct === "number" ? item.rainChancePct : null
+            }))
+          : []
+      },
+      appointmentCount: body.appointmentCount,
+      language: isString(body.language) ? body.language : null
+    });
+
+    return {
+      ok: true,
+      ...summary
     };
   });
 };

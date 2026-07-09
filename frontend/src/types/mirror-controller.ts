@@ -6,6 +6,7 @@ import type { BrowserFaceRecognitionService } from "../services/face-recognition
 import type { LocalizedMessage } from "./i18n";
 import type { AppLanguage } from "../i18n/languages";
 import type { WeatherData } from "./weather";
+import type { SpeakTextOptions } from "../utils/speech";
 
 export type MirrorController = {
   phase: VoicePhase;
@@ -18,6 +19,7 @@ export type MirrorController = {
   agenda: AgendaResponse["events"];
   scanFaceVisible: boolean;
   isMirrorFadingOut: boolean;
+  dashboardSummaryText: string;
   deviceStatus: {
     camera: "scanning" | "polling";
     microphone: "listening";
@@ -32,7 +34,7 @@ export type MirrorController = {
   handleVoiceCommand: (spokenText: string) => Promise<void>;
   setMirrorFadingOut: (value: boolean) => void;
   browserFaceService: BrowserFaceRecognitionService;
-  speakText: (text: string, language?: AppLanguage) => void;
+  speakText: (text: string, language?: AppLanguage, interrupt?: boolean, options?: SpeakTextOptions) => void;
 };
 
 export type MirrorBootstrapOptions = {
@@ -44,7 +46,7 @@ export type MirrorBootstrapOptions = {
   setCapturedFaceDescriptor: (value: string | null) => void;
   setPhase: (phase: VoicePhase) => void;
   setStatusText: (message: LocalizedMessage) => void;
-  speakText: (text: string, language?: AppLanguage) => void;
+  speakText: (text: string, language?: AppLanguage, interrupt?: boolean, options?: SpeakTextOptions) => void;
 };
 
 export type MirrorFaceDetectionOptions = {
@@ -89,5 +91,5 @@ export type MirrorVoiceOptions = {
   capturedName: string;
   hasRegisteredUsers: boolean;
   persistUserLanguage: (language: AppLanguage) => Promise<void>;
-  speakText: (text: string, language?: AppLanguage) => void;
+  speakText: (text: string, language?: AppLanguage, interrupt?: boolean, options?: SpeakTextOptions) => void;
 };

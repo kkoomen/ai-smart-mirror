@@ -62,7 +62,17 @@ export const cancelSpeech = () => {
   cleanupSpeech();
 };
 
-export const speakText = async (text: string, language: AppLanguage = "en", interrupt = true) => {
+export type SpeakTextOptions = {
+  onEnd?: () => void;
+  onError?: (event: SpeechSynthesisErrorEvent) => void;
+};
+
+export const speakText = async (
+  text: string,
+  language: AppLanguage = "en",
+  interrupt = true,
+  options: SpeakTextOptions = {}
+) => {
   const trimmedText = text.trim();
   if (!trimmedText) {
     return;
@@ -94,12 +104,14 @@ export const speakText = async (text: string, language: AppLanguage = "en", inte
     activeUtterance = utterance;
 
     utterance.onend = () => {
+      options.onEnd?.();
       if (activeUtterance === utterance) {
         activeUtterance = null;
       }
     };
 
     utterance.onerror = (event) => {
+      options.onError?.(event);
       if (requestId === activeRequestId) {
         console.error("[Speech] playback failed", event.error);
       }
