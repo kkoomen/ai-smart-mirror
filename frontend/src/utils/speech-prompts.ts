@@ -9,8 +9,7 @@ type SpeechPromptKey =
   | "sayYesOrNo"
   | "scanningFace"
   | "lookAtMirror"
-  | "hello"
-  | "goodbye";
+  | "hello";
 
 export const getSpeechPrompt = (
   key: SpeechPromptKey,
@@ -39,8 +38,6 @@ export const getSpeechPrompt = (
         return "请看着镜子。";
       case "hello":
         return `你好，${name}。`;
-      case "goodbye":
-        return "回头见。";
       default:
         return "";
     }
@@ -65,8 +62,6 @@ export const getSpeechPrompt = (
       return "Look at the mirror.";
     case "hello":
       return `Hello, ${name}.`;
-    case "goodbye":
-      return "Talk to you later.";
     default:
       return "";
   }

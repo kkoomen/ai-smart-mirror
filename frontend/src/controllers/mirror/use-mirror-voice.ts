@@ -32,6 +32,40 @@ export const useMirrorVoice = ({
 }: MirrorVoiceOptions) => {
   const currentLanguage = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
 
+  const resolveTargetLanguage = (spokenText: string, intent: VoiceCommandResponse["intent"]) => {
+    if (intent === "SET_LANGUAGE_EN") {
+      return "en";
+    }
+
+    if (intent === "SET_LANGUAGE_ZH") {
+      return "zh";
+    }
+
+    const normalized = spokenText.trim().toLowerCase();
+    if (!normalized) {
+      return null;
+    }
+
+    if (
+      normalized.includes("english") ||
+      normalized.includes("eng") ||
+      normalized.includes("英语")
+    ) {
+      return "en";
+    }
+
+    if (
+      normalized.includes("mandarin") ||
+      normalized.includes("chinese") ||
+      normalized.includes("普通话") ||
+      normalized.includes("中文")
+    ) {
+      return "zh";
+    }
+
+    return null;
+  };
+
   return async (spokenText: string) => {
     console.info("[Mirror voice] handling command:", spokenText.toLowerCase());
 
@@ -52,7 +86,6 @@ export const useMirrorVoice = ({
       }
 
       clearDashboardPresenceTimer();
-      void speakText(getSpeechPrompt("goodbye", currentLanguage), currentLanguage);
       setMirrorFadingOut(true);
       return;
     }
@@ -82,12 +115,7 @@ export const useMirrorVoice = ({
     }
 
     if (phase === "changeLanguage") {
-      const targetLanguage =
-        command.intent === "SET_LANGUAGE_ZH"
-          ? "zh"
-          : command.intent === "SET_LANGUAGE_EN"
-            ? "en"
-            : null;
+      const targetLanguage = resolveTargetLanguage(spokenText, command.intent);
 
       if (!targetLanguage) {
         setStatusText({ key: "status.changeLanguagePrompt" });
