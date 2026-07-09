@@ -16,7 +16,7 @@ A full-stack TypeScript smart mirror prototype. The frontend simulates a mirror-
 ## Structure
 
 - `frontend` - React mirror UI, voice control, face recognition, i18n, routes
-- `backend` - Fastify API, Prisma schema, route modules, mock data, weather cache
+- `backend` - Fastify API, Prisma schema, route modules, AI/weather modules, mock data, weather cache
 - `backend/prisma` - SQLite Prisma schema
 - `frontend/public/models` - face-api.js model files
 
@@ -86,6 +86,20 @@ Notes:
 - `npm run db:reset` - clear local SQLite data and recreate the schema
 - `npm run db:generate` - generate the Prisma client
 - `npm run db:studio` - open Prisma Studio
+
+## Tests
+
+Current test files in the repo:
+
+- `backend/src/lib/intent.test.ts` - intent parsing and voice intent behavior
+- `backend/src/weather/normalize-weather.test.ts` - weather normalization logic
+- `frontend/src/state/mirror-reducer.test.ts` - mirror reducer state transitions
+
+Run all tests with:
+
+```bash
+npm run test
+```
 
 ## Repository Hygiene
 
