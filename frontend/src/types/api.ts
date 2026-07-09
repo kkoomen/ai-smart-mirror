@@ -1,5 +1,5 @@
 import type { User } from "./user";
-import type { VoicePhase } from "./voice";
+import type { MirrorPhase } from "./mirror-phase";
 import type { WeatherData } from "./weather";
 
 export type UsersResponse = {
@@ -17,7 +17,7 @@ export type UserLanguageMutationRequest = {
 
 export type VoiceCommandRequest = {
   transcript: string;
-  phase: VoicePhase;
+  phase: MirrorPhase;
   userId: number | null;
   language?: string;
 };

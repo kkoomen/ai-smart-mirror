@@ -1,7 +1,7 @@
 import type { MutableRefObject, RefObject } from "react";
 import type { AgendaResponse } from "./agenda";
 import type { User } from "./user";
-import type { VoicePhase } from "./voice";
+import type { MirrorPhase } from "./mirror-phase";
 import type { BrowserFaceRecognitionService } from "../services/face-recognition";
 import type { LocalizedMessage } from "./i18n";
 import type { AppLanguage } from "../i18n/languages";
@@ -9,7 +9,7 @@ import type { WeatherData } from "./weather";
 import type { SpeakTextOptions } from "../utils/speech";
 
 export type MirrorController = {
-  phase: VoicePhase;
+  phase: MirrorPhase;
   statusText: string;
   progress: number;
   capturedName: string;
@@ -46,7 +46,7 @@ export type MirrorBootstrapOptions = {
   setCapturedName: (value: string) => void;
   setCapturedFaceLabel: (value: string | null) => void;
   setCapturedFaceDescriptor: (value: string | null) => void;
-  setPhase: (phase: VoicePhase) => void;
+  setPhase: (phase: MirrorPhase) => void;
   setStatusText: (message: LocalizedMessage) => void;
   speakText: (text: string, language?: AppLanguage, interrupt?: boolean, options?: SpeakTextOptions) => void;
 };
@@ -57,14 +57,14 @@ export type MirrorFaceDetectionOptions = {
   setScanFaceVisible: (value: boolean) => void;
   setCapturedFaceDescriptor: (value: string | null) => void;
   setRegisteredUser: (user: User | null) => void;
-  setPhase: (phase: VoicePhase) => void;
+  setPhase: (phase: MirrorPhase) => void;
   setStatusText: (message: LocalizedMessage) => void;
   speakText: (text: string, language?: AppLanguage) => void;
   loadDashboardData: (userId: number, location: string) => Promise<void>;
   createUserAndConfirm: (name: string, faceDescriptorOverride?: string | null) => Promise<void>;
   capturedName: string;
   knownUsers: User[];
-  phase: VoicePhase;
+  phase: MirrorPhase;
   scanVideoRef: RefObject<HTMLVideoElement | null>;
   idleVideoRef: RefObject<HTMLVideoElement | null>;
   wakeStartedAtRef: MutableRefObject<number | null>;
@@ -72,7 +72,7 @@ export type MirrorFaceDetectionOptions = {
 };
 
 export type MirrorVoiceOptions = {
-  phase: VoicePhase;
+  phase: MirrorPhase;
   registeredUser: User | null;
   wakeMirror: () => void;
   sleepMirror: () => void;
@@ -82,7 +82,7 @@ export type MirrorVoiceOptions = {
   createUserAndConfirm: (name: string, faceDescriptorOverride?: string | null) => Promise<void>;
   browserFaceService: BrowserFaceRecognitionService;
   navigate: (path: string) => void;
-  setPhase: (phase: VoicePhase) => void;
+  setPhase: (phase: MirrorPhase) => void;
   setStatusText: (message: LocalizedMessage) => void;
   setMirrorFadingOut: (value: boolean) => void;
   setCapturedName: (value: string) => void;

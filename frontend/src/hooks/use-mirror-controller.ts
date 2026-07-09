@@ -9,7 +9,7 @@ import type { MirrorController } from "../types/mirror-controller";
 import type { LocalizedMessage } from "../types/i18n";
 import type { UserLanguageMutationRequest, UserMutationResponse } from "../types/api";
 import type { User } from "../types/user";
-import type { VoicePhase } from "../types/voice";
+import type { MirrorPhase } from "../types/mirror-phase";
 import type { WeatherData, WeatherEnvelope } from "../types/weather";
 import { requestJson } from "../utils/request-json";
 import { toSubject } from "../utils/face-recognition";
@@ -30,7 +30,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   const dashboardPresenceTimerRef = useRef<number | null>(null);
   const pendingLanguageChangeRef = useRef<AppLanguage | null>(null);
 
-  const [phase, setPhase] = useState<VoicePhase>("idle");
+  const [phase, setPhase] = useState<MirrorPhase>("idle");
   const [statusMessage, setStatusMessage] = useState<LocalizedMessage>({ key: "status.loading" });
   const [progress, setProgress] = useState(0);
   const [capturedName, setCapturedName] = useState("");

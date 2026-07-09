@@ -1,15 +1,3 @@
-export type VoicePhase =
-  | "idle"
-  | "waking"
-  | "hello"
-  | "name"
-  | "nameConfirm"
-  | "scan"
-  | "confirm"
-  | "changeLanguage"
-  | "dashboard"
-  | "unknown";
-
 export type VoiceIntent =
   | "WAKE_MIRROR"
   | "SLEEP_MIRROR"
