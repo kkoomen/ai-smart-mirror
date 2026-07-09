@@ -1,13 +1,13 @@
 import { useCallback } from "react";
 import type { Dispatch, MutableRefObject, RefObject } from "react";
-import i18n from "../../i18n";
-import { normalizeLanguage, type AppLanguage } from "../../i18n/languages";
-import { confirmMirrorFace, registerMirrorUser, startMirrorRegistration } from "../../api/mirror";
-import type { MirrorAction } from "../../features/mirror/mirror-reducer";
-import type { BrowserFaceRecognitionService } from "../../services/face-recognition";
-import type { User } from "../../types/user";
-import { toSubject } from "../../utils/face-recognition";
-import { getSpeechPrompt } from "../../utils/speech-prompts";
+import i18n from "../../../i18n";
+import { normalizeLanguage, type AppLanguage } from "../../../i18n/languages";
+import { confirmMirrorFace, registerMirrorUser, startMirrorRegistration } from "../../../api/mirror";
+import type { BrowserFaceRecognitionService } from "../../../services/face-recognition";
+import type { User } from "../../../types/user";
+import { toSubject } from "../../../utils/face-recognition";
+import { getSpeechPrompt } from "../../../utils/speech-prompts";
+import type { MirrorAction } from "../mirror-reducer";
 
 type RegistrationFlowOptions = {
   browserFaceService: BrowserFaceRecognitionService;

@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import type { Dispatch, MutableRefObject, RefObject } from "react";
-import { dashboardPresenceTimeoutMs } from "../../constants";
-import type { MirrorAction } from "../../features/mirror/mirror-reducer";
-import type { BrowserFaceRecognitionService } from "../../services/face-recognition";
-import type { MirrorPhase } from "../../types/mirror-phase";
-import type { User } from "../../types/user";
-import { toSubject } from "../../utils/face-recognition";
+import { dashboardPresenceTimeoutMs } from "../../../constants";
+import type { BrowserFaceRecognitionService } from "../../../services/face-recognition";
+import type { MirrorPhase } from "../../../types/mirror-phase";
+import type { User } from "../../../types/user";
+import { toSubject } from "../../../utils/face-recognition";
+import type { MirrorAction } from "../mirror-reducer";
 
 type DashboardPresenceOptions = {
   browserFaceService: BrowserFaceRecognitionService;

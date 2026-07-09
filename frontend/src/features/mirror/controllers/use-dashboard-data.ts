@@ -1,12 +1,12 @@
 import { useCallback } from "react";
 import type { Dispatch } from "react";
-import i18n from "../../i18n";
-import { normalizeLanguage } from "../../i18n/languages";
-import { generateMirrorDashboardSummary } from "../../api/mirror";
-import { getUserAgendaToday } from "../../api/users";
-import { getWeather } from "../../api/weather";
-import type { DashboardSummaryRequest } from "../../types/api";
-import type { MirrorAction } from "../../features/mirror/mirror-reducer";
+import i18n from "../../../i18n";
+import { normalizeLanguage } from "../../../i18n/languages";
+import { generateMirrorDashboardSummary } from "../../../api/mirror";
+import { getUserAgendaToday } from "../../../api/users";
+import { getWeather } from "../../../api/weather";
+import type { DashboardSummaryRequest } from "../../../types/api";
+import type { MirrorAction } from "../mirror-reducer";
 
 export const useDashboardData = (dispatch: Dispatch<MirrorAction>) => {
   const loadWeatherForLocation = useCallback(

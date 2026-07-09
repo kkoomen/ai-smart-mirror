@@ -1,10 +1,10 @@
-import type { MirrorVoiceOptions } from "../../types/mirror-controller";
-import type { VoiceCommandResponse } from "../../types/voice";
-import i18n from "../../i18n";
-import { normalizeLanguage } from "../../i18n/languages";
-import { getSpeechPrompt } from "../../utils/speech-prompts";
-import type { VoiceCommandRequest } from "../../types/api";
-import { classifyVoiceCommand } from "../../api/voice";
+import i18n from "../../../i18n";
+import { normalizeLanguage } from "../../../i18n/languages";
+import { classifyVoiceCommand } from "../../../api/voice";
+import type { VoiceCommandRequest } from "../../../types/api";
+import type { MirrorVoiceOptions } from "../../../types/mirror-controller";
+import type { VoiceCommandResponse } from "../../../types/voice";
+import { getSpeechPrompt } from "../../../utils/speech-prompts";
 
 export const useMirrorVoice = ({
   phase,

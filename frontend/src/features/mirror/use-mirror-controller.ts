@@ -1,20 +1,20 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import type { AppLanguage } from "../i18n/languages";
-import { BrowserFaceRecognitionService } from "../services/face-recognition";
-import type { MirrorController } from "../types/mirror-controller";
-import type { LocalizedMessage } from "../types/i18n";
-import type { User } from "../types/user";
-import { cancelSpeech } from "../utils/speech";
-import { useMirrorBootstrap } from "../controllers/mirror/use-mirror-bootstrap";
-import { useMirrorFaceDetection } from "../controllers/mirror/use-mirror-face-detection";
-import { useMirrorVoice } from "../controllers/mirror/use-mirror-voice";
-import { useDashboardData } from "../controllers/mirror/use-dashboard-data";
-import { useDashboardPresence } from "../controllers/mirror/use-dashboard-presence";
-import { useLanguageFlow } from "../controllers/mirror/use-language-flow";
-import { useMirrorSpeech } from "../controllers/mirror/use-mirror-speech";
-import { useRegistrationFlow } from "../controllers/mirror/use-registration-flow";
-import { initialMirrorState, mirrorReducer } from "../features/mirror/mirror-reducer";
+import type { AppLanguage } from "../../i18n/languages";
+import { BrowserFaceRecognitionService } from "../../services/face-recognition";
+import type { MirrorController } from "../../types/mirror-controller";
+import type { LocalizedMessage } from "../../types/i18n";
+import type { User } from "../../types/user";
+import { cancelSpeech } from "../../utils/speech";
+import { useMirrorBootstrap } from "./controllers/use-mirror-bootstrap";
+import { useMirrorFaceDetection } from "./controllers/use-mirror-face-detection";
+import { useMirrorVoice } from "./controllers/use-mirror-voice";
+import { useDashboardData } from "./controllers/use-dashboard-data";
+import { useDashboardPresence } from "./controllers/use-dashboard-presence";
+import { useLanguageFlow } from "./controllers/use-language-flow";
+import { useMirrorSpeech } from "./controllers/use-mirror-speech";
+import { useRegistrationFlow } from "./controllers/use-registration-flow";
+import { initialMirrorState, mirrorReducer } from "./mirror-reducer";
 
 export const useMirrorController = (navigate: (path: string) => void): MirrorController => {
   const { t } = useTranslation();
