@@ -1,15 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import { normalizeLanguage, type AppLanguage } from "../i18n/languages";
 import { BrowserFaceRecognitionService } from "../services/face-recognition";
-import type { AgendaResponse } from "../types/agenda";
 import type { DashboardSummaryRequest } from "../types/api";
 import type { MirrorController } from "../types/mirror-controller";
 import type { LocalizedMessage } from "../types/i18n";
 import type { User } from "../types/user";
 import type { MirrorPhase } from "../types/mirror-phase";
-import type { WeatherData } from "../types/weather";
 import { toSubject } from "../utils/face-recognition";
 import { cancelSpeech, preloadSpeech, speakText as speakBrowserText, type SpeakTextOptions } from "../utils/speech";
 import { getSpeechPrompt } from "../utils/speech-prompts";
@@ -25,6 +23,11 @@ import {
 } from "../api/mirror";
 import { getUserAgendaToday, updateUserLanguage } from "../api/users";
 import { getWeather } from "../api/weather";
+import {
+  buildKnownUsersWithUpdatedUser,
+  initialMirrorState,
+  mirrorReducer
+} from "../features/mirror/mirror-reducer";
 
 export const useMirrorController = (navigate: (path: string) => void): MirrorController => {
   const { t } = useTranslation();
@@ -36,19 +39,22 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   const dashboardPresenceTimerRef = useRef<number | null>(null);
   const pendingLanguageChangeRef = useRef<AppLanguage | null>(null);
 
-  const [phase, setPhase] = useState<MirrorPhase>("idle");
-  const [statusMessage, setStatusMessage] = useState<LocalizedMessage>({ key: "status.loading" });
-  const [progress, setProgress] = useState(0);
-  const [capturedName, setCapturedName] = useState("");
-  const [capturedFaceLabel, setCapturedFaceLabel] = useState<string | null>(null);
-  const [capturedFaceDescriptor, setCapturedFaceDescriptor] = useState<string | null>(null);
-  const [registeredUser, setRegisteredUser] = useState<User | null>(null);
-  const [knownUsers, setKnownUsers] = useState<User[]>([]);
-  const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [agenda, setAgenda] = useState<AgendaResponse["events"]>([]);
-  const [scanFaceVisible, setScanFaceVisible] = useState(false);
-  const [isMirrorFadingOut, setIsMirrorFadingOut] = useState(false);
-  const [dashboardSummaryText, setDashboardSummaryText] = useState("");
+  const [state, dispatch] = useReducer(mirrorReducer, initialMirrorState);
+  const {
+    phase,
+    statusMessage,
+    progress,
+    capturedName,
+    capturedFaceLabel,
+    capturedFaceDescriptor,
+    registeredUser,
+    knownUsers,
+    weather,
+    agenda,
+    scanFaceVisible,
+    isMirrorFadingOut,
+    dashboardSummaryText
+  } = state;
 
   const deviceStatus = useMemo(
     () => ({
@@ -65,6 +71,49 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     [statusMessage, t]
   );
 
+  const setPhase = useCallback((nextPhase: MirrorPhase) => {
+    dispatch({ type: "PHASE_CHANGED", phase: nextPhase });
+  }, []);
+
+  const setStatusMessage = useCallback((message: LocalizedMessage) => {
+    dispatch({ type: "STATUS_CHANGED", statusMessage: message });
+  }, []);
+
+  const setProgress = useCallback((value: number | ((current: number) => number)) => {
+    dispatch({
+      type: "REGISTRATION_SCAN_PROGRESS_CHANGED",
+      progress: typeof value === "function" ? value(state.progress) : value
+    });
+  }, [state.progress]);
+
+  const setCapturedName = useCallback((name: string) => {
+    dispatch({ type: "CAPTURED_NAME_CHANGED", name });
+  }, []);
+
+  const setCapturedFaceLabel = useCallback((faceLabel: string | null) => {
+    dispatch({ type: "CAPTURED_FACE_LABEL_CHANGED", faceLabel });
+  }, []);
+
+  const setCapturedFaceDescriptor = useCallback((faceDescriptor: string | null) => {
+    dispatch({ type: "CAPTURED_FACE_DESCRIPTOR_CHANGED", faceDescriptor });
+  }, []);
+
+  const setRegisteredUser = useCallback((user: User | null) => {
+    dispatch({ type: "REGISTERED_USER_CHANGED", user });
+  }, []);
+
+  const setKnownUsers = useCallback((users: User[]) => {
+    dispatch({ type: "KNOWN_USERS_CHANGED", users });
+  }, []);
+
+  const setScanFaceVisible = useCallback((visible: boolean) => {
+    dispatch({ type: "REGISTRATION_SCAN_FACE_VISIBILITY_CHANGED", visible });
+  }, []);
+
+  const setIsMirrorFadingOut = useCallback((isFadingOut: boolean) => {
+    dispatch({ type: "MIRROR_FADING_CHANGED", isFadingOut });
+  }, []);
+
   useEffect(() => {
     preloadSpeech();
   }, []);
@@ -75,7 +124,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     }
 
     const timeoutId = window.setTimeout(() => {
-      setPhase("dashboard");
+      dispatch({ type: "PHASE_CHANGED", phase: "dashboard" });
     }, 2000);
 
     return () => window.clearTimeout(timeoutId);
@@ -102,7 +151,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
         const matchedFaceLabel = detection.matchedUser?.faceLabel ?? null;
 
         if (!detection.isFaceDetected || matchedFaceLabel !== activeFaceLabel) {
-          setIsMirrorFadingOut(true);
+          dispatch({ type: "PRESENCE_LOST" });
         }
       } catch (error) {
         console.error("Dashboard presence check failed", error);
@@ -140,7 +189,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   const loadWeatherForLocation = async (location: string) => {
     const response = await getWeather(location);
 
-    setWeather(response.weather);
+    dispatch({ type: "WEATHER_LOADED", weather: response.weather });
     return response.weather;
   };
 
@@ -150,29 +199,26 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
       getUserAgendaToday(userId)
     ]);
 
-    setAgenda(agendaResponse.events);
-
     const summaryResponse = await generateMirrorDashboardSummary({
       weather: weatherResponse,
       appointmentCount: agendaResponse.events.length,
       language: normalizeLanguage(i18n.resolvedLanguage ?? i18n.language)
     } satisfies DashboardSummaryRequest);
 
-    setDashboardSummaryText(summaryResponse.summary);
+    dispatch({
+      type: "DASHBOARD_DATA_LOADED",
+      weather: weatherResponse,
+      agenda: agendaResponse.events,
+      summary: summaryResponse.summary
+    });
   };
 
   const startRegistration = async () => {
     await startMirrorRegistration();
 
-    setCapturedName("");
-    setCapturedFaceLabel(null);
-    setCapturedFaceDescriptor(null);
-    setProgress(0);
-    setScanFaceVisible(false);
+    dispatch({ type: "REGISTRATION_STARTED" });
     registrationCompletingRef.current = false;
     navigate("/register");
-    setPhase("name");
-    setStatusMessage({ key: "status.sayYourName" });
   };
 
   const createUserAndConfirm = async (name: string, faceDescriptorOverride?: string | null) => {
@@ -208,18 +254,10 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
       faceLabel: created.user.faceLabel
     });
 
-    setKnownUsers((current) => {
-      const withoutDuplicate = current.filter((user) => user.id !== confirmed.user.id);
-      return [...withoutDuplicate, confirmed.user];
-    });
-    setRegisteredUser(confirmed.user);
-    setCapturedFaceLabel(confirmed.user.faceLabel);
-    setCapturedFaceDescriptor(confirmed.user.faceDescriptor);
+    dispatch({ type: "REGISTRATION_COMPLETED", user: confirmed.user });
     registrationCompletingRef.current = false;
     await loadDashboardData(confirmed.user.id, confirmed.user.location);
     navigate("/");
-    setPhase("hello");
-    setStatusMessage({ key: "status.hello", values: { name: confirmed.user.name } });
     speakText(
       getSpeechPrompt("hello", normalizeLanguage(confirmed.user.preferredLanguage), {
         name: confirmed.user.name
@@ -237,16 +275,17 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
       preferredLanguage: language
     });
 
-    setRegisteredUser(response.user);
-    setKnownUsers((current) =>
-      current.map((user) => (user.id === response.user.id ? response.user : user))
-    );
+    dispatch({ type: "REGISTERED_USER_CHANGED", user: response.user });
+    dispatch({
+      type: "KNOWN_USERS_CHANGED",
+      users: buildKnownUsersWithUpdatedUser(knownUsers, response.user)
+    });
     await loadDashboardData(response.user.id, response.user.location);
   };
 
   const beginLanguageChange = (language: AppLanguage) => {
     pendingLanguageChangeRef.current = language;
-    setIsMirrorFadingOut(true);
+    dispatch({ type: "LANGUAGE_CHANGE_STARTED" });
   };
 
   const finishLanguageChange = async () => {
@@ -254,44 +293,27 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     pendingLanguageChangeRef.current = null;
 
     if (!targetLanguage || !registeredUser) {
-      setIsMirrorFadingOut(false);
+      dispatch({ type: "MIRROR_FADING_CHANGED", isFadingOut: false });
       return;
     }
 
     await i18n.changeLanguage(targetLanguage);
     await persistUserLanguage(targetLanguage);
-    setPhase("dashboard");
-    setStatusMessage({ key: "status.languageChanged" });
-    setIsMirrorFadingOut(false);
+    dispatch({ type: "LANGUAGE_CHANGE_COMPLETED" });
     navigate("/");
   };
 
   const sleepMirror = () => {
     clearDashboardPresenceTimer();
-    setDashboardSummaryText("");
     cancelSpeech();
     wakeStartedAtRef.current = null;
-    setIsMirrorFadingOut(false);
-    setPhase("idle");
-    setRegisteredUser(null);
-    setWeather(null);
-    setAgenda([]);
-    setStatusMessage({ key: "status.sayHeyMirrorToWake" });
+    dispatch({ type: "SLEEP_REQUESTED" });
     navigate("/");
   };
 
   const wakeMirror = () => {
     wakeStartedAtRef.current = Date.now();
-    setIsMirrorFadingOut(false);
-
-    if (knownUsers.length === 0) {
-      setPhase("unknown");
-      setStatusMessage({ key: "status.unknownUserDetected" });
-      return;
-    }
-
-    setPhase("waking");
-    setStatusMessage({ key: "status.checkingFace" });
+    dispatch({ type: "WAKE_REQUESTED", hasKnownUsers: knownUsers.length > 0 });
   };
 
   useMirrorBootstrap({
