@@ -41,5 +41,35 @@ export const getStoredLanguage = () => {
     return defaultLanguage;
   }
 
-  return normalizeLanguage(window.localStorage.getItem(languageStorageKey));
+  const storedLanguage = window.localStorage.getItem(languageStorageKey);
+  if (storedLanguage) {
+    return normalizeLanguage(storedLanguage);
+  }
+
+  const browserLanguage = typeof window.navigator?.language === "string"
+    ? window.navigator.language
+    : null;
+
+  if (browserLanguage) {
+    return normalizeLanguage(browserLanguage);
+  }
+
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (typeof timezone === "string") {
+    const normalizedTimezone = timezone.toLowerCase();
+
+    if (
+      normalizedTimezone.includes("shanghai") ||
+      normalizedTimezone.includes("chongqing") ||
+      normalizedTimezone.includes("hong_kong") ||
+      normalizedTimezone.includes("taipei") ||
+      normalizedTimezone.includes("macau") ||
+      normalizedTimezone.includes("urumqi") ||
+      normalizedTimezone.includes("harbin")
+    ) {
+      return "zh";
+    }
+  }
+
+  return defaultLanguage;
 };

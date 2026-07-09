@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import i18n from "../../i18n";
+import { normalizeLanguage } from "../../i18n/languages";
 import type { MirrorStateResponse } from "../../types/mirror";
 import type { MirrorBootstrapOptions } from "../../types/mirror-controller";
 import type { UsersResponse } from "../../types/api";
@@ -35,6 +37,7 @@ export const useMirrorBootstrap = ({
         }
 
         if (mirrorState.activeUser && !mirrorState.registrationComplete) {
+          await i18n.changeLanguage(normalizeLanguage(mirrorState.activeUser.preferredLanguage));
           setRegisteredUser(mirrorState.activeUser);
           setCapturedName(mirrorState.activeUser.name);
           setCapturedFaceLabel(mirrorState.activeUser.faceLabel);
@@ -45,6 +48,7 @@ export const useMirrorBootstrap = ({
         }
 
         if (mirrorState.registrationComplete && mirrorState.activeUser) {
+          await i18n.changeLanguage(normalizeLanguage(mirrorState.activeUser.preferredLanguage));
           setRegisteredUser(null);
           setPhase("idle");
           setStatusText({ key: "status.sayHeyMirrorToWake" });

@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import i18n from "../../i18n";
+import { normalizeLanguage } from "../../i18n/languages";
 import type { MirrorFaceDetectionOptions } from "../../types/mirror-controller";
 import { dashboardPresenceTimeoutMs } from "../../constants";
 import { toSubject } from "../../utils/face-recognition";
@@ -111,6 +113,7 @@ export const useMirrorFaceDetection = ({
         const matchedUser = knownUsers.find((user) => user.faceLabel === detection.matchedUser?.faceLabel);
 
         if (matchedUser) {
+          await i18n.changeLanguage(normalizeLanguage(matchedUser.preferredLanguage));
           setRegisteredUser(matchedUser);
           await loadDashboardData(matchedUser.id, matchedUser.location);
           setPhase("hello");

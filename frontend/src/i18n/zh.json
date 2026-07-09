@@ -56,6 +56,7 @@
       "wake": ["嘿镜子", "你好镜子"],
       "sleep": ["再见镜子", "拜拜镜子"],
       "startRegistration": ["开始注册", "开始登记"],
+      "changeLanguage": ["切换语言", "更改语言", "换语言"],
       "yes": ["是", "对", "确认", "好的", "可以", "是的"],
       "no": ["否", "不对", "重试", "再来一次", "不", "不是", "不要"],
       "umbrella": ["要带伞吗", "需要伞吗", "带伞", "雨伞"]
@@ -83,6 +84,9 @@
     "timeUnknown": "时间显示在镜子上。",
     "notUnderstood": "我没听懂。",
     "registrationFailed": "注册失败，请再试一次。",
+    "changeLanguagePrompt": "说：普通话或英语",
+    "changeLanguageOpen": "切换语言",
+    "languageChanged": "语言已更新。",
     "umbrellaYes": "要。降雨概率为 {{chance}}，地点：{{location}}。请带伞。",
     "umbrellaNo": "不太需要。降雨概率为 {{chance}}，地点：{{location}}。",
     "capturedName": "已记录名字 {{name}}。",
@@ -121,5 +125,14 @@
     "english": "英语",
     "mandarin": "普通话",
     "label": "语言"
+  },
+  "changeLanguage": {
+    "title": "切换语言",
+    "subtitle": "说出你想使用的语言。",
+    "prompt": "说：普通话或英语",
+    "options": {
+      "english": "英语",
+      "mandarin": "普通话"
+    }
   }
 }

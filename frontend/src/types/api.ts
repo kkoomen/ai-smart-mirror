@@ -10,6 +10,10 @@ export type UserMutationResponse = {
   user: User;
 };
 
+export type UserLanguageMutationRequest = {
+  preferredLanguage: "en" | "zh";
+};
+
 export type VoiceCommandRequest = {
   transcript: string;
   phase: VoicePhase;

@@ -1,7 +1,7 @@
 import HomePage from "./pages/home";
+import ChangeLanguagePage from "./pages/change-lang";
 import RegisterPage from "./pages/register";
 import FadeTransition from "./components/fade-transition";
-import LanguageSwitcher from "./components/language-switcher";
 import { useMirrorController } from "./hooks/use-mirror-controller";
 import {
   BrowserRouter,
@@ -11,35 +11,46 @@ import {
   useLocation,
   useNavigate
 } from "react-router-dom";
-
-const isReloadNavigation = () =>
-  window.performance.getEntriesByType("navigation")[0]?.type === "reload";
+import { useEffect, useState } from "react";
 
 function AppRoutes() {
   const location = useLocation();
   const routerNavigate = useNavigate();
+  const [allowedMirrorRoute, setAllowedMirrorRoute] = useState<string | null>(null);
 
   const navigate = (path: string) => {
-    if (path === "/register") {
-      routerNavigate(path, { state: { source: "mirror" } });
+    if (path === "/register" || path === "/change-lang") {
+      setAllowedMirrorRoute(path);
+      routerNavigate(path);
       return;
     }
 
+    setAllowedMirrorRoute(null);
     routerNavigate(path);
   };
 
   const controller = useMirrorController(navigate);
-  const canEnterRegister = location.state?.source === "mirror" && !isReloadNavigation();
+  const canEnterMirrorRoute = allowedMirrorRoute === location.pathname;
+  const canEnterChangeLanguageRoute = canEnterMirrorRoute && controller.hasRegisteredUsers && !!controller.registeredUser;
+
+  useEffect(() => {
+    if (location.pathname === "/") {
+      setAllowedMirrorRoute(null);
+    }
+  }, [location.pathname]);
 
   return (
     <>
-      <LanguageSwitcher />
       <FadeTransition transitionKey={location.pathname} className="min-h-screen">
         <Routes location={location}>
           <Route path="/" element={<HomePage controller={controller} />} />
           <Route
             path="/register"
-            element={canEnterRegister ? <RegisterPage controller={controller} /> : <Navigate to="/" replace />}
+            element={canEnterMirrorRoute ? <RegisterPage controller={controller} /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/change-lang"
+            element={canEnterChangeLanguageRoute ? <ChangeLanguagePage controller={controller} /> : <Navigate to="/" replace />}
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

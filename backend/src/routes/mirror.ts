@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import type { FastifyPluginAsync } from "fastify";
 import { prisma } from "../lib/prisma.js";
 import { deriveMirrorMode, getMirrorState, updateMirrorState } from "../lib/mirror-state.js";
@@ -49,6 +50,7 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
       faceLabel?: unknown;
       faceDescriptor?: unknown;
       location?: unknown;
+      preferredLanguage?: unknown;
     };
 
     if (!isString(body?.name) || body.name.trim().length < 2) {
@@ -68,14 +70,21 @@ export const mirrorRoutes: FastifyPluginAsync = async (app) => {
     const location = isString(body?.location) && body.location.trim().length > 0
       ? body.location.trim()
       : "Amsterdam";
+    const preferredLanguage =
+      body?.preferredLanguage === "zh" || body?.preferredLanguage === "en"
+        ? body.preferredLanguage
+        : "en";
+
+    const userData: Prisma.UserCreateInput = {
+      name,
+      faceLabel,
+      faceDescriptor,
+      location,
+      preferredLanguage: preferredLanguage === "zh" ? "zh" : "en"
+    };
 
     const user = await prisma.user.create({
-      data: {
-        name,
-        faceLabel,
-        faceDescriptor,
-        location
-      }
+      data: userData
     });
 
     const agendaSeed = buildAgendaForUser(user);

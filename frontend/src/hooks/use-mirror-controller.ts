@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import i18n from "../i18n";
+import { normalizeLanguage, type AppLanguage } from "../i18n/languages";
 import { BrowserFaceRecognitionService } from "../services/face-recognition";
 import type { AgendaResponse } from "../types/agenda";
 import type { MirrorController } from "../types/mirror-controller";
 import type { LocalizedMessage } from "../types/i18n";
-import type { UserMutationResponse } from "../types/api";
+import type { UserLanguageMutationRequest, UserMutationResponse } from "../types/api";
 import type { User } from "../types/user";
 import type { VoicePhase } from "../types/voice";
 import type { WeatherData, WeatherEnvelope } from "../types/weather";
@@ -144,6 +146,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   };
 
   const createUserAndConfirm = async (name: string, faceDescriptorOverride?: string | null) => {
+    const preferredLanguage = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
     const faceLabel = capturedFaceLabel ?? browserFaceService.generateFaceLabel(name);
     let faceDescriptor = faceDescriptorOverride ?? capturedFaceDescriptor;
 
@@ -168,7 +171,8 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
       body: JSON.stringify({
         name,
         faceLabel,
-        faceDescriptor
+        faceDescriptor,
+        preferredLanguage
       })
     });
 
@@ -192,6 +196,24 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     navigate("/");
     setPhase("hello");
     setStatusMessage({ key: "status.hello", values: { name: confirmed.user.name } });
+  };
+
+  const persistUserLanguage = async (language: AppLanguage) => {
+    if (!registeredUser) {
+      return;
+    }
+
+    const response = await requestJson<UserMutationResponse>(`/api/users/${registeredUser.id}/language`, {
+      method: "POST",
+      body: JSON.stringify({
+        preferredLanguage: language
+      } satisfies UserLanguageMutationRequest)
+    });
+
+    setRegisteredUser(response.user);
+    setKnownUsers((current) =>
+      current.map((user) => (user.id === response.user.id ? response.user : user))
+    );
   };
 
   const getUmbrellaAnswer = async (location: string) => {
@@ -299,7 +321,9 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     setProgress,
     setScanFaceVisible,
     registrationCompletingRef,
-    capturedName
+    capturedName,
+    hasRegisteredUsers: knownUsers.length > 0,
+    persistUserLanguage
   });
 
   return {
@@ -308,6 +332,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     progress,
     capturedName,
     registeredUser,
+    hasRegisteredUsers: knownUsers.length > 0,
     weather,
     agenda,
     scanFaceVisible,

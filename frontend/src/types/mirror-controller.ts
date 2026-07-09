@@ -5,6 +5,7 @@ import type { VoicePhase } from "./voice";
 import type { WeatherData } from "./weather";
 import type { BrowserFaceRecognitionService } from "../services/face-recognition";
 import type { LocalizedMessage } from "./i18n";
+import type { AppLanguage } from "../i18n/languages";
 
 export type MirrorController = {
   phase: VoicePhase;
@@ -12,6 +13,7 @@ export type MirrorController = {
   progress: number;
   capturedName: string;
   registeredUser: User | null;
+  hasRegisteredUsers: boolean;
   weather: WeatherData | null;
   agenda: AgendaResponse["events"];
   scanFaceVisible: boolean;
@@ -84,4 +86,6 @@ export type MirrorVoiceOptions = {
   setScanFaceVisible: (value: boolean) => void;
   registrationCompletingRef: MutableRefObject<boolean>;
   capturedName: string;
+  hasRegisteredUsers: boolean;
+  persistUserLanguage: (language: AppLanguage) => Promise<void>;
 };

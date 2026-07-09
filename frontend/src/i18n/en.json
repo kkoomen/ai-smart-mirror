@@ -56,6 +56,7 @@
       "wake": ["hey mirror", "hello mirror"],
       "sleep": ["bye mirror", "goodbye mirror"],
       "startRegistration": ["start registration"],
+      "changeLanguage": ["change language", "switch language"],
       "yes": ["yes", "confirm", "okay", "ok", "sure", "yeah", "yep"],
       "no": ["no", "try again", "retry"],
       "umbrella": ["umbrella", "need an umbrella", "do i need an umbrella"]
@@ -83,6 +84,9 @@
     "timeUnknown": "Time is on the mirror.",
     "notUnderstood": "I didn't understand that.",
     "registrationFailed": "Registration failed. Please try again.",
+    "changeLanguagePrompt": "Say: Mandarin or English",
+    "changeLanguageOpen": "Language change",
+    "languageChanged": "Language updated.",
     "umbrellaYes": "Yes. Rain chance is {{chance}} in {{location}}. Bring an umbrella.",
     "umbrellaNo": "Probably not. Rain chance is {{chance}} in {{location}}.",
     "capturedName": "Captured name {{name}}.",
@@ -121,5 +125,14 @@
     "english": "English",
     "mandarin": "Mandarin",
     "label": "Language"
+  },
+  "changeLanguage": {
+    "title": "Change language",
+    "subtitle": "Say the language you want to use.",
+    "prompt": "Say Mandarin or English",
+    "options": {
+      "english": "English",
+      "mandarin": "Mandarin"
+    }
   }
 }

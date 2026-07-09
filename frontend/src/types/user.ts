@@ -4,5 +4,6 @@ export type User = {
   faceLabel: string;
   faceDescriptor: string | null;
   location: string;
+  preferredLanguage: string;
   createdAt: string;
 };

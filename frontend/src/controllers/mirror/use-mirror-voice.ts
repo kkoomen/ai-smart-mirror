@@ -1,7 +1,15 @@
 import type { MirrorVoiceOptions } from "../../types/mirror-controller";
 import type { VoiceCommandResponse } from "../../types/voice";
 import i18n from "../../i18n";
-import { isSleepPhrase, isStartRegistrationPhrase, isUmbrellaPhrase, isWakePhrase } from "../../utils/voice";
+import { normalizeLanguage } from "../../i18n/languages";
+import {
+  isChangeLanguagePhrase,
+  isSleepPhrase,
+  isStartRegistrationPhrase,
+  isUmbrellaPhrase,
+  isWakePhrase,
+  resolveLanguageSelection
+} from "../../utils/voice";
 import { requestJson } from "../../utils/request-json";
 import type { VoiceCommandRequest } from "../../types/api";
 
@@ -26,9 +34,11 @@ export const useMirrorVoice = ({
   setProgress,
   setScanFaceVisible,
   registrationCompletingRef,
-  capturedName
+  capturedName,
+  hasRegisteredUsers,
+  persistUserLanguage
 }: MirrorVoiceOptions) => {
-  const currentLanguage = i18n.resolvedLanguage ?? i18n.language;
+  const currentLanguage = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
 
   return async (spokenText: string) => {
     const normalizedSpeech = spokenText.toLowerCase();
@@ -50,9 +60,37 @@ export const useMirrorVoice = ({
       return;
     }
 
-    if (phase === "idle" && isStartRegistrationPhrase(normalizedSpeech)) {
+    if (isStartRegistrationPhrase(normalizedSpeech)) {
       navigate("/register");
       await startRegistration();
+      return;
+    }
+
+    if (
+      hasRegisteredUsers &&
+      registeredUser &&
+      (phase === "hello" || phase === "dashboard") &&
+      isChangeLanguagePhrase(normalizedSpeech)
+    ) {
+      navigate("/change-lang");
+      setPhase("changeLanguage");
+      setStatusText({ key: "status.changeLanguagePrompt" });
+      return;
+    }
+
+    if (phase === "changeLanguage") {
+      const targetLanguage = resolveLanguageSelection(normalizedSpeech, currentLanguage);
+
+      if (!targetLanguage) {
+        setStatusText({ key: "status.changeLanguagePrompt" });
+        return;
+      }
+
+      await i18n.changeLanguage(targetLanguage);
+      await persistUserLanguage(targetLanguage);
+      setPhase("dashboard");
+      setStatusText({ key: "status.languageChanged" });
+      navigate("/");
       return;
     }
 
