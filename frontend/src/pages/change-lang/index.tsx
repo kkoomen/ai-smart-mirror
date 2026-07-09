@@ -2,8 +2,13 @@ import { useTranslation } from "react-i18next";
 import FadeTransition from "../../components/fade-transition";
 import MirrorLayout from "../../components/mirror-layout";
 import VoiceControl from "../../components/voice-control";
+import type { MirrorController } from "../../types/mirror-controller";
 
-export default function ChangeLanguagePage({ controller }) {
+type ChangeLanguagePageProps = {
+  controller: MirrorController;
+};
+
+export default function ChangeLanguagePage({ controller }: ChangeLanguagePageProps) {
   const { t } = useTranslation();
   const { phase, isMirrorFadingOut, handleVoiceCommand, statusText, finishLanguageChange, idleVideoRef } = controller;
 

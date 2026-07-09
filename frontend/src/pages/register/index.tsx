@@ -3,8 +3,13 @@ import FadeTransition from "../../components/fade-transition";
 import MirrorLayout from "../../components/mirror-layout";
 import RegistrationCenter from "../../components/registration-center";
 import VoiceControl from "../../components/voice-control";
+import type { MirrorController } from "../../types/mirror-controller";
 
-export default function RegisterPage({ controller }) {
+type RegisterPageProps = {
+  controller: MirrorController;
+};
+
+export default function RegisterPage({ controller }: RegisterPageProps) {
   const { t } = useTranslation();
   const { phase, isMirrorFadingOut, handleVoiceCommand, statusText, sleepMirror, idleVideoRef } = controller;
 

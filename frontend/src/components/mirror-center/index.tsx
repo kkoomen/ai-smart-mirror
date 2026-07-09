@@ -1,15 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { normalizeLanguage } from "../../i18n/languages";
+import type { MirrorController } from "../../types/mirror-controller";
 import { getSpeechPrompt } from "../../utils/speech-prompts";
 import FadeTransition from "../fade-transition";
 
-export default function MirrorCenter({ controller }) {
+type MirrorCenterProps = {
+  controller: MirrorController;
+};
+
+export default function MirrorCenter({ controller }: MirrorCenterProps) {
   const { t, i18n } = useTranslation();
   const { phase, registeredUser, speakText, dashboardSummaryText } = controller;
   const hasSpokenStartPromptRef = useRef(false);
   const hasSpokenSummaryRef = useRef("");
-  const summaryHideTimerRef = useRef(null);
+  const summaryHideTimerRef = useRef<number | null>(null);
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
 
   useEffect(() => {

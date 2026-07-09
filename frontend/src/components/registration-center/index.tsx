@@ -1,7 +1,12 @@
 import RegistrationFlow from "../registration-flow";
 import { useTranslation } from "react-i18next";
+import type { MirrorController } from "../../types/mirror-controller";
 
-export default function RegistrationCenter({ controller }) {
+type RegistrationCenterProps = {
+  controller: MirrorController;
+};
+
+export default function RegistrationCenter({ controller }: RegistrationCenterProps) {
   const { t } = useTranslation();
   const { phase, capturedName, progress, statusText, scanVideoRef, scanFaceVisible } = controller;
 

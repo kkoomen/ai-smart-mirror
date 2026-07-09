@@ -1,6 +1,16 @@
 import { useTranslation } from "react-i18next";
 import { useSpeechRecognition } from "../../hooks/use-speech-recognition";
 
+type VoiceControlProps = {
+  prompt: string;
+  onCommand: (transcript: string) => Promise<void>;
+  helperText: string;
+  disabled?: boolean;
+  autoListen?: boolean;
+  onTranscript?: (transcript: string) => void;
+  visible?: boolean;
+};
+
 export default function VoiceControl({
   prompt,
   onCommand,
@@ -9,7 +19,7 @@ export default function VoiceControl({
   autoListen = true,
   onTranscript,
   visible = true
-}) {
+}: VoiceControlProps) {
   const { t } = useTranslation();
   const { errorMessage, isSupported, voiceState } = useSpeechRecognition({
     autoListen,

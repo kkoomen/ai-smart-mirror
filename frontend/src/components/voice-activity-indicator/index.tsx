@@ -4,12 +4,20 @@ import { subscribeToVoiceListenerState } from "../../utils/voice-listener";
 
 const defaultLevels = [0.28, 0.55, 0.8, 0.55, 0.28];
 
-export default function VoiceActivityIndicator({ visible = true }) {
+type VoiceActivityIndicatorProps = {
+  visible?: boolean;
+};
+
+type WebkitAudioWindow = Window & typeof globalThis & {
+  webkitAudioContext?: typeof AudioContext;
+};
+
+export default function VoiceActivityIndicator({ visible = true }: VoiceActivityIndicatorProps) {
   const [isEnabled, setIsEnabled] = useState(false);
   const [levels, setLevels] = useState(defaultLevels);
-  const animationFrameRef = useRef(null);
-  const mediaStreamRef = useRef(null);
-  const audioContextRef = useRef(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(
     () =>
@@ -35,7 +43,8 @@ export default function VoiceActivityIndicator({ visible = true }) {
           return;
         }
 
-        const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+        const audioWindow = window as WebkitAudioWindow;
+        const AudioContextCtor = audioWindow.AudioContext || audioWindow.webkitAudioContext;
         if (!AudioContextCtor) {
           mediaStreamRef.current = stream;
           return;

@@ -8,8 +8,13 @@ import MirrorLayout from "../../components/mirror-layout";
 import VoiceControl from "../../components/voice-control";
 import WeatherForecast from "../../components/weather-forecast";
 import { normalizeLanguage } from "../../i18n/languages";
+import type { MirrorController } from "../../types/mirror-controller";
 
-export default function HomePage({ controller }) {
+type HomePageProps = {
+  controller: MirrorController;
+};
+
+export default function HomePage({ controller }: HomePageProps) {
   const { i18n, t } = useTranslation();
   const {
     phase,
