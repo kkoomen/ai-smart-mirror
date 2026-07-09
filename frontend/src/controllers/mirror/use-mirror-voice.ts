@@ -1,8 +1,7 @@
 import type { MirrorVoiceOptions } from "../../types/mirror-controller";
-import type { User } from "../../types/user";
-import type { VoiceCommandResponse, VoicePhase } from "../../types/voice";
-import type { WeatherData } from "../../types/weather";
-import { isSleepPhrase, isWakePhrase } from "../../utils/voice";
+import type { VoiceCommandResponse } from "../../types/voice";
+import i18n from "../../i18n";
+import { isSleepPhrase, isStartRegistrationPhrase, isUmbrellaPhrase, isWakePhrase } from "../../utils/voice";
 import { requestJson } from "../../utils/request-json";
 import type { VoiceCommandRequest } from "../../types/api";
 
@@ -29,6 +28,8 @@ export const useMirrorVoice = ({
   registrationCompletingRef,
   capturedName
 }: MirrorVoiceOptions) => {
+  const currentLanguage = i18n.resolvedLanguage ?? i18n.language;
+
   return async (spokenText: string) => {
     const normalizedSpeech = spokenText.toLowerCase();
     console.info("[Mirror voice] handling command:", normalizedSpeech);
@@ -49,7 +50,7 @@ export const useMirrorVoice = ({
       return;
     }
 
-    if (phase === "idle" && normalizedSpeech.includes("start registration")) {
+    if (phase === "idle" && isStartRegistrationPhrase(normalizedSpeech)) {
       navigate("/register");
       await startRegistration();
       return;
@@ -64,20 +65,21 @@ export const useMirrorVoice = ({
       body: JSON.stringify({
         transcript: spokenText,
         phase,
-        userId: registeredUser?.id ?? null
+        userId: registeredUser?.id ?? null,
+        language: currentLanguage
       } satisfies VoiceCommandRequest)
     });
 
     if (phase === "name") {
       if (command.intent !== "PROVIDE_NAME" || !command.name) {
-        setStatusText("Say your name");
+        setStatusText({ key: "status.sayYourName" });
         return;
       }
 
       setCapturedName(command.name);
       setCapturedFaceLabel(browserFaceService.generateFaceLabel(command.name));
       setPhase("nameConfirm");
-      setStatusText("Say yes or no");
+      setStatusText({ key: "status.sayYesOrNo" });
       return;
     }
 
@@ -87,12 +89,12 @@ export const useMirrorVoice = ({
         setCapturedFaceLabel(null);
         setCapturedFaceDescriptor(null);
         setPhase("name");
-        setStatusText("Say your name");
+        setStatusText({ key: "status.sayYourName" });
         return;
       }
 
       if (command.intent !== "CONFIRM_YES") {
-        setStatusText("Say yes or no");
+        setStatusText({ key: "status.sayYesOrNo" });
         return;
       }
 
@@ -101,12 +103,12 @@ export const useMirrorVoice = ({
       setScanFaceVisible(false);
       registrationCompletingRef.current = false;
       setPhase("scan");
-      setStatusText("Look at the mirror");
+      setStatusText({ key: "status.lookAtMirror" });
       return;
     }
 
     if (phase === "scan") {
-      setStatusText("Look at the mirror");
+      setStatusText({ key: "status.lookAtMirror" });
       return;
     }
 
@@ -117,7 +119,7 @@ export const useMirrorVoice = ({
       }
 
       if (command.intent !== "CONFIRM_YES") {
-        setStatusText("Say yes or no");
+        setStatusText({ key: "status.sayYesOrNo" });
         return;
       }
 
@@ -127,27 +129,29 @@ export const useMirrorVoice = ({
 
     if (phase === "dashboard") {
       if (command.intent === "GET_AGENDA") {
-        setStatusText("Today's agenda is on the mirror.");
+        setStatusText({ key: "status.todayAgenda" });
         return;
       }
 
       if (command.intent === "GET_WEATHER") {
-        if (normalizedSpeech.includes("umbrella")) {
-          const answer = await getUmbrellaAnswer(registeredUser?.location ?? weather?.location ?? "Amsterdam");
+        if (isUmbrellaPhrase(normalizedSpeech)) {
+          const answer = await getUmbrellaAnswer(
+            registeredUser?.location ?? weather?.location ?? "Amsterdam"
+          );
           setStatusText(answer);
           return;
         }
 
-        setStatusText("Weather is shown on the mirror.");
+        setStatusText({ key: "status.weatherShown" });
         return;
       }
 
       if (command.intent === "GET_TIME") {
-        setStatusText("Time is shown in the top-right.");
+        setStatusText({ key: "status.timeShown" });
         return;
       }
 
-      setStatusText(command.response);
+      setStatusText({ key: "status.notUnderstood" });
       return;
     }
 
@@ -158,7 +162,7 @@ export const useMirrorVoice = ({
         return;
       }
 
-      setStatusText("Say 'start registration' to begin");
+      setStatusText({ key: "status.voiceStartRegistration" });
     }
   };
 };

@@ -1,0 +1,125 @@
+{
+  "app": {
+    "name": "镜子 AI",
+    "description": "语音优先的智能镜子"
+  },
+  "home": {
+    "startScreen": {
+      "eyebrow": "镜子 AI",
+      "title": "欢迎使用镜子 AI",
+      "subtitle": "说：开始注册"
+    },
+    "mirror": {
+      "welcome": "欢迎",
+      "startRegistration": "说：开始注册",
+      "hello": "你好，{{name}}",
+      "defaultUser": "镜子用户"
+    }
+  },
+  "register": {
+    "flow": {
+      "name": "我该怎么称呼你？",
+      "nameConfirm": "姓名确认",
+      "scan": "人脸扫描",
+      "confirm": "确认步骤",
+      "sayYourName": "说出你的名字",
+      "confirmName": "“{{name}}” 是你的名字吗？",
+      "confirmFace": "我识别到这张脸是 {{name}}。对吗？",
+      "yesNo": "说：是或否",
+      "yesNoTryAgain": "说：是、否，或者重试",
+      "lookAtMirror": "看着镜子",
+      "scanningFace": "正在扫描人脸..."
+    },
+    "scan": {
+      "faceDetected": "已检测到人脸",
+      "waitingFace": "等待人脸"
+    }
+  },
+  "voice": {
+    "control": "语音控制",
+    "promptWake": "说：嘿镜子",
+    "states": {
+      "idle": "空闲",
+      "listening": "聆听中",
+      "thinking": "思考中",
+      "confirmed": "已确认",
+      "error": "错误"
+    },
+    "errors": {
+      "notSupported": "此浏览器不支持语音输入。",
+      "noSpeech": "未检测到语音。",
+      "speechFailed": "语音识别失败。",
+      "speakCommand": "请先说出一个指令。",
+      "commandFailed": "命令失败。"
+    },
+    "phrases": {
+      "wake": ["嘿镜子", "你好镜子"],
+      "sleep": ["再见镜子", "拜拜镜子"],
+      "startRegistration": ["开始注册", "开始登记"],
+      "yes": ["是", "对", "确认", "好的", "可以", "是的"],
+      "no": ["否", "不对", "重试", "再来一次", "不", "不是", "不要"],
+      "umbrella": ["要带伞吗", "需要伞吗", "带伞", "雨伞"]
+    }
+  },
+  "status": {
+    "loading": "正在加载镜子 AI...",
+    "sayYourName": "说出你的名字",
+    "completingRegistration": "正在完成注册",
+    "sayHeyMirrorToWake": "说“嘿镜子”来唤醒",
+    "unknownUserDetected": "未识别到用户",
+    "backendUnavailable": "镜子后端不可用",
+    "sayYesOrNo": "说：是或否",
+    "lookAtMirror": "看着镜子",
+    "todayAgenda": "今天的日程显示在镜子上。",
+    "weatherShown": "天气显示在镜子上。",
+    "timeShown": "时间显示在右上角。",
+    "checkingFace": "正在检查人脸",
+    "hello": "你好，{{name}}",
+    "startingRegistration": "正在开始注册。",
+    "tryingAgain": "正在重试。",
+    "confirmed": "已确认。",
+    "agendaUnknown": "你的日程显示在镜子上。",
+    "weatherUnknown": "天气显示在镜子上。",
+    "timeUnknown": "时间显示在镜子上。",
+    "notUnderstood": "我没听懂。",
+    "registrationFailed": "注册失败，请再试一次。",
+    "umbrellaYes": "要。降雨概率为 {{chance}}，地点：{{location}}。请带伞。",
+    "umbrellaNo": "不太需要。降雨概率为 {{chance}}，地点：{{location}}。",
+    "capturedName": "已记录名字 {{name}}。",
+    "voiceStartRegistration": "正在开始注册。"
+  },
+  "weather": {
+    "title": "天气",
+    "location": "地点",
+    "condition": "天气状况",
+    "temperature": "温度",
+    "rainChance": "降雨概率 {{chance}}",
+    "forecast": "预报",
+    "unknown": "未知"
+  },
+  "agenda": {
+    "title": "日程",
+    "empty": "今天没有事件"
+  },
+  "device": {
+    "title": "设备",
+    "camera": "摄像头",
+    "microphone": "麦克风",
+    "network": "网络",
+    "battery": "电量",
+    "status": {
+      "scanning": "扫描中",
+      "polling": "轮询中",
+      "listening": "聆听中",
+      "connected": "已连接"
+    }
+  },
+  "time": {
+    "title": "本地时间"
+  },
+  "languages": {
+    "english": "英语",
+    "mandarin": "普通话",
+    "label": "语言"
+  }
+}

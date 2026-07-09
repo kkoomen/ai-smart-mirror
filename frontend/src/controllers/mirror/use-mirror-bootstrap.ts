@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { BrowserFaceRecognitionService } from "../../services/face-recognition";
 import type { MirrorStateResponse } from "../../types/mirror";
 import type { MirrorBootstrapOptions } from "../../types/mirror-controller";
 import type { UsersResponse } from "../../types/api";
@@ -18,13 +17,9 @@ export const useMirrorBootstrap = ({
   useEffect(() => {
     const bootstrap = async () => {
       try {
-        let faceApiReady = true;
-
         try {
           await browserFaceService.load();
-        } catch {
-          faceApiReady = false;
-        }
+        } catch {}
 
         const [mirrorState, usersResponse] = await Promise.all([
           requestJson<MirrorStateResponse>("/api/mirror/state"),
@@ -35,11 +30,7 @@ export const useMirrorBootstrap = ({
 
         if (usersResponse.users.length === 0) {
           setPhase("idle");
-          setStatusText(
-            faceApiReady
-              ? "Say 'hey mirror' to wake"
-              : "Face models are not loaded yet. Say 'hey mirror' to continue with voice mode."
-          );
+          setStatusText({ key: "status.sayHeyMirrorToWake" });
           return;
         }
 
@@ -49,26 +40,22 @@ export const useMirrorBootstrap = ({
           setCapturedFaceLabel(mirrorState.activeUser.faceLabel);
           setCapturedFaceDescriptor(mirrorState.activeUser.faceDescriptor);
           setPhase("nameConfirm");
-          setStatusText("Say yes, no, or try again");
+          setStatusText({ key: "register.flow.yesNoTryAgain" });
           return;
         }
 
         if (mirrorState.registrationComplete && mirrorState.activeUser) {
           setRegisteredUser(null);
           setPhase("idle");
-          setStatusText("Say 'hey mirror' to wake");
+          setStatusText({ key: "status.sayHeyMirrorToWake" });
           return;
         }
 
         setPhase("idle");
-        setStatusText(
-          faceApiReady
-            ? "Say 'hey mirror' to wake"
-            : "Face models are not loaded yet. Say 'hey mirror' to continue with voice mode."
-        );
+        setStatusText({ key: "status.sayHeyMirrorToWake" });
       } catch {
         setPhase("idle");
-        setStatusText("Mirror backend unavailable");
+        setStatusText({ key: "status.backendUnavailable" });
       }
     };
 

@@ -79,7 +79,7 @@ export const useMirrorFaceDetection = ({
 
             if (current < 100 && next >= 100 && !registrationCompletingRef.current) {
               registrationCompletingRef.current = true;
-              setStatusText("Completing registration");
+              setStatusText({ key: "status.completingRegistration" });
               window.setTimeout(() => {
                 if (cancelled) {
                   return;
@@ -88,11 +88,9 @@ export const useMirrorFaceDetection = ({
                 void createUserAndConfirm(capturedName || "Mirror user", detection.faceDescriptor).catch(
                   (error) => {
                     registrationCompletingRef.current = false;
-                    setStatusText(
-                      error instanceof Error
-                        ? error.message
-                        : "Registration failed. Please try again."
-                    );
+                    setStatusText({
+                      key: "status.registrationFailed"
+                    });
                     setPhase("scan");
                   }
                 );
@@ -116,7 +114,7 @@ export const useMirrorFaceDetection = ({
           setRegisteredUser(matchedUser);
           await loadDashboardData(matchedUser.id, matchedUser.location);
           setPhase("hello");
-          setStatusText(`Hello ${matchedUser.name}`);
+          setStatusText({ key: "status.hello", values: { name: matchedUser.name } });
           return;
         }
 
@@ -125,7 +123,7 @@ export const useMirrorFaceDetection = ({
 
         if (detection.isFaceDetected || wakeTimedOut) {
           setPhase("unknown");
-          setStatusText("Unknown user detected");
+          setStatusText({ key: "status.unknownUserDetected" });
           return;
         }
 

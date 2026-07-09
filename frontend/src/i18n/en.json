@@ -1,0 +1,125 @@
+{
+  "app": {
+    "name": "Mirror AI",
+    "description": "Voice-first smart mirror"
+  },
+  "home": {
+    "startScreen": {
+      "eyebrow": "Mirror AI",
+      "title": "Welcome to Mirror AI",
+      "subtitle": "Say: start registration"
+    },
+    "mirror": {
+      "welcome": "Welcome",
+      "startRegistration": "Say: start registration",
+      "hello": "Hello {{name}}",
+      "defaultUser": "Mirror user"
+    }
+  },
+  "register": {
+    "flow": {
+      "name": "How can I call you?",
+      "nameConfirm": "Name confirmation",
+      "scan": "Face scan",
+      "confirm": "Confirmation step",
+      "sayYourName": "Say your name",
+      "confirmName": "Is \"{{name}}\" your name?",
+      "confirmFace": "I recognized this face as {{name}}. Is that correct?",
+      "yesNo": "Say: Yes or no",
+      "yesNoTryAgain": "Say: yes, no, or try again",
+      "lookAtMirror": "Look at the mirror",
+      "scanningFace": "Scanning face..."
+    },
+    "scan": {
+      "faceDetected": "Face detected",
+      "waitingFace": "Waiting for face"
+    }
+  },
+  "voice": {
+    "control": "Voice control",
+    "promptWake": "Say: hey mirror",
+    "states": {
+      "idle": "idle",
+      "listening": "listening",
+      "thinking": "thinking",
+      "confirmed": "confirmed",
+      "error": "error"
+    },
+    "errors": {
+      "notSupported": "Voice input is not available in this browser.",
+      "noSpeech": "No speech detected.",
+      "speechFailed": "Speech recognition failed.",
+      "speakCommand": "Speak a command first.",
+      "commandFailed": "Command failed."
+    },
+    "phrases": {
+      "wake": ["hey mirror", "hello mirror"],
+      "sleep": ["bye mirror", "goodbye mirror"],
+      "startRegistration": ["start registration"],
+      "yes": ["yes", "confirm", "okay", "ok", "sure", "yeah", "yep"],
+      "no": ["no", "try again", "retry"],
+      "umbrella": ["umbrella", "need an umbrella", "do i need an umbrella"]
+    }
+  },
+  "status": {
+    "loading": "Loading Mirror AI...",
+    "sayYourName": "Say your name",
+    "completingRegistration": "Completing registration",
+    "sayHeyMirrorToWake": "Say 'hey mirror' to wake",
+    "unknownUserDetected": "Unknown user detected",
+    "backendUnavailable": "Mirror backend unavailable",
+    "sayYesOrNo": "Say yes or no",
+    "lookAtMirror": "Look at the mirror",
+    "todayAgenda": "Today's agenda is on the mirror.",
+    "weatherShown": "Weather is shown on the mirror.",
+    "timeShown": "Time is shown in the top-right.",
+    "checkingFace": "Checking face",
+    "hello": "Hello {{name}}",
+    "startingRegistration": "Starting registration.",
+    "tryingAgain": "Trying again.",
+    "confirmed": "Confirmed.",
+    "agendaUnknown": "Your agenda is on the mirror.",
+    "weatherUnknown": "Weather is on the mirror.",
+    "timeUnknown": "Time is on the mirror.",
+    "notUnderstood": "I didn't understand that.",
+    "registrationFailed": "Registration failed. Please try again.",
+    "umbrellaYes": "Yes. Rain chance is {{chance}} in {{location}}. Bring an umbrella.",
+    "umbrellaNo": "Probably not. Rain chance is {{chance}} in {{location}}.",
+    "capturedName": "Captured name {{name}}.",
+    "voiceStartRegistration": "Starting registration."
+  },
+  "weather": {
+    "title": "Weather",
+    "location": "Location",
+    "condition": "Condition",
+    "temperature": "Temperature",
+    "rainChance": "Rain chance {{chance}}",
+    "forecast": "Forecast",
+    "unknown": "Unknown"
+  },
+  "agenda": {
+    "title": "Agenda",
+    "empty": "No events today"
+  },
+  "device": {
+    "title": "Device",
+    "camera": "camera",
+    "microphone": "microphone",
+    "network": "network",
+    "battery": "battery",
+    "status": {
+      "scanning": "scanning",
+      "polling": "polling",
+      "listening": "listening",
+      "connected": "connected"
+    }
+  },
+  "time": {
+    "title": "Local time"
+  },
+  "languages": {
+    "english": "English",
+    "mandarin": "Mandarin",
+    "label": "Language"
+  }
+}

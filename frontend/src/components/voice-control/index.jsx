@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { getSpeechLocale } from "../../i18n/languages";
 
 const getRecognitionCtor = () => {
   if (typeof window === "undefined") {
@@ -17,6 +19,7 @@ export default function VoiceControl({
   onTranscript,
   visible = true
 }) {
+  const { i18n, t } = useTranslation();
   const [voiceState, setVoiceState] = useState("idle");
   const [lastTranscript, setLastTranscript] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -47,7 +50,7 @@ export default function VoiceControl({
     setIsSupported(true);
 
     const recognition = new Recognition();
-    recognition.lang = "en-US";
+    recognition.lang = getSpeechLocale(i18n.language);
     recognition.interimResults = false;
     recognition.continuous = false;
 
@@ -76,7 +79,7 @@ export default function VoiceControl({
         .trim();
 
       if (!transcript) {
-        setErrorMessage("No speech detected.");
+        setErrorMessage(t("voice.errors.noSpeech"));
         setVoiceState("error");
         return;
       }
@@ -88,7 +91,7 @@ export default function VoiceControl({
     };
 
     recognition.onerror = () => {
-      setErrorMessage("Speech recognition failed.");
+      setErrorMessage(t("voice.errors.speechFailed"));
       setVoiceState("error");
     };
 
@@ -112,8 +115,9 @@ export default function VoiceControl({
     return () => {
       recognition.stop();
       recognitionRef.current = null;
+      autoStartAttemptedRef.current = false;
     };
-  }, [autoListen, disabled]);
+  }, [autoListen, disabled, i18n.language]);
 
   useEffect(() => {
     if (!autoListen || disabled || !isSupported || !recognitionRef.current) {
@@ -141,7 +145,7 @@ export default function VoiceControl({
     const transcript = value.trim();
 
     if (!transcript) {
-      setErrorMessage("Speak a command first.");
+      setErrorMessage(t("voice.errors.speakCommand"));
       setVoiceState("error");
       return;
     }
@@ -162,7 +166,7 @@ export default function VoiceControl({
         }
       }, 1200);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Command failed.");
+      setErrorMessage(error instanceof Error ? error.message : t("voice.errors.commandFailed"));
       setVoiceState("error");
     }
   };
@@ -174,9 +178,9 @@ export default function VoiceControl({
   return (
     <section className="flex w-full flex-col items-center gap-4">
       <div className="flex w-full max-w-2xl items-center justify-between gap-4">
-        <p className="text-xs uppercase tracking-[0.55em] text-white/40">voice control</p>
+        <p className="text-xs uppercase tracking-[0.55em] text-white/40">{t("voice.control")}</p>
         <span className="border border-white/15 px-3 py-1 text-[10px] uppercase tracking-[0.35em] text-white/70">
-          {voiceState}
+          {t(`voice.states.${voiceState}`)}
         </span>
       </div>
 
@@ -194,7 +198,7 @@ export default function VoiceControl({
         ) : null}
         {!isSupported ? (
           <p className="text-xs uppercase tracking-[0.25em] text-white/40">
-            Voice input is not available in this browser.
+            {t("voice.errors.notSupported")}
           </p>
         ) : null}
       </div>

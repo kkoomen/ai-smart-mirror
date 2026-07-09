@@ -14,4 +14,5 @@ export type VoiceCommandRequest = {
   transcript: string;
   phase: VoicePhase;
   userId: number | null;
+  language?: string;
 };

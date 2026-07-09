@@ -1,8 +1,11 @@
+import { useTranslation } from "react-i18next";
+
 export default function CameraPreview({
   videoRef,
   progress,
   statusText,
 }) {
+  const { t } = useTranslation();
   return (
     <section className="relative w-full max-w-2xl overflow-hidden border border-white/15 bg-black/85 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
       <div className="relative aspect-[4/5] w-full sm:aspect-[16/10]">
@@ -20,7 +23,7 @@ export default function CameraPreview({
         <div className="pointer-events-none absolute left-1/2 top-1/2 h-[78%] w-[42%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-white/65 shadow-[0_0_0_9999px_rgba(0,0,0,0.18)]" />
 
         <div className="absolute left-4 top-4 flex flex-col items-start gap-2 text-left text-[10px] uppercase tracking-[0.3em] text-white/65">
-          <span>Camera active</span>
+          <span>{t("device.camera")}</span>
           <span>{statusText}</span>
         </div>
 

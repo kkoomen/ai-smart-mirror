@@ -1,9 +1,11 @@
+import { useTranslation } from "react-i18next";
 import FadeTransition from "../../components/fade-transition";
 import MirrorLayout from "../../components/mirror-layout";
 import RegistrationCenter from "../../components/registration-center";
 import VoiceControl from "../../components/voice-control";
 
 export default function RegisterPage({ controller }) {
+  const { t } = useTranslation();
   const { phase, isMirrorFadingOut, handleVoiceCommand, statusText, sleepMirror, idleVideoRef } = controller;
 
   return (
@@ -21,7 +23,7 @@ export default function RegisterPage({ controller }) {
         </FadeTransition>
       </FadeTransition>
       <VoiceControl
-        prompt="Say: hey mirror"
+        prompt={t("voice.promptWake")}
         onCommand={handleVoiceCommand}
         helperText={statusText}
         visible={false}

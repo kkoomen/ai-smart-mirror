@@ -1,8 +1,12 @@
+import { useTranslation } from "react-i18next";
+
 export default function WeatherForecast({ location, summary, temperature, rainChance }) {
+  const { t } = useTranslation();
+
   return (
     <section className="space-y-2">
       <div className="space-y-1">
-        <p className="text-xs uppercase tracking-[0.5em] text-white/45">weather</p>
+        <p className="text-xs uppercase tracking-[0.5em] text-white/45">{t("weather.title")}</p>
         <div className="text-sm uppercase tracking-[0.3em] text-white/70">{location}</div>
       </div>
 
@@ -13,7 +17,7 @@ export default function WeatherForecast({ location, summary, temperature, rainCh
 
       {rainChance != null ? (
         <div className="text-xs uppercase tracking-[0.35em] text-white/55">
-          Rain chance {rainChance}
+          {t("weather.rainChance", { chance: rainChance })}
         </div>
       ) : null}
     </section>

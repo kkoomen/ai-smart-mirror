@@ -4,6 +4,7 @@ import type { User } from "./user";
 import type { VoicePhase } from "./voice";
 import type { WeatherData } from "./weather";
 import type { BrowserFaceRecognitionService } from "../services/face-recognition";
+import type { LocalizedMessage } from "./i18n";
 
 export type MirrorController = {
   phase: VoicePhase;
@@ -39,7 +40,7 @@ export type MirrorBootstrapOptions = {
   setCapturedFaceLabel: (value: string | null) => void;
   setCapturedFaceDescriptor: (value: string | null) => void;
   setPhase: (phase: VoicePhase) => void;
-  setStatusText: (value: string) => void;
+  setStatusText: (message: LocalizedMessage) => void;
 };
 
 export type MirrorFaceDetectionOptions = {
@@ -49,7 +50,7 @@ export type MirrorFaceDetectionOptions = {
   setCapturedFaceDescriptor: (value: string | null) => void;
   setRegisteredUser: (user: User | null) => void;
   setPhase: (phase: VoicePhase) => void;
-  setStatusText: (value: string) => void;
+  setStatusText: (message: LocalizedMessage) => void;
   loadDashboardData: (userId: number, location: string) => Promise<void>;
   createUserAndConfirm: (name: string, faceDescriptorOverride?: string | null) => Promise<void>;
   capturedName: string;
@@ -70,11 +71,11 @@ export type MirrorVoiceOptions = {
   clearDashboardPresenceTimer: () => void;
   startRegistration: () => Promise<void>;
   createUserAndConfirm: (name: string, faceDescriptorOverride?: string | null) => Promise<void>;
-  getUmbrellaAnswer: (location: string) => Promise<string>;
+  getUmbrellaAnswer: (location: string) => Promise<LocalizedMessage>;
   browserFaceService: BrowserFaceRecognitionService;
   navigate: (path: string) => void;
   setPhase: (phase: VoicePhase) => void;
-  setStatusText: (value: string) => void;
+  setStatusText: (message: LocalizedMessage) => void;
   setMirrorFadingOut: (value: boolean) => void;
   setCapturedName: (value: string) => void;
   setCapturedFaceLabel: (value: string | null) => void;

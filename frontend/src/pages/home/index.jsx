@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import Agenda from "../../components/agenda";
 import DeviceStatus from "../../components/device-status";
 import FadeTransition from "../../components/fade-transition";
@@ -6,8 +7,10 @@ import MirrorCenter from "../../components/mirror-center";
 import MirrorLayout from "../../components/mirror-layout";
 import VoiceControl from "../../components/voice-control";
 import WeatherForecast from "../../components/weather-forecast";
+import { normalizeLanguage } from "../../i18n/languages";
 
 export default function HomePage({ controller }) {
+  const { i18n, t } = useTranslation();
   const {
     phase,
     weather,
@@ -19,6 +22,7 @@ export default function HomePage({ controller }) {
     sleepMirror,
     idleVideoRef
   } = controller;
+  const locale = normalizeLanguage(i18n.language) === "zh" ? "zh-CN" : "en-GB";
 
   return (
     <>
@@ -49,7 +53,7 @@ export default function HomePage({ controller }) {
             agenda={
               <Agenda
                 events={agenda.map((event) => ({
-                  time: new Intl.DateTimeFormat("en-GB", {
+                  time: new Intl.DateTimeFormat(locale, {
                     hour: "2-digit",
                     minute: "2-digit"
                   }).format(new Date(event.startTime)),
@@ -63,7 +67,7 @@ export default function HomePage({ controller }) {
         </FadeTransition>
       </FadeTransition>
       <VoiceControl
-        prompt="Say: hey mirror"
+        prompt={t("voice.promptWake")}
         onCommand={handleVoiceCommand}
         helperText={statusText}
         visible={false}

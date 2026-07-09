@@ -16,12 +16,30 @@ const isVoicePhase = (
   );
 };
 
+const normalizeLanguage = (value: unknown) => {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const lowerCased = value.trim().toLowerCase();
+  if (lowerCased.startsWith("zh")) {
+    return "zh";
+  }
+
+  if (lowerCased.startsWith("en")) {
+    return "en";
+  }
+
+  return null;
+};
+
 export const voiceRoutes: FastifyPluginAsync = async (app) => {
   app.post("/api/voice/command", async (request, reply) => {
     const body = request.body as {
       transcript?: unknown;
       phase?: unknown;
       userId?: unknown;
+      language?: unknown;
     };
 
     if (!isString(body?.transcript) || body.transcript.trim().length === 0) {
@@ -35,9 +53,11 @@ export const voiceRoutes: FastifyPluginAsync = async (app) => {
     const transcript = body.transcript.trim();
     const phaseValue = isString(body?.phase) ? body.phase.trim() : "";
     const phase = isVoicePhase(phaseValue) ? phaseValue : "dashboard";
+    const language = normalizeLanguage(body?.language) ?? normalizeLanguage(request.headers["accept-language"]) ?? "en";
     const result = await inferVoiceCommand({
       transcript,
-      phase
+      phase,
+      language
     });
 
     if (result.intent === "START_REGISTRATION") {

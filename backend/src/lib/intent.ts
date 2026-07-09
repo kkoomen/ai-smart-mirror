@@ -11,6 +11,7 @@ export type VoiceIntent =
   | "UNKNOWN";
 
 export type VoicePhase = "start" | "name" | "nameConfirm" | "scan" | "confirm" | "dashboard";
+export type VoiceLanguage = "en" | "zh";
 
 export type VoiceEntities = {
   name: string | null;
@@ -36,6 +37,42 @@ const VALID_INTENTS = new Set<VoiceIntent>([
 
 const lowered = (value: string) => value.trim().toLowerCase();
 
+const normalizeLanguage = (value: string | undefined | null): VoiceLanguage => {
+  if (!value) {
+    return "en";
+  }
+
+  const lowerCased = value.trim().toLowerCase();
+  if (lowerCased.startsWith("zh")) {
+    return "zh";
+  }
+
+  return "en";
+};
+
+const languagePhrases = {
+  en: {
+    startRegistration: ["start registration"],
+    yes: ["yes", "confirm", "okay", "ok", "sure", "yeah", "yep"],
+    no: ["no", "try again", "retry"],
+    agenda: ["what do i have today", "agenda", "schedule"],
+    weather: ["weather", "umbrella"],
+    time: ["what time is it", "time"],
+    umbrella: ["umbrella"],
+    name: /(?:my name is|i am|i'm|im)\s+(.+)/i
+  },
+  zh: {
+    startRegistration: ["开始注册", "开始登记", "注册"],
+    yes: ["是", "对", "确认", "好的", "可以", "是的"],
+    no: ["否", "不", "不是", "不对", "重试", "再来一次", "不要"],
+    agenda: ["我今天有什么安排", "今天日程", "日程", "行程"],
+    weather: ["天气", "下雨", "雨", "要带伞"],
+    time: ["几点", "时间"],
+    umbrella: ["带伞", "雨伞"],
+    name: /(?:我叫|我的名字是|我名字叫)\s*(.+)/i
+  }
+} as const;
+
 const extractName = (transcript: string) => {
   const text = transcript.trim();
   const match = text.match(/(?:my name is|i am|i'm|im)\s+(.+)/i);
@@ -51,12 +88,23 @@ const extractName = (transcript: string) => {
   return null;
 };
 
+const extractLocalizedName = (transcript: string, language: VoiceLanguage) => {
+  const text = transcript.trim();
+  const match = text.match(languagePhrases[language].name);
+
+  if (match?.[1]) {
+    return match[1].trim();
+  }
+
+  return extractName(transcript);
+};
+
 const extractDate = (text: string) => {
-  if (text.includes("tomorrow")) {
+  if (text.includes("tomorrow") || text.includes("明天")) {
     return "tomorrow";
   }
 
-  if (text.includes("today")) {
+  if (text.includes("today") || text.includes("今天")) {
     return "today";
   }
 
@@ -76,33 +124,31 @@ const buildResult = (
 const ruleBasedInferVoiceCommand = (params: {
   transcript: string;
   phase: VoicePhase;
+  language: VoiceLanguage;
 }): VoiceCommandResult => {
-  const { transcript, phase } = params;
+  const { transcript, phase, language } = params;
   const text = lowered(transcript);
+  const phrases = languagePhrases[language];
 
-  if (text.includes("start registration")) {
-    return buildResult("START_REGISTRATION", "Starting registration.");
-  }
-
-  if (text === "yes" || text === "confirm" || text === "okay" || text === "ok") {
-    return buildResult("CONFIRM_YES", "Confirmed.");
-  }
-
-  if (text === "no" || text === "try again" || text === "retry") {
-    return buildResult("CONFIRM_NO", "Trying again.");
-  }
-
-  if (text.includes("what do i have today") || text.includes("agenda") || text.includes("schedule")) {
-    return buildResult("GET_AGENDA", "Showing today's agenda.", {
-      name: null,
-      date: extractDate(text)
-    });
-  }
-
-  if (text.includes("weather") || text.includes("umbrella")) {
+  if (phrases.startRegistration.some((phrase) => text.includes(phrase))) {
     return buildResult(
-      "GET_WEATHER",
-      text.includes("umbrella") ? "Checking whether you need an umbrella." : "Showing the weather.",
+      "START_REGISTRATION",
+      language === "zh" ? "开始注册。" : "Starting registration."
+    );
+  }
+
+  if (phrases.yes.some((phrase) => text === phrase || text.includes(phrase))) {
+    return buildResult("CONFIRM_YES", language === "zh" ? "已确认。" : "Confirmed.");
+  }
+
+  if (phrases.no.some((phrase) => text === phrase || text.includes(phrase))) {
+    return buildResult("CONFIRM_NO", language === "zh" ? "重试中。" : "Trying again.");
+  }
+
+  if (phrases.agenda.some((phrase) => text.includes(phrase))) {
+    return buildResult(
+      "GET_AGENDA",
+      language === "zh" ? "正在显示今天的日程。" : "Showing today's agenda.",
       {
         name: null,
         date: extractDate(text)
@@ -110,14 +156,34 @@ const ruleBasedInferVoiceCommand = (params: {
     );
   }
 
-  if (text.includes("what time is it") || text.includes("time")) {
-    return buildResult("GET_TIME", "Showing the current time.");
+  if (phrases.weather.some((phrase) => text.includes(phrase))) {
+    return buildResult(
+      "GET_WEATHER",
+      phrases.umbrella.some((phrase) => text.includes(phrase))
+        ? language === "zh"
+          ? "正在检查是否需要带伞。"
+          : "Checking whether you need an umbrella."
+        : language === "zh"
+          ? "正在显示天气。"
+          : "Showing the weather.",
+      {
+        name: null,
+        date: extractDate(text)
+      }
+    );
+  }
+
+  if (phrases.time.some((phrase) => text.includes(phrase))) {
+    return buildResult(
+      "GET_TIME",
+      language === "zh" ? "正在显示当前时间。" : "Showing the current time."
+    );
   }
 
   if (phase === "name") {
-    const name = extractName(transcript);
+    const name = extractLocalizedName(transcript, language);
     if (name) {
-      return buildResult("PROVIDE_NAME", `Captured name ${name}.`, {
+      return buildResult("PROVIDE_NAME", language === "zh" ? `已记录名字 ${name}。` : `Captured name ${name}.`, {
         name,
         date: null
       });
@@ -181,6 +247,7 @@ const validateOpenAiResult = (value: unknown): VoiceCommandResult | null => {
 const requestOpenAiIntent = async (params: {
   transcript: string;
   phase: VoicePhase;
+  language: VoiceLanguage;
 }): Promise<VoiceCommandResult | null> => {
   if (!env.openAiApiKey) {
     return null;
@@ -203,13 +270,15 @@ const requestOpenAiIntent = async (params: {
             content:
               "You route smart-mirror voice commands. Return JSON only with keys intent, entities, response. " +
               "Intent must be one of START_REGISTRATION, PROVIDE_NAME, CONFIRM_YES, CONFIRM_NO, GET_AGENDA, GET_WEATHER, GET_TIME, UNKNOWN. " +
-              "entities must contain name and date, each null or a string. Keep response short and mirror-style."
+              "entities must contain name and date, each null or a string. Keep response short and mirror-style. " +
+              `Respond in ${params.language === "zh" ? "Mandarin" : "English"}.`
           },
           {
             role: "user",
             content: JSON.stringify({
               transcript: params.transcript,
-              phase: params.phase
+              phase: params.phase,
+              language: params.language
             })
           }
         ]
@@ -243,12 +312,22 @@ const requestOpenAiIntent = async (params: {
 export const inferVoiceCommand = async (params: {
   transcript: string;
   phase: VoicePhase;
+  language?: string | null;
 }): Promise<VoiceCommandResult> => {
-  const openAiResult = await requestOpenAiIntent(params);
+  const language = normalizeLanguage(params.language);
+  const openAiResult = await requestOpenAiIntent({
+    transcript: params.transcript,
+    phase: params.phase,
+    language
+  });
 
   if (openAiResult) {
     return openAiResult;
   }
 
-  return ruleBasedInferVoiceCommand(params);
+  return ruleBasedInferVoiceCommand({
+    transcript: params.transcript,
+    phase: params.phase,
+    language
+  });
 };

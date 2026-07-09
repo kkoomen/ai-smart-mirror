@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { BrowserFaceRecognitionService } from "../services/face-recognition";
 import type { AgendaResponse } from "../types/agenda";
 import type { MirrorController } from "../types/mirror-controller";
+import type { LocalizedMessage } from "../types/i18n";
 import type { UserMutationResponse } from "../types/api";
 import type { User } from "../types/user";
 import type { VoicePhase } from "../types/voice";
@@ -14,6 +16,7 @@ import { useMirrorVoice } from "../controllers/mirror/use-mirror-voice";
 import { dashboardPresenceTimeoutMs } from "../constants";
 
 export const useMirrorController = (navigate: (path: string) => void): MirrorController => {
+  const { t } = useTranslation();
   const browserFaceService = useMemo(() => new BrowserFaceRecognitionService(), []);
   const scanVideoRef = useRef<HTMLVideoElement | null>(null);
   const idleVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -22,7 +25,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
   const dashboardPresenceTimerRef = useRef<number | null>(null);
 
   const [phase, setPhase] = useState<VoicePhase>("idle");
-  const [statusText, setStatusText] = useState("Loading Mirror AI...");
+  const [statusMessage, setStatusMessage] = useState<LocalizedMessage>({ key: "status.loading" });
   const [progress, setProgress] = useState(0);
   const [capturedName, setCapturedName] = useState("");
   const [capturedFaceLabel, setCapturedFaceLabel] = useState<string | null>(null);
@@ -42,6 +45,11 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
       battery: "92%"
     }),
     [phase]
+  );
+
+  const statusText = useMemo(
+    () => t(statusMessage.key, statusMessage.values),
+    [statusMessage, t]
   );
 
   useEffect(() => {
@@ -132,7 +140,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     registrationCompletingRef.current = false;
     navigate("/register");
     setPhase("name");
-    setStatusText("Say your name");
+    setStatusMessage({ key: "status.sayYourName" });
   };
 
   const createUserAndConfirm = async (name: string, faceDescriptorOverride?: string | null) => {
@@ -183,23 +191,35 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     await loadDashboardData(confirmed.user.id, confirmed.user.location);
     navigate("/");
     setPhase("hello");
-    setStatusText(`Hello ${confirmed.user.name}`);
+    setStatusMessage({ key: "status.hello", values: { name: confirmed.user.name } });
   };
 
   const getUmbrellaAnswer = async (location: string) => {
     const payload = weather ?? (await loadWeatherForLocation(location));
     const rainChance = payload.current.rainChancePct;
-    const rainChanceLabel = rainChance === null ? "unknown" : `${rainChance}%`;
+    const rainChanceLabel = rainChance === null ? t("weather.unknown") : `${rainChance}%`;
     const shouldCarryUmbrella =
       typeof rainChance === "number"
         ? rainChance >= 50
         : /rain|shower|storm/i.test(payload.current.condition);
 
     if (shouldCarryUmbrella) {
-      return `Yes. Rain chance is ${rainChanceLabel} in ${payload.location}. Bring an umbrella.`;
+      return {
+        key: "status.umbrellaYes",
+        values: {
+          chance: rainChanceLabel,
+          location: payload.location
+        }
+      };
     }
 
-    return `Probably not. Rain chance is ${rainChanceLabel} in ${payload.location}.`;
+    return {
+      key: "status.umbrellaNo",
+      values: {
+        chance: rainChanceLabel,
+        location: payload.location
+      }
+    };
   };
 
   const sleepMirror = () => {
@@ -210,7 +230,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     setRegisteredUser(null);
     setWeather(null);
     setAgenda([]);
-    setStatusText("Say 'hey mirror' to wake");
+    setStatusMessage({ key: "status.sayHeyMirrorToWake" });
     navigate("/");
   };
 
@@ -220,12 +240,12 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
 
     if (knownUsers.length === 0) {
       setPhase("unknown");
-      setStatusText("Unknown user detected");
+      setStatusMessage({ key: "status.unknownUserDetected" });
       return;
     }
 
     setPhase("waking");
-    setStatusText("Checking face");
+    setStatusMessage({ key: "status.checkingFace" });
   };
 
   useMirrorBootstrap({
@@ -236,7 +256,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     setCapturedFaceLabel,
     setCapturedFaceDescriptor,
     setPhase,
-    setStatusText
+    setStatusText: setStatusMessage
   });
 
   useMirrorFaceDetection({
@@ -254,7 +274,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     setProgress,
     setRegisteredUser,
     setScanFaceVisible,
-    setStatusText,
+    setStatusText: setStatusMessage,
     wakeStartedAtRef
   });
 
@@ -271,7 +291,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     browserFaceService,
     navigate,
     setPhase,
-    setStatusText,
+    setStatusText: setStatusMessage,
     setMirrorFadingOut: setIsMirrorFadingOut,
     setCapturedName,
     setCapturedFaceLabel,

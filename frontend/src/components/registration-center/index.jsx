@@ -1,6 +1,8 @@
 import RegistrationFlow from "../registration-flow";
+import { useTranslation } from "react-i18next";
 
 export default function RegistrationCenter({ controller }) {
+  const { t } = useTranslation();
   const { phase, capturedName, progress, statusText, scanVideoRef, scanFaceVisible } = controller;
 
   if (phase === "name") {
@@ -28,7 +30,7 @@ export default function RegistrationCenter({ controller }) {
         progress={progress}
         helperText={statusText}
         videoRef={scanVideoRef}
-        scanStatus={scanFaceVisible ? "Face detected" : "Waiting for face"}
+        scanStatus={scanFaceVisible ? t("register.scan.faceDetected") : t("register.scan.waitingFace")}
       />
     );
   }
