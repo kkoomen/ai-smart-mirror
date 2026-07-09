@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import { normalizeLanguage, type AppLanguage } from "../i18n/languages";
@@ -12,6 +12,8 @@ import type { VoicePhase } from "../types/voice";
 import type { WeatherData, WeatherEnvelope } from "../types/weather";
 import { requestJson } from "../utils/request-json";
 import { toSubject } from "../utils/face-recognition";
+import { cancelSpeech, preloadSpeech, speakText as speakBrowserText } from "../utils/speech";
+import { getSpeechPrompt } from "../utils/speech-prompts";
 import { useMirrorBootstrap } from "../controllers/mirror/use-mirror-bootstrap";
 import { useMirrorFaceDetection } from "../controllers/mirror/use-mirror-face-detection";
 import { useMirrorVoice } from "../controllers/mirror/use-mirror-voice";
@@ -53,6 +55,10 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     () => t(statusMessage.key, statusMessage.values),
     [statusMessage, t]
   );
+
+  useEffect(() => {
+    preloadSpeech();
+  }, []);
 
   useEffect(() => {
     if (phase !== "hello") {
@@ -110,6 +116,13 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     }
   };
 
+  const speakText = useCallback(
+    (text: string, language?: AppLanguage) => {
+      speakBrowserText(text, language ?? normalizeLanguage(i18n.resolvedLanguage ?? i18n.language));
+    },
+    [i18n.language, i18n.resolvedLanguage]
+  );
+
   const loadWeatherForLocation = async (location: string) => {
     const response = await requestJson<WeatherEnvelope>(
       `/api/weather?location=${encodeURIComponent(location || "Amsterdam")}`
@@ -143,6 +156,9 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     navigate("/register");
     setPhase("name");
     setStatusMessage({ key: "status.sayYourName" });
+    speakText(
+      getSpeechPrompt("startRegistration", normalizeLanguage(i18n.resolvedLanguage ?? i18n.language))
+    );
   };
 
   const createUserAndConfirm = async (name: string, faceDescriptorOverride?: string | null) => {
@@ -196,6 +212,12 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     navigate("/");
     setPhase("hello");
     setStatusMessage({ key: "status.hello", values: { name: confirmed.user.name } });
+    speakText(
+      getSpeechPrompt("hello", normalizeLanguage(confirmed.user.preferredLanguage), {
+        name: confirmed.user.name
+      }),
+      normalizeLanguage(confirmed.user.preferredLanguage)
+    );
   };
 
   const persistUserLanguage = async (language: AppLanguage) => {
@@ -218,6 +240,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
 
   const sleepMirror = () => {
     clearDashboardPresenceTimer();
+    cancelSpeech();
     wakeStartedAtRef.current = null;
     setIsMirrorFadingOut(false);
     setPhase("idle");
@@ -250,7 +273,8 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     setCapturedFaceLabel,
     setCapturedFaceDescriptor,
     setPhase,
-    setStatusText: setStatusMessage
+    setStatusText: setStatusMessage,
+    speakText
   });
 
   useMirrorFaceDetection({
@@ -269,7 +293,8 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     setRegisteredUser,
     setScanFaceVisible,
     setStatusText: setStatusMessage,
-    wakeStartedAtRef
+    wakeStartedAtRef,
+    speakText
   });
 
   const handleVoiceCommand = useMirrorVoice({
@@ -293,7 +318,8 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     registrationCompletingRef,
     capturedName,
     hasRegisteredUsers: knownUsers.length > 0,
-    persistUserLanguage
+    persistUserLanguage,
+    speakText
   });
 
   return {

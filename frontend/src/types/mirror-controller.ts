@@ -5,6 +5,7 @@ import type { VoicePhase } from "./voice";
 import type { BrowserFaceRecognitionService } from "../services/face-recognition";
 import type { LocalizedMessage } from "./i18n";
 import type { AppLanguage } from "../i18n/languages";
+import type { WeatherData } from "./weather";
 
 export type MirrorController = {
   phase: VoicePhase;
@@ -42,6 +43,7 @@ export type MirrorBootstrapOptions = {
   setCapturedFaceDescriptor: (value: string | null) => void;
   setPhase: (phase: VoicePhase) => void;
   setStatusText: (message: LocalizedMessage) => void;
+  speakText: (text: string, language?: AppLanguage) => void;
 };
 
 export type MirrorFaceDetectionOptions = {
@@ -52,6 +54,7 @@ export type MirrorFaceDetectionOptions = {
   setRegisteredUser: (user: User | null) => void;
   setPhase: (phase: VoicePhase) => void;
   setStatusText: (message: LocalizedMessage) => void;
+  speakText: (text: string, language?: AppLanguage) => void;
   loadDashboardData: (userId: number, location: string) => Promise<void>;
   createUserAndConfirm: (name: string, faceDescriptorOverride?: string | null) => Promise<void>;
   capturedName: string;
@@ -85,4 +88,5 @@ export type MirrorVoiceOptions = {
   capturedName: string;
   hasRegisteredUsers: boolean;
   persistUserLanguage: (language: AppLanguage) => Promise<void>;
+  speakText: (text: string, language?: AppLanguage) => void;
 };

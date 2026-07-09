@@ -124,7 +124,7 @@
   },
   "changeLanguage": {
     "title": "切换语言",
-    "subtitle": "说出你想使用的语言。",
+    "subtitle": "说出你想使用的语言",
     "prompt": "说：普通话或英语",
     "options": {
       "english": "英语",

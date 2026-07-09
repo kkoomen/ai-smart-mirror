@@ -5,6 +5,7 @@ import type { MirrorStateResponse } from "../../types/mirror";
 import type { MirrorBootstrapOptions } from "../../types/mirror-controller";
 import type { UsersResponse } from "../../types/api";
 import { requestJson } from "../../utils/request-json";
+import { getSpeechPrompt } from "../../utils/speech-prompts";
 
 export const useMirrorBootstrap = ({
   browserFaceService,
@@ -14,7 +15,8 @@ export const useMirrorBootstrap = ({
   setCapturedFaceLabel,
   setCapturedFaceDescriptor,
   setPhase,
-  setStatusText
+  setStatusText,
+  speakText
 }: MirrorBootstrapOptions) => {
   useEffect(() => {
     const bootstrap = async () => {
@@ -44,6 +46,14 @@ export const useMirrorBootstrap = ({
           setCapturedFaceDescriptor(mirrorState.activeUser.faceDescriptor);
           setPhase("nameConfirm");
           setStatusText({ key: "register.flow.yesNoTryAgain" });
+          speakText(
+            getSpeechPrompt(
+              "confirmName",
+              normalizeLanguage(mirrorState.activeUser.preferredLanguage),
+              { name: mirrorState.activeUser.name }
+            ),
+            normalizeLanguage(mirrorState.activeUser.preferredLanguage)
+          );
           return;
         }
 

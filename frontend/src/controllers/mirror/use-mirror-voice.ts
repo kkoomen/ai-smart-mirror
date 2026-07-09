@@ -3,6 +3,7 @@ import type { VoiceCommandResponse } from "../../types/voice";
 import i18n from "../../i18n";
 import { normalizeLanguage } from "../../i18n/languages";
 import { requestJson } from "../../utils/request-json";
+import { getSpeechPrompt } from "../../utils/speech-prompts";
 import type { VoiceCommandRequest } from "../../types/api";
 
 export const useMirrorVoice = ({
@@ -26,7 +27,8 @@ export const useMirrorVoice = ({
   registrationCompletingRef,
   capturedName,
   hasRegisteredUsers,
-  persistUserLanguage
+  persistUserLanguage,
+  speakText
 }: MirrorVoiceOptions) => {
   const currentLanguage = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
 
@@ -50,6 +52,7 @@ export const useMirrorVoice = ({
       }
 
       clearDashboardPresenceTimer();
+      void speakText(getSpeechPrompt("goodbye", currentLanguage), currentLanguage);
       setMirrorFadingOut(true);
       return;
     }
@@ -74,6 +77,7 @@ export const useMirrorVoice = ({
       navigate("/change-lang");
       setPhase("changeLanguage");
       setStatusText({ key: "status.changeLanguagePrompt" });
+      void speakText(getSpeechPrompt("changeLanguagePrompt", currentLanguage), currentLanguage);
       return;
     }
 
@@ -94,6 +98,7 @@ export const useMirrorVoice = ({
       await persistUserLanguage(targetLanguage);
       setPhase("dashboard");
       setStatusText({ key: "status.languageChanged" });
+      void speakText(getSpeechPrompt("languageChanged", targetLanguage), targetLanguage);
       navigate("/");
       return;
     }
@@ -105,6 +110,7 @@ export const useMirrorVoice = ({
     if (phase === "name") {
       if (command.intent !== "PROVIDE_NAME" || !command.name) {
         setStatusText({ key: "status.sayYourName" });
+        void speakText(getSpeechPrompt("sayYourName", currentLanguage), currentLanguage);
         return;
       }
 
@@ -112,6 +118,7 @@ export const useMirrorVoice = ({
       setCapturedFaceLabel(browserFaceService.generateFaceLabel(command.name));
       setPhase("nameConfirm");
       setStatusText({ key: "status.sayYesOrNo" });
+      void speakText(getSpeechPrompt("confirmName", currentLanguage, { name: command.name }), currentLanguage);
       return;
     }
 
@@ -122,11 +129,13 @@ export const useMirrorVoice = ({
         setCapturedFaceDescriptor(null);
         setPhase("name");
         setStatusText({ key: "status.sayYourName" });
+        void speakText(getSpeechPrompt("sayYourName", currentLanguage), currentLanguage);
         return;
       }
 
       if (command.intent !== "CONFIRM_YES") {
         setStatusText({ key: "status.sayYesOrNo" });
+        void speakText(getSpeechPrompt("sayYesOrNo", currentLanguage), currentLanguage);
         return;
       }
 
@@ -136,11 +145,13 @@ export const useMirrorVoice = ({
       registrationCompletingRef.current = false;
       setPhase("scan");
       setStatusText({ key: "status.lookAtMirror" });
+      void speakText(getSpeechPrompt("scanningFace", currentLanguage), currentLanguage);
       return;
     }
 
     if (phase === "scan") {
       setStatusText({ key: "status.lookAtMirror" });
+      void speakText(getSpeechPrompt("lookAtMirror", currentLanguage), currentLanguage);
       return;
     }
 
@@ -152,6 +163,7 @@ export const useMirrorVoice = ({
 
       if (command.intent !== "CONFIRM_YES") {
         setStatusText({ key: "status.sayYesOrNo" });
+        void speakText(getSpeechPrompt("sayYesOrNo", currentLanguage), currentLanguage);
         return;
       }
 

@@ -4,6 +4,7 @@ import { normalizeLanguage } from "../../i18n/languages";
 import type { MirrorFaceDetectionOptions } from "../../types/mirror-controller";
 import { dashboardPresenceTimeoutMs } from "../../constants";
 import { toSubject } from "../../utils/face-recognition";
+import { getSpeechPrompt } from "../../utils/speech-prompts";
 
 export const useMirrorFaceDetection = ({
   setProgress,
@@ -21,7 +22,8 @@ export const useMirrorFaceDetection = ({
   idleVideoRef,
   wakeStartedAtRef,
   registrationCompletingRef,
-  browserFaceService
+  browserFaceService,
+  speakText
 }: MirrorFaceDetectionOptions) => {
   useEffect(() => {
     let cancelled = false;
@@ -118,6 +120,12 @@ export const useMirrorFaceDetection = ({
           await loadDashboardData(matchedUser.id, matchedUser.location);
           setPhase("hello");
           setStatusText({ key: "status.hello", values: { name: matchedUser.name } });
+          speakText(
+            getSpeechPrompt("hello", normalizeLanguage(matchedUser.preferredLanguage), {
+              name: matchedUser.name
+            }),
+            normalizeLanguage(matchedUser.preferredLanguage)
+          );
           return;
         }
 
@@ -165,6 +173,7 @@ export const useMirrorFaceDetection = ({
     setRegisteredUser,
     setScanFaceVisible,
     setStatusText,
-    wakeStartedAtRef
+    wakeStartedAtRef,
+    speakText
   ]);
 };
