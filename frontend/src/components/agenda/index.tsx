@@ -1,6 +1,15 @@
 import { useTranslation } from "react-i18next";
 
-export default function Agenda({ events }) {
+type AgendaEvent = {
+  time: string;
+  title: string;
+};
+
+type AgendaProps = {
+  events: AgendaEvent[];
+};
+
+export default function Agenda({ events }: AgendaProps) {
   const { t } = useTranslation();
 
   return (

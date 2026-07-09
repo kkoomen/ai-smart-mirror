@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { normalizeLanguage } from "../../i18n/languages";
 
-const formatTime = (date, locale) =>
+const formatTime = (date: Date, locale: string) =>
   new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
     minute: "2-digit"
   }).format(date);
 
-const formatDate = (date, locale) =>
+const formatDate = (date: Date, locale: string) =>
   new Intl.DateTimeFormat(locale, {
     weekday: "short",
     day: "2-digit",

@@ -1,6 +1,13 @@
+import type { RefObject } from "react";
 import { useTranslation } from "react-i18next";
 
-export default function CameraPreview({ videoRef, progress, statusText }) {
+type CameraPreviewProps = {
+  videoRef?: RefObject<HTMLVideoElement | null>;
+  progress: number;
+  statusText?: string;
+};
+
+export default function CameraPreview({ videoRef, progress, statusText }: CameraPreviewProps) {
   const { t } = useTranslation();
   return (
     <section className="relative w-full max-w-2xl overflow-hidden border border-white/15 bg-black/85 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">

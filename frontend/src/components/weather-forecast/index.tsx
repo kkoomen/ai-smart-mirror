@@ -1,6 +1,18 @@
 import { useTranslation } from "react-i18next";
 
-export default function WeatherForecast({ location, summary, temperature, rainChance }) {
+type WeatherForecastProps = {
+  location: string;
+  summary: string;
+  temperature: string;
+  rainChance: string | null;
+};
+
+export default function WeatherForecast({
+  location,
+  summary,
+  temperature,
+  rainChance
+}: WeatherForecastProps) {
   const { t } = useTranslation();
 
   return (

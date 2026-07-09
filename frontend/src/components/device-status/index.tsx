@@ -1,6 +1,13 @@
 import { useTranslation } from "react-i18next";
 
-export default function DeviceStatus({ camera, microphone, network, battery }) {
+type DeviceStatusProps = {
+  camera: "scanning" | "polling";
+  microphone: "listening";
+  network: "connected";
+  battery: string;
+};
+
+export default function DeviceStatus({ camera, microphone, network, battery }: DeviceStatusProps) {
   const { t } = useTranslation();
 
   return (
