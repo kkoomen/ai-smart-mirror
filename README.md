@@ -91,8 +91,15 @@ Notes:
 
 Current test files in the repo:
 
+- `backend/src/lib/dashboard-summary.test.ts` - dashboard summary generation and AI output cleanup
 - `backend/src/lib/intent.test.ts` - intent parsing and voice intent behavior
+- `backend/src/routes/mirror.test.ts` - mirror route wiring and request handling
+- `backend/src/routes/users.test.ts` - user route validation and language updates
+- `backend/src/routes/voice.test.ts` - voice route validation and response mapping
+- `backend/src/routes/weather.test.ts` - weather route validation and defaults
 - `backend/src/weather/normalize-weather.test.ts` - weather normalization logic
+- `backend/src/weather/weather-cache.test.ts` - weather cache hit, miss, expiry, and persistence
+- `frontend/src/controllers/use-mirror-voice.test.ts` - mirror voice command decision flow
 - `frontend/src/state/mirror-reducer.test.ts` - mirror reducer state transitions
 
 Run all tests with:

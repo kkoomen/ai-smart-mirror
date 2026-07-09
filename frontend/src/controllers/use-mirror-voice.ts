@@ -1,12 +1,50 @@
 import { classifyVoiceCommand } from "../api/voice";
 import i18n from "../i18n";
-import { normalizeLanguage } from "../i18n/languages";
+import { normalizeLanguage, type AppLanguage } from "../i18n/languages";
 import type { VoiceCommandRequest } from "../types/api";
 import type { MirrorVoiceOptions } from "../types/mirror-controller";
 import type { VoiceCommandResponse } from "../types/voice";
 import { getSpeechPrompt } from "../utils/speech-prompts";
 
-export const useMirrorVoice = ({
+type CreateMirrorVoiceHandlerOptions = MirrorVoiceOptions & {
+  currentLanguage: AppLanguage;
+  classifyCommand?: (payload: VoiceCommandRequest) => Promise<VoiceCommandResponse>;
+};
+
+export const resolveTargetLanguage = (
+  spokenText: string,
+  intent: VoiceCommandResponse["intent"]
+) => {
+  if (intent === "SET_LANGUAGE_EN") {
+    return "en";
+  }
+
+  if (intent === "SET_LANGUAGE_ZH") {
+    return "zh";
+  }
+
+  const normalized = spokenText.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+
+  if (normalized.includes("english") || normalized.includes("eng") || normalized.includes("英语")) {
+    return "en";
+  }
+
+  if (
+    normalized.includes("mandarin") ||
+    normalized.includes("chinese") ||
+    normalized.includes("普通话") ||
+    normalized.includes("中文")
+  ) {
+    return "zh";
+  }
+
+  return null;
+};
+
+export const createMirrorVoiceHandler = ({
   phase,
   registeredUser,
   mirrorActions,
@@ -17,48 +55,14 @@ export const useMirrorVoice = ({
   createUserAndConfirm,
   capturedName,
   hasRegisteredUsers,
-  speakText
-}: MirrorVoiceOptions) => {
-  const currentLanguage = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
-
-  const resolveTargetLanguage = (spokenText: string, intent: VoiceCommandResponse["intent"]) => {
-    if (intent === "SET_LANGUAGE_EN") {
-      return "en";
-    }
-
-    if (intent === "SET_LANGUAGE_ZH") {
-      return "zh";
-    }
-
-    const normalized = spokenText.trim().toLowerCase();
-    if (!normalized) {
-      return null;
-    }
-
-    if (
-      normalized.includes("english") ||
-      normalized.includes("eng") ||
-      normalized.includes("英语")
-    ) {
-      return "en";
-    }
-
-    if (
-      normalized.includes("mandarin") ||
-      normalized.includes("chinese") ||
-      normalized.includes("普通话") ||
-      normalized.includes("中文")
-    ) {
-      return "zh";
-    }
-
-    return null;
-  };
-
+  speakText,
+  currentLanguage,
+  classifyCommand = classifyVoiceCommand
+}: CreateMirrorVoiceHandlerOptions) => {
   return async (spokenText: string) => {
     console.info("[Mirror voice] handling command:", spokenText.toLowerCase());
 
-    const command = await classifyVoiceCommand({
+    const command = await classifyCommand({
       transcript: spokenText,
       phase,
       userId: registeredUser?.id ?? null,
@@ -187,4 +191,13 @@ export const useMirrorVoice = ({
       mirrorActions.setStatus({ key: "status.voiceStartRegistration" });
     }
   };
+};
+
+export const useMirrorVoice = (options: MirrorVoiceOptions) => {
+  const currentLanguage = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
+
+  return createMirrorVoiceHandler({
+    ...options,
+    currentLanguage
+  });
 };

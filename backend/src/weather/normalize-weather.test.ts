@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   describeRainChance,
   normalizeLocationKey,
-  normalizeOpenWeatherPayload
+  normalizeOpenWeatherPayload,
+  parseCachedWeather
 } from "./normalize-weather.js";
 
 describe("weather normalization", () => {
@@ -54,5 +55,61 @@ describe("weather normalization", () => {
       condition: "light rain",
       rainChancePct: 60
     });
+  });
+
+  it("falls back to a synthetic forecast item when forecast list is empty", () => {
+    const payload = normalizeOpenWeatherPayload({
+      location: "Amsterdam",
+      currentData: {
+        name: "amsterdam",
+        main: {
+          temp: 18.4,
+          feels_like: 19.1,
+          humidity: 58
+        },
+        weather: [{ description: "clear sky" }],
+        wind: { speed: 3 }
+      },
+      forecastData: {
+        list: []
+      }
+    });
+
+    expect(payload.forecast).toEqual([
+      {
+        label: "Now",
+        temperatureC: 18,
+        condition: "Clear Sky",
+        rainChancePct: null
+      }
+    ]);
+    expect(payload.note).toBe("No rain chance available");
+  });
+
+  it("parses valid cached weather payloads", () => {
+    const cached = parseCachedWeather(
+      JSON.stringify({
+        location: "Amsterdam",
+        updatedAt: "2026-07-10T00:00:00.000Z",
+        current: {
+          temperatureC: 21,
+          condition: "Sunny",
+          feelsLikeC: 21,
+          humidity: 55,
+          windKph: 8,
+          rainChancePct: 10
+        },
+        forecast: [],
+        note: "Rain chance 10%"
+      })
+    );
+
+    expect(cached).not.toBeNull();
+    expect(cached?.location).toBe("Amsterdam");
+    expect(cached?.current.condition).toBe("Sunny");
+  });
+
+  it("returns null for invalid cached payload JSON", () => {
+    expect(parseCachedWeather("{not-json")).toBeNull();
   });
 });

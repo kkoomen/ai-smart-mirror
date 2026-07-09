@@ -73,9 +73,12 @@ const averageTemperature = (value: DashboardSummaryWeather) => {
 
 const cleanSummary = (value: string) =>
   value
-    .replace(/```[\s\S]*?```/g, "")
-    .replace(/^["'“”]+|["'“”]+$/g, "")
+    .replace(/```[\w-]*\n?/g, "")
+    .replace(/```/g, "")
     .replace(/\s+/g, " ")
+    .replace(/^["'“”]+|["'“”]+$/g, "")
+    .trim()
+    .replace(/^["'“”]+|["'“”]+$/g, "")
     .trim();
 
 const requestAiSummary = async (params: {

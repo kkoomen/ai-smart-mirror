@@ -90,4 +90,75 @@ describe("mirrorReducer", () => {
     expect(state.registeredUser).toEqual(user);
     expect(state.knownUsers).toEqual([user]);
   });
+
+  it("resets registration capture state when registration starts", () => {
+    const state = mirrorReducer(
+      {
+        ...initialMirrorState,
+        capturedName: "John",
+        capturedFaceLabel: "face_john_123",
+        capturedFaceDescriptor: "[0.1,0.2]",
+        progress: 77,
+        scanFaceVisible: true
+      },
+      {
+        type: "REGISTRATION_STARTED"
+      }
+    );
+
+    expect(state.phase).toBe("name");
+    expect(state.capturedName).toBe("");
+    expect(state.capturedFaceLabel).toBeNull();
+    expect(state.capturedFaceDescriptor).toBeNull();
+    expect(state.progress).toBe(0);
+    expect(state.scanFaceVisible).toBe(false);
+  });
+
+  it("moves into name confirmation when name is captured", () => {
+    const state = mirrorReducer(initialMirrorState, {
+      type: "REGISTRATION_NAME_CAPTURED",
+      name: "John",
+      faceLabel: "face_john_123"
+    });
+
+    expect(state.phase).toBe("nameConfirm");
+    expect(state.capturedName).toBe("John");
+    expect(state.capturedFaceLabel).toBe("face_john_123");
+    expect(state.statusMessage).toEqual({ key: "status.sayYesOrNo" });
+  });
+
+  it("only toggles fade state when presence is lost", () => {
+    const state = mirrorReducer(
+      {
+        ...initialMirrorState,
+        phase: "dashboard",
+        registeredUser: user,
+        isMirrorFadingOut: false
+      },
+      {
+        type: "PRESENCE_LOST"
+      }
+    );
+
+    expect(state.phase).toBe("dashboard");
+    expect(state.registeredUser).toEqual(user);
+    expect(state.isMirrorFadingOut).toBe(true);
+  });
+
+  it("completes language change by returning to dashboard and clearing fade", () => {
+    const state = mirrorReducer(
+      {
+        ...initialMirrorState,
+        phase: "changeLanguage",
+        isMirrorFadingOut: true
+      },
+      {
+        type: "LANGUAGE_CHANGE_COMPLETED"
+      }
+    );
+
+    expect(state.phase).toBe("dashboard");
+    expect(state.isMirrorFadingOut).toBe(false);
+    expect(state.statusMessage).toEqual({ key: "status.languageChanged" });
+  });
 });
