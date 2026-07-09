@@ -90,7 +90,7 @@ Notes:
 - After recognition, the mirror says `Hello <name>`, then shows weather, time, agenda, and device status.
 - The center summary is generated from weather and appointment count, spoken with TTS.
 - Say something like `I want to change language` from the dashboard to switch between English and Mandarin by voice.
-- Say `goodbye/bye mirror` to return to idle mode.
+- Say `goodbye/bye mirror` to return to idle mode. After 30 seconds, if the user is not detected in front of the camera anymore, idle mode will automatically toggle.
 
 ## Voice And Language
 

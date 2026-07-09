@@ -60,7 +60,7 @@
   },
   "status": {
     "loading": "正在加载镜子 AI...",
-    "sayYourName": "说出你的名字",
+    "sayYourName": "请说出你的名字",
     "completingRegistration": "正在完成注册",
     "sayHeyMirrorToWake": "说“嘿镜子”来唤醒",
     "unknownUserDetected": "未识别到用户",
