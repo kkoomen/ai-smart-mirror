@@ -4,7 +4,24 @@ A full-stack TypeScript smart mirror prototype. The frontend simulates a mirror-
 
 ![demo](./demo.jpg)
 
-## Stack
+# Table of Contents
+
+- [AI Smart Mirror](#ai-smart-mirror)
+- [Table of Contents](#table-of-contents)
+- [Stack](#stack)
+- [Structure](#structure)
+- [Setup](#setup)
+- [Environment](#environment)
+- [Scripts](#scripts)
+- [Tests](#tests)
+- [App Flow](#app-flow)
+- [Voice And Language](#voice-and-language)
+- [Face Recognition](#face-recognition)
+- [Weather](#weather)
+- [API Endpoints](#api-endpoints)
+- [Database](#database)
+
+# Stack
 
 - Frontend: React, Vite, Tailwind CSS, React Router, i18next, face-api.js
 - Backend: Fastify, TypeScript, Prisma, SQLite
@@ -13,14 +30,14 @@ A full-stack TypeScript smart mirror prototype. The frontend simulates a mirror-
 - AI: DeepSeek for intent routing and dashboard summary generation
 - Weather: OpenWeather when configured, otherwise mock weather
 
-## Structure
+# Structure
 
 - `frontend` - React mirror UI, voice control, face recognition, i18n, routes
 - `backend` - Fastify API, Prisma schema, route modules, AI/weather modules, mock data, weather cache
 - `backend/prisma` - SQLite Prisma schema
 - `frontend/public/models` - face-api.js model files
 
-## Setup
+# Setup
 
 1. Install dependencies from the root.
 2. Copy backend env defaults if needed: `cp backend/.env.example backend/.env`.
@@ -41,7 +58,7 @@ Default URLs:
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:3001`
 
-## Environment
+# Environment
 
 Backend `backend/.env`:
 
@@ -67,7 +84,7 @@ Notes:
 - Weather is cached in SQLite for 6 hours per location.
 - `DEEPSEEK_API_KEY` is used for intent classification and dashboard summaries.
 
-## Scripts
+# Scripts
 
 - `npm run dev` - run frontend and backend together
 - `npm run dev:frontend` - run the frontend only
@@ -87,7 +104,7 @@ Notes:
 - `npm run db:generate` - generate the Prisma client
 - `npm run db:studio` - open Prisma Studio
 
-## Tests
+# Tests
 
 Current test files in the repo:
 
@@ -108,13 +125,7 @@ Run all tests with:
 npm run test
 ```
 
-## Repository Hygiene
-
-- Local databases, env files, build output, `node_modules`, OS files, and local tool state are ignored.
-- `demo.jpg` is intentionally tracked as the README preview image.
-- `frontend/public/models` is intentionally tracked so face recognition works after install.
-
-## App Flow
+# App Flow
 
 - The mirror starts idle on a black screen while camera and microphone remain available.
 - Say `hello/hey/hi mirror` to wake it.
@@ -125,14 +136,14 @@ npm run test
 - Say something like `I want to change language` from the dashboard to switch between English and Mandarin by voice.
 - Say `goodbye/bye mirror` to return to idle mode. After 30 seconds, if the user is not detected in front of the camera anymore, idle mode will automatically toggle.
 
-## Voice And Language
+# Voice And Language
 
 Text-to-speech uses configured browser voices:
 
 - English: `Google US English (en-US)`
 - Mandarin: `Google 普通话（中国大陆）（zh-CN)`
 
-## Face Recognition
+# Face Recognition
 
 The frontend uses `face-api.js` in the browser.
 
@@ -144,7 +155,7 @@ The frontend uses `face-api.js` in the browser.
 - Detection is limited to faces inside the on-screen oval during face scanning.
 - After the dashboard is visible, the app periodically checks presence and fades out if the active user is no longer detected.
 
-## Weather
+# Weather
 
 - `GET /api/weather?location=Amsterdam` returns weather for a location.
 - If `OPENWEATHER_API_KEY` exists, the backend calls OpenWeather.
@@ -152,7 +163,7 @@ The frontend uses `face-api.js` in the browser.
 - Weather responses are cached in SQLite for 6 hours per normalized location.
 - Users default to location `Amsterdam`.
 
-## API Endpoints
+# API Endpoints
 
 Mirror:
 
@@ -190,7 +201,7 @@ Supported voice intents:
 - `GET_WEATHER`
 - `UNKNOWN`
 
-## Database
+# Database
 
 Primary models:
 
