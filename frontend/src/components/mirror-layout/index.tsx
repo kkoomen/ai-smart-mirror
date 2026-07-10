@@ -38,18 +38,18 @@ export default function MirrorLayout({
       <div className="relative flex min-h-screen w-full flex-col gap-6 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
         {showPanels ? (
           <>
-            <header className="grid gap-6 lg:grid-cols-2 lg:items-start">
-              <div className="lg:justify-self-start">{weather}</div>
-              <div className="lg:justify-self-end lg:text-right">{time}</div>
+            <header className="grid grid-cols-2 items-start gap-3 sm:gap-6">
+              <div className="justify-self-start">{weather}</div>
+              <div className="justify-self-end text-right">{time}</div>
             </header>
 
             <section className="flex flex-1 items-center justify-center">
               <div className="w-full px-2 py-6 sm:px-0">{center}</div>
             </section>
 
-            <footer className="grid gap-6 lg:grid-cols-2 lg:items-end">
-              <div className="lg:justify-self-start">{agenda}</div>
-              <div className="lg:justify-self-end lg:text-right">{deviceStatus}</div>
+            <footer className="grid grid-cols-2 items-end gap-3 sm:gap-6">
+              <div className="justify-self-start">{agenda}</div>
+              <div className="justify-self-end text-right">{deviceStatus}</div>
             </footer>
           </>
         ) : (
