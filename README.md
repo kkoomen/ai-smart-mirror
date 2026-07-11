@@ -1,8 +1,38 @@
 # AI Smart Mirror
 
-A full-stack TypeScript smart mirror prototype. The frontend simulates a mirror-glass UI with a black screen, white text, webcam face recognition, browser speech recognition, browser text-to-speech, and multilingual English/Mandarin support. The backend stores users, face descriptors, agenda data, voice command logs, mirror state, and cached weather in SQLite.
+A full-stack TypeScript smart mirror prototype. The frontend simulates a mirror-glass UI with a black screen, white text, webcam face recognition, browser speech recognition, browser text-to-speech, and multilingual English/Mandarin support. The backend stores users, face descriptors, agenda data, voice command logs, mirror state, and cached weather in SQLite. 
 
 ![demo](./demo.jpg)
+
+This project was made as part of the interview process I did for [Banrai](https://banrai.ai). Below is additional info as requested in the assignment:
+- **Implementation Method:** A (hardware simulation)
+- **Target users:** Anyone who values a simpler and more efficient morning routine.
+- **Usage scenarios:** Mostly during morning routines, but could be anytime when
+  standing in front of the mirror.
+- **Motivation:** Everyone has their morning routine, but many people share a big part of that:
+  Check the weather to decide which outfit to wear, check the time to make sure you don't run behind schedule, check if your (public) transport has delay/malfunctions, check today's appointments. A smart mirror can save time by providing all this information while doing your morning routine.
+- **Core value:** You might think what the value is since people already have a
+  phone who can do the same thing through Text-to-Speech. However, the value
+  lies in the fact that people value offline time, especially in the morning.
+  Moreover, phones are distracting due to the many notifications users get,
+  resulting in forgetting why they grabbed their phone in the first place.
+- **User flow:** When saying `Hello mirror` it will detect the person's face standing in front of the mirror. If they don't have a profile in the database, they will be presented with a registration flow where they provide their name and scan their face. If their face is recognized, they are presented with the homepage with all their (personal) information.
+- **Key challenges:** During the implementation I thought asked myself the following questions:
+  * **User flow:** What feels right? What minimum info do I need from users?
+  * **Interface design:** What feels intuitive when doing your morning routime? What are necessary components to have?
+  * **Speech Recognition:** Tested various ones (Native vs WASM/Transformer-based), but only the web based has low latency, hence this project is using the browser's native Web Speech API.
+- **Crucial trade-offs:**
+  * Web protoype instead of real hardware to focus on interaction and for simplicity.
+  * Browser Speech API instead of existing libraries for a cost-free and fast implementation, since low latency is crucial for users.
+  * Face recognition instead of speech recognition, since the user is already standing in front of the mirror. Requiring the user to speak is asking for an additional and unnecessary action.
+  * SQLite instead of any other DB, since it requires zero config and suits minimal projects.
+  * TypeScript instead of JavaScript to naturally reduce runtime errors, and this also helps the AI during vibe coding.
+  * Fastify instead of Express as a faster alternative with better performance.
+  * Cache the weather data for 6 hours instead of live fetching since the data doesn't change that frequently throughout the day.
+  * Multilingual instead of English-only to remove language barriers, since English is not universal.
+- **Role of AI tools:** Currently, only DeepSeek-Chat is utilized for (1) personalized summarization on the homepage and (2) speech intent detection as a replacement for manual pattern matching, allowing users to reply with natural language instead of fixed phrases.
+- **Development time:** I spent a total of 16 hours on this project from start to finish, including unit tests.
+- **AI usage:** Everything is vibe coded using [Codex](https://openai.com/codex/). At the start of the project, GPT-5.4-mini was used. At the end of the project when the project size scaled, GPT-5.4 was used, all medium reasoning.
 
 # Table of Contents
 
@@ -39,19 +69,11 @@ A full-stack TypeScript smart mirror prototype. The frontend simulates a mirror-
 
 # Setup
 
-1. Install dependencies from the root.
+1. Install dependencies from the root: `npm install`
 2. Copy backend env defaults if needed: `cp backend/.env.example backend/.env`.
 3. Copy frontend env defaults if needed: `cp frontend/.env.example frontend/.env`.
-4. Download face-api.js models.
-5. Push the Prisma schema.
-6. Start both apps.
-
-```bash
-npm install
-npm run models:download
-npm run db:push
-npm run dev
-```
+4. Push the Prisma schema: `np run db:push`
+5. Start both apps: `npm run dev`
 
 Default URLs:
 
