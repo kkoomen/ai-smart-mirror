@@ -17,6 +17,8 @@ export type UserDto = {
   faceLabel: string;
   faceDescriptor: string | null;
   location: string;
+  fromStation: string;
+  toStation: string;
   preferredLanguage: string;
   createdAt: string;
 };
@@ -74,6 +76,19 @@ export type UserAgendaTodayResponseDto = {
 
 export type WeatherEnvelopeDto = {
   weather: WeatherDto;
+};
+
+export type PublicTransportTripDto = {
+  departureTime: string;
+  arrivalTime: string;
+  durationInMinutes: number;
+  vehicles: Array<{ type: string; transferMinutes: number | null }>;
+};
+
+export type PublicTransportResponseDto = {
+  fromStation: string;
+  toStation: string;
+  trips: PublicTransportTripDto[];
 };
 
 export type VoiceIntentDto =

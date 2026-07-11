@@ -1,13 +1,13 @@
 import { useTranslation } from "react-i18next";
-import Agenda from "../../components/agenda";
+// import Agenda from "../../components/agenda";
 import DeviceStatus from "../../components/device-status";
 import FadeTransition from "../../components/fade-transition";
 import LocalTime from "../../components/local-time";
 import MirrorCenter from "../../components/mirror-center";
 import MirrorLayout from "../../components/mirror-layout";
+import PublicTransport from "../../components/public-transport";
 import VoiceControl from "../../components/voice-control";
 import WeatherForecast from "../../components/weather-forecast";
-import { normalizeLanguage } from "../../i18n/languages";
 import type { MirrorController } from "../../types/mirror-controller";
 
 type HomePageProps = {
@@ -15,11 +15,12 @@ type HomePageProps = {
 };
 
 export default function HomePage({ controller }: HomePageProps) {
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
   const {
     phase,
+    registeredUser,
     weather,
-    agenda,
+    // agenda,
     deviceStatus,
     isMirrorFadingOut,
     handleVoiceCommand,
@@ -27,8 +28,6 @@ export default function HomePage({ controller }: HomePageProps) {
     sleepMirror,
     idleVideoRef
   } = controller;
-  const locale = normalizeLanguage(i18n.language) === "zh" ? "zh-CN" : "en-GB";
-
   return (
     <>
       <video
@@ -63,17 +62,7 @@ export default function HomePage({ controller }: HomePageProps) {
               ) : null
             }
             time={<LocalTime />}
-            agenda={
-              <Agenda
-                events={agenda.map((event) => ({
-                  time: new Intl.DateTimeFormat(locale, {
-                    hour: "2-digit",
-                    minute: "2-digit"
-                  }).format(new Date(event.startTime)),
-                  title: event.title
-                }))}
-              />
-            }
+            agenda={<PublicTransport userId={registeredUser?.id ?? null} />}
             deviceStatus={<DeviceStatus {...deviceStatus} />}
             center={<MirrorCenter controller={controller} />}
           />

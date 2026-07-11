@@ -8,6 +8,8 @@ const user: User = {
   faceLabel: "face_john_123",
   faceDescriptor: "[0.1,0.2]",
   location: "Amsterdam",
+  fromStation: "Hoogkarspel",
+  toStation: "Alkmaar",
   preferredLanguage: "en",
   createdAt: "2026-07-09T00:00:00.000Z"
 };

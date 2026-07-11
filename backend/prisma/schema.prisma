@@ -13,6 +13,8 @@ model User {
   faceLabel         String            @unique
   faceDescriptor    String?
   location          String            @default("Amsterdam")
+  fromStation       String            @default("Hoogkarspel")
+  toStation         String            @default("Alkmaar")
   preferredLanguage String            @default("en")
   createdAt         DateTime          @default(now())
   events            CalendarEvent[]
