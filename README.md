@@ -16,7 +16,7 @@ This project was made as part of the interview process I did for [Banrai](https:
   lies in the fact that people value offline time, especially in the morning.
   Moreover, phones are distracting due to the many notifications users get,
   resulting in forgetting why they grabbed their phone in the first place.
-- **User flow:** When saying `Hello mirror` it will detect the person's face standing in front of the mirror. If they don't have a profile in the database, they will be presented with a registration flow where they provide their name and scan their face. If their face is recognized, they are presented with the homepage with all their (personal) information.
+- **User flow:** When saying `Hello mirror` it will detect the person's face standing in front of the mirror. If they don't have a profile in the database, they will be presented with a registration flow where they provide their name and scan their face. If their face is recognized, they are presented with the homepage with all their (personal) information. See [App Flow](#app-flow) for more details.
 - **Key challenges:** During the implementation I thought asked myself the following questions:
   * **User flow:** What feels right? What minimum info do I need from users?
   * **Interface design:** What feels intuitive when doing your morning routime? What are necessary components to have?
