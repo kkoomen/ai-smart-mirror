@@ -155,8 +155,11 @@ export const createMirrorVoiceHandler = ({
     }
 
     if (phase === "dashboard") {
-      if (command.intent === "GET_AGENDA") {
-        mirrorActions.setStatus({ key: "status.todayAgenda" });
+      if (command.intent === "SHOW_WIDGET") {
+        if (command.widget) {
+          mirrorActions.showWidget(command.widget);
+        }
+
         return;
       }
 

@@ -21,6 +21,7 @@ export type VoiceCommandSuccess = {
   command: unknown;
   intent: string;
   name: string | null;
+  widget: string | null;
   entities: unknown;
   response: string;
 };
@@ -104,6 +105,7 @@ export const handleVoiceCommand = async (
     command: log,
     intent: result.intent,
     name: result.entities.name,
+    widget: result.entities.widget,
     entities: result.entities,
     response: result.response
   };

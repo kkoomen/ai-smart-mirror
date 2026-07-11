@@ -4,6 +4,8 @@ import type { MirrorPhase } from "../types/mirror-phase";
 import type { User } from "../types/user";
 import type { WeatherData } from "../types/weather";
 
+export type MirrorWidget = "agenda" | "transport";
+
 export type MirrorState = {
   phase: MirrorPhase;
   statusMessage: LocalizedMessage;
@@ -15,6 +17,7 @@ export type MirrorState = {
   knownUsers: User[];
   weather: WeatherData | null;
   agenda: AgendaResponse["events"];
+  visibleWidgets: MirrorWidget[];
   scanFaceVisible: boolean;
   isMirrorFadingOut: boolean;
   dashboardSummaryText: string;
@@ -48,6 +51,7 @@ export type MirrorAction =
     }
   | { type: "WEATHER_LOADED"; weather: WeatherData }
   | { type: "AGENDA_LOADED"; agenda: AgendaResponse["events"] }
+  | { type: "WIDGET_SHOWN"; widget: MirrorWidget }
   | { type: "DASHBOARD_SUMMARY_CHANGED"; summary: string }
   | { type: "LANGUAGE_CHANGE_STARTED" }
   | { type: "LANGUAGE_CHANGE_COMPLETED" }
@@ -65,6 +69,7 @@ export const initialMirrorState: MirrorState = {
   knownUsers: [],
   weather: null,
   agenda: [],
+  visibleWidgets: ["agenda"],
   scanFaceVisible: false,
   isMirrorFadingOut: false,
   dashboardSummaryText: ""
@@ -119,7 +124,8 @@ export const mirrorReducer = (state: MirrorState, action: MirrorAction): MirrorS
         isMirrorFadingOut: false,
         registeredUser: null,
         weather: null,
-        agenda: []
+        agenda: [],
+        visibleWidgets: ["agenda"]
       };
     case "REGISTRATION_STARTED":
       return {
@@ -224,6 +230,15 @@ export const mirrorReducer = (state: MirrorState, action: MirrorAction): MirrorS
       return {
         ...state,
         agenda: action.agenda
+      };
+    case "WIDGET_SHOWN":
+      if (state.visibleWidgets.includes(action.widget)) {
+        return state;
+      }
+
+      return {
+        ...state,
+        visibleWidgets: [action.widget]
       };
     case "DASHBOARD_SUMMARY_CHANGED":
       return {

@@ -20,7 +20,8 @@ describe("parseClassifierResponse", () => {
       intent: "WAKE_MIRROR",
       entities: {
         name: null,
-        date: null
+        date: null,
+        widget: null
       }
     });
   });
@@ -30,9 +31,22 @@ describe("parseClassifierResponse", () => {
       intent: "PROVIDE_NAME",
       entities: {
         name: "John",
-        date: null
+        date: null,
+        widget: null
       },
       response: "Captured name John."
+    });
+  });
+
+  it("parses a show widget entity", () => {
+    expect(parseClassifierResponse("SHOW_WIDGET|transport", "en")).toMatchObject({
+      intent: "SHOW_WIDGET",
+      entities: {
+        name: null,
+        date: null,
+        widget: "transport"
+      },
+      response: "Showing widget."
     });
   });
 
@@ -41,7 +55,8 @@ describe("parseClassifierResponse", () => {
       intent: "GET_WEATHER",
       entities: {
         name: null,
-        date: null
+        date: null,
+        widget: null
       },
       response: "Showing weather."
     });
@@ -59,7 +74,8 @@ describe("parseClassifierResponse", () => {
       intent: "PROVIDE_NAME",
       entities: {
         name: null,
-        date: null
+        date: null,
+        widget: null
       },
       response: "Name captured."
     });
@@ -81,6 +97,23 @@ describe("parseClassifierResponse", () => {
     ).resolves.toMatchObject({
       intent: "UNKNOWN",
       response: "I didn't understand that."
+    });
+  });
+
+  it("falls back to local widget commands when classifier returns empty content", async () => {
+    classifyIntentMock.mockResolvedValue("");
+
+    await expect(
+      inferVoiceCommand({
+        transcript: "show my commute info",
+        phase: "dashboard",
+        language: "en"
+      })
+    ).resolves.toMatchObject({
+      intent: "SHOW_WIDGET",
+      entities: {
+        widget: "transport"
+      }
     });
   });
 

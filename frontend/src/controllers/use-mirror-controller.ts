@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { normalizeLanguage, type AppLanguage } from "../i18n/languages";
 import { BrowserFaceRecognitionService } from "../services/face-recognition";
-import { initialMirrorState, mirrorReducer } from "../state/mirror-reducer";
+import { initialMirrorState, mirrorReducer, type MirrorWidget } from "../state/mirror-reducer";
 import type { LocalizedMessage } from "../types/i18n";
 import type { MirrorController } from "../types/mirror-controller";
 import type { User } from "../types/user";
@@ -44,6 +44,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     knownUsers,
     weather,
     agenda,
+    visibleWidgets,
     scanFaceVisible,
     isMirrorFadingOut,
     dashboardSummaryText
@@ -164,6 +165,9 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
         dispatch({ type: "STATUS_CHANGED", statusMessage: { key: "status.changeLanguagePrompt" } });
       },
       setStatus: setStatusMessage,
+      showWidget: (widget: MirrorWidget) => {
+        dispatch({ type: "WIDGET_SHOWN", widget });
+      },
       sleep: () => {
         clearDashboardPresenceTimer();
         cancelSpeech();
@@ -330,6 +334,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     hasRegisteredUsers: knownUsers.length > 0,
     weather,
     agenda,
+    visibleWidgets,
     scanFaceVisible,
     isMirrorFadingOut,
     dashboardSummaryText,

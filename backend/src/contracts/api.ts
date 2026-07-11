@@ -101,9 +101,12 @@ export type VoiceIntentDto =
   | "PROVIDE_NAME"
   | "CONFIRM_YES"
   | "CONFIRM_NO"
+  | "SHOW_WIDGET"
   | "GET_AGENDA"
   | "GET_WEATHER"
   | "UNKNOWN";
+
+export type WidgetNameDto = "agenda" | "transport";
 
 export type VoiceCommandRequestDto = {
   transcript: string;
@@ -116,6 +119,7 @@ export type VoiceCommandResponseDto = {
   ok: true;
   intent: VoiceIntentDto;
   name: string | null;
+  widget: WidgetNameDto | null;
   response: string;
 };
 

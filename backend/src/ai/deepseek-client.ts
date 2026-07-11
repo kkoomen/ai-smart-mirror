@@ -53,9 +53,10 @@ export const classifyIntentWithDeepSeek = async (params: IntentClassificationPar
         content:
           "You are an intent classifier for a smart mirror. " +
           "Reply with exactly one line and nothing else. " +
-          "Allowed intents: WAKE_MIRROR, SLEEP_MIRROR, START_REGISTRATION, CHANGE_LANGUAGE, SET_LANGUAGE_EN, SET_LANGUAGE_ZH, PROVIDE_NAME, CONFIRM_YES, CONFIRM_NO, GET_AGENDA, GET_WEATHER, UNKNOWN. " +
+          "Allowed intents: WAKE_MIRROR, SLEEP_MIRROR, START_REGISTRATION, CHANGE_LANGUAGE, SET_LANGUAGE_EN, SET_LANGUAGE_ZH, PROVIDE_NAME, CONFIRM_YES, CONFIRM_NO, SHOW_WIDGET, GET_WEATHER, UNKNOWN. " +
           "For most inputs reply with only the INTENT. " +
           "If and only if the intent is PROVIDE_NAME, reply as PROVIDE_NAME|<name>. " +
+          "If and only if the intent is SHOW_WIDGET, reply as SHOW_WIDGET|<widget>, where widget is agenda or transport. " +
           "If uncertain, reply UNKNOWN. " +
           "WAKE_MIRROR is allowed only for explicit mirror wake phrases like hello mirror, hey mirror, or hi mirror. " +
           "SLEEP_MIRROR is allowed only for explicit mirror sleep phrases like goodbye mirror or bye mirror. " +
@@ -75,6 +76,10 @@ export const classifyIntentWithDeepSeek = async (params: IntentClassificationPar
           "Chinese -> SET_LANGUAGE_ZH. " +
           "英语 -> SET_LANGUAGE_EN. " +
           "普通话 -> SET_LANGUAGE_ZH. " +
+          "show my agenda -> SHOW_WIDGET|agenda. " +
+          "show my public transport info -> SHOW_WIDGET|transport. " +
+          "show my transport info -> SHOW_WIDGET|transport. " +
+          "show my commute info -> SHOW_WIDGET|transport. " +
           `The user's spoken language is ${params.language === "zh" ? "Mandarin Chinese" : "English"}.`
       },
       {

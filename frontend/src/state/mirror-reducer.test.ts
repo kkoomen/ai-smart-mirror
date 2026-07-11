@@ -15,6 +15,10 @@ const user: User = {
 };
 
 describe("mirrorReducer", () => {
+  it("shows agenda by default", () => {
+    expect(initialMirrorState.visibleWidgets).toEqual(["agenda"]);
+  });
+
   it("moves from idle to waking when known users exist", () => {
     const state = mirrorReducer(initialMirrorState, {
       type: "WAKE_REQUESTED",
@@ -76,7 +80,22 @@ describe("mirrorReducer", () => {
     expect(state.registeredUser).toBeNull();
     expect(state.weather).toBeNull();
     expect(state.agenda).toEqual([]);
+    expect(state.visibleWidgets).toEqual(["agenda"]);
     expect(state.dashboardSummaryText).toBe("");
+  });
+
+  it("replaces the visible widget and ignores duplicates", () => {
+    const withTransport = mirrorReducer(initialMirrorState, {
+      type: "WIDGET_SHOWN",
+      widget: "transport"
+    });
+    const duplicate = mirrorReducer(withTransport, {
+      type: "WIDGET_SHOWN",
+      widget: "transport"
+    });
+
+    expect(withTransport.visibleWidgets).toEqual(["transport"]);
+    expect(duplicate.visibleWidgets).toEqual(["transport"]);
   });
 
   it("upserts the completed registration user", () => {

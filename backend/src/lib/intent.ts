@@ -10,6 +10,7 @@ export type VoiceIntent =
   | "PROVIDE_NAME"
   | "CONFIRM_YES"
   | "CONFIRM_NO"
+  | "SHOW_WIDGET"
   | "GET_AGENDA"
   | "GET_WEATHER"
   | "UNKNOWN";
@@ -29,6 +30,7 @@ export type VoiceLanguage = "en" | "zh";
 export type VoiceEntities = {
   name: string | null;
   date: string | null;
+  widget: "agenda" | "transport" | null;
 };
 
 export type VoiceCommandResult = {
@@ -47,10 +49,13 @@ const VALID_INTENTS = new Set<VoiceIntent>([
   "PROVIDE_NAME",
   "CONFIRM_YES",
   "CONFIRM_NO",
+  "SHOW_WIDGET",
   "GET_AGENDA",
   "GET_WEATHER",
   "UNKNOWN"
 ]);
+
+const VALID_WIDGETS = new Set<NonNullable<VoiceEntities["widget"]>>(["agenda", "transport"]);
 
 const normalizeLanguage = (value: string | undefined | null): VoiceLanguage => {
   if (!value) {
@@ -63,7 +68,7 @@ const normalizeLanguage = (value: string | undefined | null): VoiceLanguage => {
 const buildResult = (
   intent: VoiceIntent,
   response: string,
-  entities: VoiceEntities = { name: null, date: null }
+  entities: VoiceEntities = { name: null, date: null, widget: null }
 ): VoiceCommandResult => ({
   intent,
   entities,
@@ -86,6 +91,7 @@ const buildIntentResponse = (
       PROVIDE_NAME: name ? `Captured name ${name}.` : "Name captured.",
       CONFIRM_YES: "Confirmed.",
       CONFIRM_NO: "Trying again.",
+      SHOW_WIDGET: "Showing widget.",
       GET_AGENDA: "Showing agenda.",
       GET_WEATHER: "Showing weather.",
       UNKNOWN: "I didn't understand that."
@@ -100,6 +106,7 @@ const buildIntentResponse = (
       PROVIDE_NAME: name ? `已记录名字 ${name}。` : "已记录名字。",
       CONFIRM_YES: "已确认。",
       CONFIRM_NO: "重试中。",
+      SHOW_WIDGET: "正在显示组件。",
       GET_AGENDA: "正在显示日程。",
       GET_WEATHER: "正在显示天气。",
       UNKNOWN: "我没听懂。"
@@ -130,10 +137,15 @@ export const parseClassifierResponse = (
 
   const intent = rawIntent as VoiceIntent;
   const name = intent === "PROVIDE_NAME" && rawName.length > 0 ? rawName : null;
+  const widget =
+    intent === "SHOW_WIDGET" && VALID_WIDGETS.has(rawName as NonNullable<VoiceEntities["widget"]>)
+      ? (rawName as NonNullable<VoiceEntities["widget"]>)
+      : null;
 
   return buildResult(intent, buildIntentResponse(intent, language, name), {
     name,
-    date: null
+    date: null,
+    widget
   });
 };
 
@@ -159,6 +171,32 @@ const requestAiIntent = async (params: {
   }
 };
 
+const inferLocalWidgetCommand = (transcript: string, language: VoiceLanguage) => {
+  const normalized = transcript.trim().toLowerCase().replace(/\s+/g, " ");
+
+  if (normalized === "show my agenda") {
+    return buildResult("SHOW_WIDGET", buildIntentResponse("SHOW_WIDGET", language), {
+      name: null,
+      date: null,
+      widget: "agenda"
+    });
+  }
+
+  if (
+    normalized === "show my public transport info" ||
+    normalized === "show my transport info" ||
+    normalized === "show my commute info"
+  ) {
+    return buildResult("SHOW_WIDGET", buildIntentResponse("SHOW_WIDGET", language), {
+      name: null,
+      date: null,
+      widget: "transport"
+    });
+  }
+
+  return null;
+};
+
 export const inferVoiceCommand = async (params: {
   transcript: string;
   phase: VoicePhase;
@@ -173,6 +211,11 @@ export const inferVoiceCommand = async (params: {
 
   if (result) {
     return result;
+  }
+
+  const localWidgetCommand = inferLocalWidgetCommand(params.transcript, language);
+  if (localWidgetCommand) {
+    return localWidgetCommand;
   }
 
   return buildResult("UNKNOWN", buildIntentResponse("UNKNOWN", language));

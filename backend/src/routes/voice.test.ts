@@ -18,7 +18,8 @@ describe("voiceRoutes", () => {
       command: { id: 1 },
       intent: "GET_WEATHER",
       name: null,
-      entities: { name: null, date: null },
+      widget: null,
+      entities: { name: null, date: null, widget: null },
       response: "Showing weather."
     });
 

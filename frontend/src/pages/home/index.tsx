@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-// import Agenda from "../../components/agenda";
+import Agenda from "../../components/agenda";
 import DeviceStatus from "../../components/device-status";
 import FadeTransition from "../../components/fade-transition";
 import LocalTime from "../../components/local-time";
@@ -14,13 +14,20 @@ type HomePageProps = {
   controller: MirrorController;
 };
 
+const formatAgendaTime = (value: string) =>
+  new Intl.DateTimeFormat(undefined, {
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(value));
+
 export default function HomePage({ controller }: HomePageProps) {
   const { t } = useTranslation();
   const {
     phase,
     registeredUser,
     weather,
-    // agenda,
+    agenda,
+    visibleWidgets,
     deviceStatus,
     isMirrorFadingOut,
     handleVoiceCommand,
@@ -28,6 +35,11 @@ export default function HomePage({ controller }: HomePageProps) {
     sleepMirror,
     idleVideoRef
   } = controller;
+  const agendaEvents = agenda.map((event) => ({
+    time: formatAgendaTime(event.startTime),
+    title: event.title
+  }));
+
   return (
     <>
       <video
@@ -62,7 +74,14 @@ export default function HomePage({ controller }: HomePageProps) {
               ) : null
             }
             time={<LocalTime />}
-            agenda={<PublicTransport userId={registeredUser?.id ?? null} />}
+            agenda={
+              <div className="flex flex-col gap-3">
+                {visibleWidgets.includes("agenda") ? <Agenda events={agendaEvents} /> : null}
+                {visibleWidgets.includes("transport") ? (
+                  <PublicTransport userId={registeredUser?.id ?? null} />
+                ) : null}
+              </div>
+            }
             deviceStatus={<DeviceStatus {...deviceStatus} />}
             center={<MirrorCenter controller={controller} />}
           />

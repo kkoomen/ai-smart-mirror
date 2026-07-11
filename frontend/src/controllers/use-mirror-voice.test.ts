@@ -6,6 +6,7 @@ const buildOptions = () => {
     fadeOut: vi.fn(),
     openLanguageChange: vi.fn(),
     setStatus: vi.fn(),
+    showWidget: vi.fn(),
     sleep: vi.fn(),
     wake: vi.fn()
   };
@@ -86,6 +87,7 @@ describe("createMirrorVoiceHandler", () => {
       ok: true,
       intent: "CHANGE_LANGUAGE",
       name: null,
+      widget: null,
       entities: { name: null, date: null },
       response: "Opening language change."
     });
@@ -104,6 +106,7 @@ describe("createMirrorVoiceHandler", () => {
       ok: true,
       intent: "UNKNOWN",
       name: null,
+      widget: null,
       entities: { name: null, date: null },
       response: "I didn't understand that."
     });
@@ -128,6 +131,7 @@ describe("createMirrorVoiceHandler", () => {
       ok: true,
       intent: "CONFIRM_YES",
       name: null,
+      widget: null,
       entities: { name: null, date: null },
       response: "Confirmed."
     });
@@ -149,6 +153,7 @@ describe("createMirrorVoiceHandler", () => {
       ok: true,
       intent: "UNKNOWN",
       name: null,
+      widget: null,
       entities: { name: null, date: null },
       response: "I didn't understand that."
     });
@@ -161,5 +166,23 @@ describe("createMirrorVoiceHandler", () => {
     await handler("mandarin");
 
     expect(languageActions.beginChange).toHaveBeenCalledWith("zh");
+  });
+
+  it("shows requested dashboard widgets", async () => {
+    const { options, classifyCommand, mirrorActions } = buildOptions();
+    classifyCommand.mockResolvedValue({
+      ok: true,
+      intent: "SHOW_WIDGET",
+      name: null,
+      widget: "transport",
+      entities: { name: null, date: null, widget: "transport" },
+      response: "Showing widget."
+    });
+
+    const handler = createMirrorVoiceHandler(options);
+    await handler("show my commute info");
+
+    expect(mirrorActions.showWidget).toHaveBeenCalledWith("transport");
+    expect(mirrorActions.setStatus).not.toHaveBeenCalled();
   });
 });

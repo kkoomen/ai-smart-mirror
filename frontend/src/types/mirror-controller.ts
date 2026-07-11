@@ -7,6 +7,7 @@ import type { LocalizedMessage } from "./i18n";
 import type { AppLanguage } from "../i18n/languages";
 import type { WeatherData } from "./weather";
 import type { SpeakTextOptions } from "../utils/speech";
+import type { MirrorWidget } from "../state/mirror-reducer";
 
 export type MirrorController = {
   phase: MirrorPhase;
@@ -17,6 +18,7 @@ export type MirrorController = {
   hasRegisteredUsers: boolean;
   weather: WeatherData | null;
   agenda: AgendaResponse["events"];
+  visibleWidgets: MirrorWidget[];
   scanFaceVisible: boolean;
   isMirrorFadingOut: boolean;
   dashboardSummaryText: string;
@@ -91,6 +93,7 @@ export type MirrorVoiceActions = {
   fadeOut: () => void;
   openLanguageChange: () => void;
   setStatus: (message: LocalizedMessage) => void;
+  showWidget: (widget: MirrorWidget) => void;
   sleep: () => void;
   wake: () => void;
 };
