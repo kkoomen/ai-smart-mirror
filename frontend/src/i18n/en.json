@@ -95,7 +95,7 @@
   },
   "changeLanguage": {
     "title": "Change language",
-    "subtitle": "Choose a language",
+    "subtitle": "Choose one language",
     "prompt": "Say Mandarin or English"
   }
 }
