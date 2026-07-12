@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  CHANGE_LANGUAGE_ROUTE,
+  HELLO_PHASE_FALLBACK_TIMEOUT_MS,
+  HOME_ROUTE
+} from "../constants";
 import { normalizeLanguage, type AppLanguage } from "../i18n/languages";
 import { BrowserFaceRecognitionService } from "../services/face-recognition";
 import { initialMirrorState, mirrorReducer, type MirrorWidget } from "../state/mirror-reducer";
@@ -148,7 +153,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
         dispatch({ type: "MIRROR_FADING_CHANGED", isFadingOut: true });
       },
       openLanguageChange: () => {
-        navigate("/change-lang");
+        navigate(CHANGE_LANGUAGE_ROUTE);
         dispatch({ type: "PHASE_CHANGED", phase: "changeLanguage" });
         dispatch({ type: "STATUS_CHANGED", statusMessage: { key: "status.changeLanguagePrompt" } });
       },
@@ -161,7 +166,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
         cancelSpeech();
         wakeStartedAtRef.current = null;
         dispatch({ type: "SLEEP_REQUESTED" });
-        navigate("/");
+        navigate(HOME_ROUTE);
       },
       wake: () => {
         wakeStartedAtRef.current = Date.now();
@@ -262,7 +267,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
 
     helloFallbackTimerRef.current = window.setTimeout(() => {
       completeHelloPhase();
-    }, 7000);
+    }, HELLO_PHASE_FALLBACK_TIMEOUT_MS);
 
     speakText(getSpeechPrompt("hello", language, { name: registeredUser.name }), language, true, {
       onEnd: completeHelloPhase,

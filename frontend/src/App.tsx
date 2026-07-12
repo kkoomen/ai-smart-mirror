@@ -3,6 +3,7 @@ import ChangeLanguagePage from "./pages/change-lang";
 import RegisterPage from "./pages/register";
 import FadeTransition from "./components/fade-transition";
 import VoiceActivityIndicator from "./components/voice-activity-indicator";
+import { CHANGE_LANGUAGE_ROUTE, HOME_ROUTE, REGISTER_ROUTE } from "./constants";
 import { useMirrorController } from "./controllers/use-mirror-controller";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -13,7 +14,7 @@ function AppRoutes() {
   const [allowedMirrorRoute, setAllowedMirrorRoute] = useState<string | null>(null);
 
   const navigate = (path: string) => {
-    if (path === "/register" || path === "/change-lang") {
+    if (path === REGISTER_ROUTE || path === CHANGE_LANGUAGE_ROUTE) {
       setAllowedMirrorRoute(path);
       routerNavigate(path);
       return;
@@ -29,7 +30,7 @@ function AppRoutes() {
     canEnterMirrorRoute && controller.hasRegisteredUsers && !!controller.registeredUser;
 
   useEffect(() => {
-    if (location.pathname === "/") {
+    if (location.pathname === HOME_ROUTE) {
       setAllowedMirrorRoute(null);
     }
   }, [location.pathname]);
@@ -38,28 +39,28 @@ function AppRoutes() {
     <>
       <FadeTransition transitionKey={location.pathname} className="app-full-screen">
         <Routes location={location}>
-          <Route path="/" element={<HomePage controller={controller} />} />
+          <Route path={HOME_ROUTE} element={<HomePage controller={controller} />} />
           <Route
-            path="/register"
+            path={REGISTER_ROUTE}
             element={
               canEnterMirrorRoute ? (
                 <RegisterPage controller={controller} />
               ) : (
-                <Navigate to="/" replace />
+                <Navigate to={HOME_ROUTE} replace />
               )
             }
           />
           <Route
-            path="/change-lang"
+            path={CHANGE_LANGUAGE_ROUTE}
             element={
               canEnterChangeLanguageRoute ? (
                 <ChangeLanguagePage controller={controller} />
               ) : (
-                <Navigate to="/" replace />
+                <Navigate to={HOME_ROUTE} replace />
               )
             }
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to={HOME_ROUTE} replace />} />
         </Routes>
       </FadeTransition>
       <VoiceActivityIndicator visible={controller.phase !== "scan"} />

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { SPEECH_RECOGNITION_RESUME_DELAY_MS } from "../constants";
 import { getSpeechLocale } from "../i18n/languages";
 import { subscribeToSpeechActivity } from "../utils/speech";
 import { setVoiceListenerState } from "../utils/voice-listener";
@@ -45,8 +46,6 @@ const getRecognitionCtor = () => {
   const speechWindow = window as WindowWithSpeechRecognition;
   return speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition || null;
 };
-
-const SPEECH_RECOGNITION_RESUME_DELAY_MS = 300;
 
 export const useSpeechRecognition = ({
   autoListen = true,

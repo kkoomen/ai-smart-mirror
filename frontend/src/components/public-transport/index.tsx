@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getPublicTransportTrips } from "../../api/public-transport";
+import { PUBLIC_TRANSPORT_TRIP_COUNT } from "../../constants";
 import type { PublicTransportResponse } from "../../types/public-transport";
 import styles from "./styles.module.css";
 
@@ -38,7 +39,7 @@ const PublicTransportSkeleton = () => (
       <SkeletonBar className={styles.skeletonStationShort} />
     </div>
     <div className={styles.trips}>
-      {Array.from({ length: 3 }).map((_, index) => (
+      {Array.from({ length: PUBLIC_TRANSPORT_TRIP_COUNT }).map((_, index) => (
         <div key={index} className={styles.trip}>
           <div className={styles.times}>
             <SkeletonBar className={styles.skeletonTime} />

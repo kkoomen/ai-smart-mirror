@@ -1,4 +1,10 @@
-export const apiBase = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
-export const dashboardPresenceTimeoutMs = 30_000;
-export const defaultLanguage = "en";
-export const languageStorageKey = "ai-smart-mirror-language";
+export const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
+export const DASHBOARD_PRESENCE_TIMEOUT_MS = 30_000;
+export const DEFAULT_LANGUAGE = "en";
+export const LANGUAGE_STORAGE_KEY = "ai-smart-mirror-language";
+export const HOME_ROUTE = "/";
+export const REGISTER_ROUTE = "/register";
+export const CHANGE_LANGUAGE_ROUTE = "/change-lang";
+export const HELLO_PHASE_FALLBACK_TIMEOUT_MS = 7_000;
+export const SPEECH_RECOGNITION_RESUME_DELAY_MS = 300;
+export const PUBLIC_TRANSPORT_TRIP_COUNT = 3;

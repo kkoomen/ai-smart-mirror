@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { Dispatch, MutableRefObject, RefObject } from "react";
-import { dashboardPresenceTimeoutMs } from "../constants";
+import { DASHBOARD_PRESENCE_TIMEOUT_MS } from "../constants";
 import type { BrowserFaceRecognitionService } from "../services/face-recognition";
 import type { MirrorAction } from "../state/mirror-reducer";
 import type { MirrorPhase } from "../types/mirror-phase";
@@ -52,7 +52,7 @@ export const useDashboardPresence = ({
       } catch (error) {
         console.error("Dashboard presence check failed", error);
       }
-    }, dashboardPresenceTimeoutMs);
+    }, DASHBOARD_PRESENCE_TIMEOUT_MS);
 
     return () => {
       cancelled = true;

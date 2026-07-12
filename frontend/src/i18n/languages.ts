@@ -1,4 +1,4 @@
-import { defaultLanguage, languageStorageKey } from "../constants";
+import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from "../constants";
 
 export const supportedLanguages = [
   {
@@ -18,7 +18,7 @@ export const isSupportedLanguage = (value: string): value is AppLanguage =>
 
 export const normalizeLanguage = (value: string | undefined | null): AppLanguage => {
   if (!value) {
-    return defaultLanguage;
+    return DEFAULT_LANGUAGE;
   }
 
   const lowerCased = value.trim().toLowerCase();
@@ -26,7 +26,7 @@ export const normalizeLanguage = (value: string | undefined | null): AppLanguage
     return "zh";
   }
 
-  return isSupportedLanguage(lowerCased) ? lowerCased : defaultLanguage;
+  return isSupportedLanguage(lowerCased) ? lowerCased : DEFAULT_LANGUAGE;
 };
 
 export const getSpeechLocale = (value: string | undefined | null) => {
@@ -36,10 +36,10 @@ export const getSpeechLocale = (value: string | undefined | null) => {
 
 export const getStoredLanguage = () => {
   if (typeof window === "undefined") {
-    return defaultLanguage;
+    return DEFAULT_LANGUAGE;
   }
 
-  const storedLanguage = window.localStorage.getItem(languageStorageKey);
+  const storedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
   if (storedLanguage) {
     return normalizeLanguage(storedLanguage);
   }
@@ -68,5 +68,5 @@ export const getStoredLanguage = () => {
     }
   }
 
-  return defaultLanguage;
+  return DEFAULT_LANGUAGE;
 };

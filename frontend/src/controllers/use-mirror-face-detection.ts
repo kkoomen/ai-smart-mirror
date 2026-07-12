@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { dashboardPresenceTimeoutMs } from "../constants";
+import { DASHBOARD_PRESENCE_TIMEOUT_MS } from "../constants";
 import i18n from "../i18n";
 import { normalizeLanguage } from "../i18n/languages";
 import type { MirrorFaceDetectionOptions } from "../types/mirror-controller";
@@ -25,7 +25,7 @@ export const useMirrorFaceDetection = ({
     const getScanProgressStep = () => Math.floor(Math.random() * 15) + 5;
     const delayMs =
       phase === "dashboard"
-        ? dashboardPresenceTimeoutMs
+        ? DASHBOARD_PRESENCE_TIMEOUT_MS
         : phase === "scan" || phase === "waking"
           ? 300
           : 1000;

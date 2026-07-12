@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import type { Dispatch, MutableRefObject } from "react";
 import { updateUserLanguage } from "../api/users";
+import { HOME_ROUTE } from "../constants";
 import i18n from "../i18n";
 import type { AppLanguage } from "../i18n/languages";
 import { buildKnownUsersWithUpdatedUser, type MirrorAction } from "../state/mirror-reducer";
@@ -63,7 +64,7 @@ export const useLanguageFlow = ({
     await i18n.changeLanguage(targetLanguage);
     await persistUserLanguage(targetLanguage);
     dispatch({ type: "LANGUAGE_CHANGE_COMPLETED" });
-    navigate("/");
+    navigate(HOME_ROUTE);
   }, [dispatch, navigate, pendingLanguageChangeRef, persistUserLanguage, registeredUser]);
 
   return {

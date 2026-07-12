@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import type { Dispatch, MutableRefObject, RefObject } from "react";
 import { registerMirrorUser } from "../api/mirror";
+import { HOME_ROUTE, REGISTER_ROUTE } from "../constants";
 import i18n from "../i18n";
 import { normalizeLanguage } from "../i18n/languages";
 import type { BrowserFaceRecognitionService } from "../services/face-recognition";
@@ -36,7 +37,7 @@ export const useRegistrationFlow = ({
   const startRegistration = useCallback(async () => {
     dispatch({ type: "REGISTRATION_STARTED" });
     registrationCompletingRef.current = false;
-    navigate("/register");
+    navigate(REGISTER_ROUTE);
   }, [dispatch, navigate, registrationCompletingRef]);
 
   const createUserAndConfirm = useCallback(
@@ -81,7 +82,7 @@ export const useRegistrationFlow = ({
 
       dispatch({ type: "REGISTRATION_COMPLETED", user: created.user });
       registrationCompletingRef.current = false;
-      navigate("/");
+      navigate(HOME_ROUTE);
       console.info("[Mirror registration] transitioned to home");
       void loadDashboardData(created.user.id, created.user.location).catch((error) => {
         console.error("Failed to load dashboard data after registration", error);
