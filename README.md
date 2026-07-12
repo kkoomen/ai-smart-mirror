@@ -1,4 +1,4 @@
-# AI Smart Mirror
+# Smart Mirror
 
 Smart mirror prototype featuring face recognition, speech interaction, weather, multilingual support and on-demand widgets (e.g., agenda and public transport).
 
