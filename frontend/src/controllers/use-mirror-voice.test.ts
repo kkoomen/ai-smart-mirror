@@ -24,7 +24,6 @@ const buildOptions = () => {
   const classifyCommand = vi.fn();
   const clearDashboardPresenceTimer = vi.fn();
   const startRegistration = vi.fn(async () => {});
-  const createUserAndConfirm = vi.fn(async () => {});
   const speakText = vi.fn();
 
   return {
@@ -46,7 +45,6 @@ const buildOptions = () => {
       languageActions,
       clearDashboardPresenceTimer,
       startRegistration,
-      createUserAndConfirm,
       capturedName: "",
       hasRegisteredUsers: true,
       speakText,
@@ -58,7 +56,6 @@ const buildOptions = () => {
     languageActions,
     clearDashboardPresenceTimer,
     startRegistration,
-    createUserAndConfirm,
     speakText,
     classifyCommand
   };

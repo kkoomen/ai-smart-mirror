@@ -231,7 +231,6 @@ Supported voice intents:
 - `CONFIRM_YES`
 - `CONFIRM_NO`
 - `SHOW_WIDGET`
-- `GET_AGENDA`
 - `GET_WEATHER`
 - `UNKNOWN`
 

@@ -58,7 +58,6 @@
     "backendUnavailable": "镜子后端不可用",
     "sayYesOrNo": "说：是或否",
     "lookAtMirror": "看着镜子",
-    "todayAgenda": "今天的日程显示在镜子上。",
     "weatherShown": "天气显示在镜子上。",
     "checkingFace": "正在检查人脸",
     "hello": "你好，{{name}}",

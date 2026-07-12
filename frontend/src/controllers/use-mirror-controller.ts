@@ -91,10 +91,6 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     dispatch({ type: "REGISTRATION_SCAN_FACE_VISIBILITY_CHANGED", visible });
   }, []);
 
-  const setIsMirrorFadingOut = useCallback((isFadingOut: boolean) => {
-    dispatch({ type: "MIRROR_FADING_CHANGED", isFadingOut });
-  }, []);
-
   const clearDashboardPresenceTimer = useCallback(() => {
     if (dashboardPresenceTimerRef.current !== null) {
       window.clearTimeout(dashboardPresenceTimerRef.current);
@@ -333,12 +329,9 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     idleVideoRef,
     wakeMirror,
     sleepMirror,
-    beginLanguageChange,
     finishLanguageChange,
     startRegistration,
     handleVoiceCommand,
-    setMirrorFadingOut: setIsMirrorFadingOut,
-    browserFaceService,
     speakText
   };
 };

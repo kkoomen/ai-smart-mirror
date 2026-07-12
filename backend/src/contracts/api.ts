@@ -102,7 +102,6 @@ export type VoiceIntentDto =
   | "CONFIRM_YES"
   | "CONFIRM_NO"
   | "SHOW_WIDGET"
-  | "GET_AGENDA"
   | "GET_WEATHER"
   | "UNKNOWN";
 

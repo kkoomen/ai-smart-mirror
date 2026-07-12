@@ -58,7 +58,6 @@
     "backendUnavailable": "Mirror backend unavailable",
     "sayYesOrNo": "Say yes or no",
     "lookAtMirror": "Look at the mirror",
-    "todayAgenda": "Today's agenda is on the mirror.",
     "weatherShown": "Weather is shown on the mirror.",
     "checkingFace": "Checking face",
     "hello": "Hello {{name}}",

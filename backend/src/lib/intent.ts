@@ -11,7 +11,6 @@ export type VoiceIntent =
   | "CONFIRM_YES"
   | "CONFIRM_NO"
   | "SHOW_WIDGET"
-  | "GET_AGENDA"
   | "GET_WEATHER"
   | "UNKNOWN";
 
@@ -50,7 +49,6 @@ const VALID_INTENTS = new Set<VoiceIntent>([
   "CONFIRM_YES",
   "CONFIRM_NO",
   "SHOW_WIDGET",
-  "GET_AGENDA",
   "GET_WEATHER",
   "UNKNOWN"
 ]);
@@ -92,7 +90,6 @@ const buildIntentResponse = (
       CONFIRM_YES: "Confirmed.",
       CONFIRM_NO: "Trying again.",
       SHOW_WIDGET: "Showing widget.",
-      GET_AGENDA: "Showing agenda.",
       GET_WEATHER: "Showing weather.",
       UNKNOWN: "I didn't understand that."
     },
@@ -107,7 +104,6 @@ const buildIntentResponse = (
       CONFIRM_YES: "已确认。",
       CONFIRM_NO: "重试中。",
       SHOW_WIDGET: "正在显示组件。",
-      GET_AGENDA: "正在显示日程。",
       GET_WEATHER: "正在显示天气。",
       UNKNOWN: "我没听懂。"
     }

@@ -32,12 +32,9 @@ export type MirrorController = {
   idleVideoRef: RefObject<HTMLVideoElement | null>;
   wakeMirror: () => void;
   sleepMirror: () => void;
-  beginLanguageChange: (language: AppLanguage) => void;
   finishLanguageChange: () => Promise<void>;
   startRegistration: () => Promise<void>;
   handleVoiceCommand: (spokenText: string) => Promise<void>;
-  setMirrorFadingOut: (value: boolean) => void;
-  browserFaceService: BrowserFaceRecognitionService;
   speakText: (
     text: string,
     language?: AppLanguage,
