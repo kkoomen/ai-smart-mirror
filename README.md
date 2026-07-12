@@ -4,7 +4,9 @@ Smart mirror prototype featuring face recognition, speech interaction, weather, 
 
 ![demo](./demo.jpg)
 
-This project was made as part of the interview process I did for [Banrai](https://banrai.ai). Below is additional info as requested in the assignment:
+This project was made as part of the interview process I did for [Banrai](https://banrai.ai).
+
+Below is additional info as requested in the assignment:
 - **Implementation Method:** A (hardware simulation)
 - **Target users:** Anyone who values a simpler and more efficient morning routine.
 - **Usage scenarios:** Mostly during morning routines, but could be anytime when
