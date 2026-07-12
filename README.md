@@ -31,7 +31,7 @@ This project was made as part of the interview process I did for [Banrai](https:
   * Cache the weather data for 6 hours instead of live fetching since the data doesn't change that frequently throughout the day.
   * Multilingual instead of English-only to remove language barriers, since English is not universal.
 - **Role of AI tools:** Currently, only DeepSeek-Chat is utilized for (1) personalized summarization on the homepage and (2) speech intent detection as a replacement for manual pattern matching, allowing users to reply with natural language instead of fixed phrases.
-- **Development time:** I spent a total of 16 hours on this project from start to finish, including unit tests.
+- **Development time:** I spent a total of 18 hours on this project from start to finish, including unit tests.
 - **AI usage:** Everything is vibe coded using [Codex](https://openai.com/codex/). At the start of the project, GPT-5.4-mini was used. At the end of the project when the project size scaled, GPT-5.4 was used, all medium reasoning.
 
 # Table of Contents
@@ -53,16 +53,17 @@ This project was made as part of the interview process I did for [Banrai](https:
 
 # Stack
 
-- Frontend: React, Vite, Tailwind CSS, React Router, i18next, face-api.js
+- Frontend: React, Vite, CSS Modules, React Router, i18next, face-api.js
 - Backend: Fastify, TypeScript, Prisma, SQLite
 - APIs: REST only
 - Voice: browser Web Speech API for recognition and browser Speech Synthesis for TTS
 - AI: DeepSeek for intent routing and dashboard summary generation
 - Weather: OpenWeather when configured, otherwise mock weather
+- Public transport: NS Reisinformatie API when `NS_API_KEY` is configured
 
 # Structure
 
-- `frontend` - React mirror UI, voice control, face recognition, i18n, routes
+- `frontend` - React mirror UI, voice control, face recognition, i18n, routes, CSS Modules
 - `backend` - Fastify API, Prisma schema, route modules, AI/weather modules, mock data, weather cache
 - `backend/prisma` - SQLite Prisma schema
 - `frontend/public/models` - face-api.js model files
@@ -72,7 +73,7 @@ This project was made as part of the interview process I did for [Banrai](https:
 1. Install dependencies from the root: `npm install`
 2. Copy backend env defaults if needed: `cp backend/.env.example backend/.env`.
 3. Copy frontend env defaults if needed: `cp frontend/.env.example frontend/.env`.
-4. Push the Prisma schema: `np run db:push`
+4. Push the Prisma schema: `npm run db:push`
 5. Start both apps: `npm run dev`
 
 Default URLs:
@@ -91,6 +92,7 @@ CLIENT_ORIGIN="http://localhost:5173"
 OPENWEATHER_API_KEY=""
 DEEPSEEK_API_KEY=""
 DEEPSEEK_MODEL="deepseek-chat"
+NS_API_KEY=""
 ```
 
 Frontend `frontend/.env`:
@@ -105,6 +107,7 @@ Notes:
 - `OPENWEATHER_API_KEY` is optional. Without it, the backend returns mock weather.
 - Weather is cached in SQLite for 6 hours per location.
 - `DEEPSEEK_API_KEY` is used for intent classification and dashboard summaries.
+- `NS_API_KEY` is used by `/api/transport/ns` to fetch NS train trips. Without it, the transport widget cannot load live trips.
 
 # Scripts
 
@@ -135,6 +138,7 @@ Current test files in the repo:
 - `backend/src/routes/mirror.test.ts` - mirror route wiring and request handling
 - `backend/src/routes/users.test.ts` - user route validation and language updates
 - `backend/src/routes/voice.test.ts` - voice route validation and response mapping
+- `backend/src/routes/public-transport.test.ts` - NS transport route validation and response mapping
 - `backend/src/routes/weather.test.ts` - weather route validation and defaults
 - `backend/src/weather/normalize-weather.test.ts` - weather normalization logic
 - `backend/src/weather/weather-cache.test.ts` - weather cache hit, miss, expiry, and persistence
@@ -155,6 +159,9 @@ npm run test
 - Registration captures the user's name by voice, confirms the name, scans the face with webcam, stores the face descriptor, and creates the first user.
 - After recognition, the mirror says `Hello <name>`, then shows weather, time, agenda, and device status.
 - The center summary is generated from weather and appointment count, spoken with TTS.
+- The bottom-left widget defaults to agenda. Voice commands can replace it with agenda or commute information.
+- Say `show my agenda` to show agenda.
+- Say `show my travel info` to show the public transport widget (using Dutch NS API).
 - Say something like `I want to change language` from the dashboard to switch between English and Mandarin by voice.
 - Say `goodbye/bye mirror` to return to idle mode. After 30 seconds, if the user is not detected in front of the camera anymore, idle mode will automatically toggle.
 
@@ -204,6 +211,10 @@ Weather:
 
 - `GET /api/weather?location=Amsterdam` - returns current weather and short forecast
 
+Public transport:
+
+- `GET /api/transport/ns?userId=1` - returns the next 3 NS trips for the user's saved route
+
 Voice:
 
 - `POST /api/voice/command` - classifies a transcript into a mirror intent and stores a command log
@@ -219,6 +230,7 @@ Supported voice intents:
 - `PROVIDE_NAME`
 - `CONFIRM_YES`
 - `CONFIRM_NO`
+- `SHOW_WIDGET`
 - `GET_AGENDA`
 - `GET_WEATHER`
 - `UNKNOWN`
@@ -227,7 +239,7 @@ Supported voice intents:
 
 Primary models:
 
-- `User` - name, face label, face descriptor, location, preferred language
+- `User` - name, face label, face descriptor, location, commute stations, preferred language
 - `CalendarEvent` - agenda events per user
 - `VoiceCommandLog` - transcript, intent, response, optional user
 - `MirrorState` - active user and registration completion
