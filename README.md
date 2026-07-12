@@ -1,6 +1,6 @@
 # AI Smart Mirror
 
-A full-stack TypeScript smart mirror prototype. The frontend simulates a mirror-glass UI with a black screen, white text, webcam face recognition, browser speech recognition, browser text-to-speech, and multilingual English/Mandarin support. The backend stores users, face descriptors, agenda data, voice command logs, mirror state, and cached weather in SQLite. 
+Smart mirror prototype featuring face recognition, speech interaction, weather, multilingual support and on-demand widgets (e.g., agenda and public transport).
 
 ![demo](./demo.jpg)
 
@@ -217,7 +217,7 @@ Public transport:
 
 Voice:
 
-- `POST /api/voice/command` - classifies a transcript into a mirror intent and stores a command log
+- `POST /api/voice/command` - classifies a transcript into a mirror intent
 
 Supported voice intents:
 
@@ -241,7 +241,6 @@ Primary models:
 
 - `User` - name, face label, face descriptor, location, commute stations, preferred language
 - `CalendarEvent` - agenda events per user
-- `VoiceCommandLog` - transcript, intent, response, optional user
 - `MirrorState` - active user and registration completion
 - `WeatherCache` - cached weather payloads by location
 

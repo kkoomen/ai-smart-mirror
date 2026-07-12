@@ -1,6 +1,6 @@
 import { inferVoiceCommand, type VoicePhase } from "../lib/intent.js";
 import { prisma } from "../lib/prisma.js";
-import { isString, parsePositiveInt } from "../lib/validation.js";
+import { isString } from "../lib/validation.js";
 
 export type HandleVoiceCommandInput = {
   transcript?: unknown;
@@ -18,7 +18,6 @@ export type VoiceCommandValidationError = {
 
 export type VoiceCommandSuccess = {
   ok: true;
-  command: unknown;
   intent: string;
   name: string | null;
   widget: string | null;
@@ -68,7 +67,6 @@ export const handleVoiceCommand = async (
     };
   }
 
-  const userId = parsePositiveInt(input.userId);
   const transcript = input.transcript.trim();
   const phaseValue = isString(input.phase) ? input.phase.trim() : "";
   const phase = isVoicePhase(phaseValue) ? phaseValue : "dashboard";
@@ -91,18 +89,8 @@ export const handleVoiceCommand = async (
     });
   }
 
-  const log = await prisma.voiceCommandLog.create({
-    data: {
-      userId,
-      transcript,
-      intent: result.intent,
-      response: result.response
-    }
-  });
-
   return {
     ok: true,
-    command: log,
     intent: result.intent,
     name: result.entities.name,
     widget: result.entities.widget,

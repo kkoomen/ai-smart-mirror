@@ -15,7 +15,6 @@ describe("voiceRoutes", () => {
   it("returns classified voice command payload", async () => {
     vi.mocked(handleVoiceCommand).mockResolvedValue({
       ok: true,
-      command: { id: 1 },
       intent: "GET_WEATHER",
       name: null,
       widget: null,

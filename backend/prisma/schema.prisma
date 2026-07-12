@@ -18,7 +18,6 @@ model User {
   preferredLanguage String            @default("en")
   createdAt         DateTime          @default(now())
   events            CalendarEvent[]
-  voiceLogs         VoiceCommandLog[]
   activeMirrorState MirrorState? @relation("ActiveUser")
 }
 
@@ -31,18 +30,6 @@ model CalendarEvent {
   location    String?
   description String?
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-model VoiceCommandLog {
-  id        Int      @id @default(autoincrement())
-  userId    Int?
-  transcript String
-  intent    String
-  response  String
-  createdAt DateTime @default(now())
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
 }
