@@ -33,7 +33,7 @@ Below is additional info as requested in the assignment:
   * Cache the weather data for 6 hours instead of live fetching since the data doesn't change that frequently throughout the day.
   * Multilingual instead of English-only to remove language barriers, since English is not universal.
 - **Role of AI tools:** Currently, only DeepSeek-Chat is utilized for (1) personalized summarization on the homepage and (2) speech intent detection as a replacement for manual pattern matching, allowing users to reply with natural language instead of fixed phrases.
-- **Development time:** I spent a total of 18 hours on this project from start to finish, including unit tests.
+- **Development time:** I spent a total of 19 hours on this project from start to finish, including unit tests.
 - **AI usage:** Everything is vibe coded using [Codex](https://openai.com/codex/). At the start of the project, GPT-5.4-mini was used. At the end of the project when the project size scaled, GPT-5.4 was used, all medium reasoning.
 
 # Table of Contents
