@@ -6,7 +6,6 @@ import VoiceActivityIndicator from "./components/voice-activity-indicator";
 import { useMirrorController } from "./controllers/use-mirror-controller";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import styles from "./styles.module.css";
 
 function AppRoutes() {
   const location = useLocation();
@@ -37,7 +36,7 @@ function AppRoutes() {
 
   return (
     <>
-      <FadeTransition transitionKey={location.pathname} className={styles.fullScreen}>
+      <FadeTransition transitionKey={location.pathname} className="app-full-screen">
         <Routes location={location}>
           <Route path="/" element={<HomePage controller={controller} />} />
           <Route
