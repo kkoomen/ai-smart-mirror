@@ -50,18 +50,11 @@ export type MirrorBootstrapActions = {
   enterIdle: () => void;
   failBootstrap: () => void;
   loadKnownUsers: (users: User[]) => void;
-  restoreRegistrationUser: (user: User) => void;
 };
 
 export type MirrorBootstrapOptions = {
   browserFaceService: BrowserFaceRecognitionService;
   bootstrapActions: MirrorBootstrapActions;
-  speakText: (
-    text: string,
-    language?: AppLanguage,
-    interrupt?: boolean,
-    options?: SpeakTextOptions
-  ) => void;
 };
 
 export type FaceDetectionActions = {

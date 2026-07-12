@@ -6,7 +6,6 @@ import { weatherRoutes } from "./routes/weather.js";
 import { usersRoutes } from "./routes/users.js";
 import { voiceRoutes } from "./routes/voice.js";
 import { publicTransportRoutes } from "./routes/public-transport.js";
-import { ensureMirrorState } from "./lib/mirror-state.js";
 
 export const buildApp = async () => {
   const app = Fastify({
@@ -16,8 +15,6 @@ export const buildApp = async () => {
   await app.register(cors, {
     origin: env.clientOrigin
   });
-
-  await ensureMirrorState();
 
   await app.register(mirrorRoutes);
   await app.register(weatherRoutes);

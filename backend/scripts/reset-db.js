@@ -6,7 +6,6 @@ try {
   await prisma.$transaction([
     prisma.calendarEvent.deleteMany(),
     prisma.weatherCache.deleteMany(),
-    prisma.mirrorState.deleteMany(),
     prisma.user.deleteMany()
   ]);
 

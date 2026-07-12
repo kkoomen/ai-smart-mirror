@@ -196,8 +196,6 @@ The frontend uses `face-api.js` in the browser.
 
 Mirror:
 
-- `GET /api/mirror/state` - returns mirror mode, active user, user count, and registration status
-- `POST /api/mirror/start-registration` - resets mirror state for registration
 - `POST /api/mirror/register-user` - creates a user, stores face data, and seeds mock agenda data
 - `POST /api/mirror/dashboard-summary` - uses DeepSeek to generate a one-line weather and appointment summary
 
@@ -241,7 +239,6 @@ Primary models:
 
 - `User` - name, face label, face descriptor, location, commute stations, preferred language
 - `CalendarEvent` - agenda events per user
-- `MirrorState` - active user and registration completion
 - `WeatherCache` - cached weather payloads by location
 
 Use `npm run db:reset` when you want to clear local users and test the first-user registration flow again.

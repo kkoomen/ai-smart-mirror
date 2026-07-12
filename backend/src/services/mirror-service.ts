@@ -2,7 +2,6 @@ import { Prisma } from "@prisma/client";
 import type { DashboardSummaryRequestDto, RegisterUserRequestDto } from "../contracts/api.js";
 import { prisma } from "../lib/prisma.js";
 import { generateDashboardSummary } from "../lib/dashboard-summary.js";
-import { deriveMirrorMode, getMirrorState, updateMirrorState } from "../lib/mirror-state.js";
 import { buildAgendaForUser } from "../lib/mock-data.js";
 
 export type RegisterUserInput = RegisterUserRequestDto;
@@ -12,42 +11,6 @@ const toFaceLabel = (name: string, faceLabel?: string) =>
   faceLabel && faceLabel.trim().length > 0
     ? faceLabel.trim()
     : `face_${name.toLowerCase().replace(/\s+/g, "_")}`;
-
-export const getMirrorStateSnapshot = async () => {
-  const [state, userCount, activeUser] = await Promise.all([
-    getMirrorState(),
-    prisma.user.count(),
-    prisma.mirrorState.findFirst({
-      include: {
-        activeUser: true
-      }
-    })
-  ]);
-
-  const mode = deriveMirrorMode({
-    userCount,
-    state
-  });
-
-  return {
-    mode,
-    registrationComplete: state.registrationComplete,
-    userCount,
-    activeUser: activeUser?.activeUser ?? null
-  };
-};
-
-export const startMirrorRegistration = async () => {
-  const state = await updateMirrorState({
-    activeUserId: null,
-    registrationComplete: false
-  });
-
-  return {
-    ok: true,
-    state
-  };
-};
 
 export const registerMirrorUser = async (input: RegisterUserInput) => {
   const name = input.name.trim();
@@ -81,16 +44,9 @@ export const registerMirrorUser = async (input: RegisterUserInput) => {
     }))
   });
 
-  const state = await updateMirrorState({
-    activeUserId: user.id,
-    registrationComplete: true
-  });
-
   return {
     ok: true,
-    user,
-    state,
-    mode: "recognized" as const
+    user
   };
 };
 

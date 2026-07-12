@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import type { Dispatch, MutableRefObject, RefObject } from "react";
-import { registerMirrorUser, startMirrorRegistration } from "../api/mirror";
+import { registerMirrorUser } from "../api/mirror";
 import i18n from "../i18n";
-import { normalizeLanguage, type AppLanguage } from "../i18n/languages";
+import { normalizeLanguage } from "../i18n/languages";
 import type { BrowserFaceRecognitionService } from "../services/face-recognition";
 import type { MirrorAction } from "../state/mirror-reducer";
 import type { User } from "../types/user";
@@ -19,7 +19,6 @@ type RegistrationFlowOptions = {
   navigate: (path: string) => void;
   registrationCompletingRef: MutableRefObject<boolean>;
   scanVideoRef: RefObject<HTMLVideoElement | null>;
-  speakText: (text: string, language?: AppLanguage) => void;
 };
 
 export const useRegistrationFlow = ({
@@ -32,12 +31,9 @@ export const useRegistrationFlow = ({
   loadDashboardData,
   navigate,
   registrationCompletingRef,
-  scanVideoRef,
-  speakText
+  scanVideoRef
 }: RegistrationFlowOptions) => {
   const startRegistration = useCallback(async () => {
-    await startMirrorRegistration();
-
     dispatch({ type: "REGISTRATION_STARTED" });
     registrationCompletingRef.current = false;
     navigate("/register");
@@ -101,8 +97,7 @@ export const useRegistrationFlow = ({
       loadDashboardData,
       navigate,
       registrationCompletingRef,
-      scanVideoRef,
-      speakText
+      scanVideoRef
     ]
   );
 

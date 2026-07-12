@@ -38,13 +38,6 @@ const weatherSchema = {
   }
 } as const;
 
-export const startRegistrationRouteSchema = {
-  body: {
-    type: "object",
-    additionalProperties: true
-  }
-} as const;
-
 export const registerUserRouteSchema = {
   body: {
     type: "object",

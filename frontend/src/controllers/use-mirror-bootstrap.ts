@@ -1,15 +1,10 @@
 import { useEffect } from "react";
-import { getMirrorState } from "../api/mirror";
 import { getUsers } from "../api/users";
-import i18n from "../i18n";
-import { normalizeLanguage } from "../i18n/languages";
 import type { MirrorBootstrapOptions } from "../types/mirror-controller";
-import { getSpeechPrompt } from "../utils/speech-prompts";
 
 export const useMirrorBootstrap = ({
   browserFaceService,
-  bootstrapActions,
-  speakText
+  bootstrapActions
 }: MirrorBootstrapOptions) => {
   useEffect(() => {
     const bootstrap = async () => {
@@ -20,35 +15,9 @@ export const useMirrorBootstrap = ({
           // Bootstrap can continue; UI will show backend/camera status later if detection fails.
         }
 
-        const [mirrorState, usersResponse] = await Promise.all([getMirrorState(), getUsers()]);
+        const usersResponse = await getUsers();
 
         bootstrapActions.loadKnownUsers(usersResponse.users);
-
-        if (usersResponse.users.length === 0) {
-          bootstrapActions.enterIdle();
-          return;
-        }
-
-        if (mirrorState.activeUser && !mirrorState.registrationComplete) {
-          await i18n.changeLanguage(normalizeLanguage(mirrorState.activeUser.preferredLanguage));
-          bootstrapActions.restoreRegistrationUser(mirrorState.activeUser);
-          speakText(
-            getSpeechPrompt(
-              "confirmName",
-              normalizeLanguage(mirrorState.activeUser.preferredLanguage),
-              { name: mirrorState.activeUser.name }
-            ),
-            normalizeLanguage(mirrorState.activeUser.preferredLanguage)
-          );
-          return;
-        }
-
-        if (mirrorState.registrationComplete && mirrorState.activeUser) {
-          await i18n.changeLanguage(normalizeLanguage(mirrorState.activeUser.preferredLanguage));
-          bootstrapActions.enterIdle();
-          return;
-        }
-
         bootstrapActions.enterIdle();
       } catch {
         bootstrapActions.failBootstrap();
@@ -56,5 +25,5 @@ export const useMirrorBootstrap = ({
     };
 
     void bootstrap();
-  }, [bootstrapActions, browserFaceService, speakText]);
+  }, [bootstrapActions, browserFaceService]);
 };

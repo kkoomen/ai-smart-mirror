@@ -1,5 +1,4 @@
 import { inferVoiceCommand, type VoicePhase } from "../lib/intent.js";
-import { prisma } from "../lib/prisma.js";
 import { isString } from "../lib/validation.js";
 
 export type HandleVoiceCommandInput = {
@@ -77,17 +76,6 @@ export const handleVoiceCommand = async (
     phase,
     language
   });
-
-  if (result.intent === "START_REGISTRATION") {
-    await prisma.mirrorState.upsert({
-      where: { id: 1 },
-      create: { registrationComplete: false },
-      update: {
-        activeUserId: null,
-        registrationComplete: false
-      }
-    });
-  }
 
   return {
     ok: true,

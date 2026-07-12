@@ -114,14 +114,6 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
       },
       loadKnownUsers: (users: User[]) => {
         dispatch({ type: "BOOTSTRAP_SUCCEEDED", knownUsers: users });
-      },
-      restoreRegistrationUser: (user: User) => {
-        dispatch({ type: "REGISTERED_USER_CHANGED", user });
-        dispatch({ type: "CAPTURED_NAME_CHANGED", name: user.name });
-        dispatch({ type: "CAPTURED_FACE_LABEL_CHANGED", faceLabel: user.faceLabel });
-        dispatch({ type: "CAPTURED_FACE_DESCRIPTOR_CHANGED", faceDescriptor: user.faceDescriptor });
-        dispatch({ type: "PHASE_CHANGED", phase: "nameConfirm" });
-        dispatch({ type: "STATUS_CHANGED", statusMessage: { key: "status.sayYesOrNo" } });
       }
     }),
     []
@@ -225,8 +217,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
     loadDashboardData,
     navigate,
     registrationCompletingRef,
-    scanVideoRef,
-    speakText
+    scanVideoRef
   });
   const { beginLanguageChange, finishLanguageChange } = useLanguageFlow({
     dispatch,
@@ -294,8 +285,7 @@ export const useMirrorController = (navigate: (path: string) => void): MirrorCon
 
   useMirrorBootstrap({
     browserFaceService,
-    bootstrapActions,
-    speakText
+    bootstrapActions
   });
 
   useMirrorFaceDetection({

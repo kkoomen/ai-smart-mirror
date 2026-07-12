@@ -134,13 +134,6 @@ export type DashboardSummaryResponseDto = {
   summary: string;
 };
 
-export type MirrorStateResponseDto = {
-  mode: "no_user" | "registering" | "recognized" | "unknown";
-  registrationComplete: boolean;
-  userCount: number;
-  activeUser: UserDto | null;
-};
-
 export type RegisterUserRequestDto = {
   name: string;
   faceLabel?: string;
