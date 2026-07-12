@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { normalizeLanguage } from "../../i18n/languages";
+import styles from "./styles.module.css";
 
 const formatTime = (date: Date, locale: string) =>
   new Intl.DateTimeFormat(locale, {
@@ -34,15 +35,11 @@ export default function LocalTime() {
   }, []);
 
   return (
-    <section className="space-y-2">
-      <p className="text-xs uppercase tracking-[0.5em] text-white/45">{t("time.title")}</p>
-      <div className="space-y-1">
-        <div className="text-4xl font-light tracking-[0.16em] sm:text-5xl">
-          {formatTime(now, locale)}
-        </div>
-        <div className="text-sm uppercase tracking-[0.35em] text-white/60">
-          {formatDate(now, locale)}
-        </div>
+    <section className={styles.root}>
+      <p className={styles.title}>{t("time.title")}</p>
+      <div className={styles.content}>
+        <div className={styles.time}>{formatTime(now, locale)}</div>
+        <div className={styles.date}>{formatDate(now, locale)}</div>
       </div>
     </section>
   );

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getPublicTransportTrips } from "../../api/public-transport";
 import type { PublicTransportResponse } from "../../types/public-transport";
+import styles from "./styles.module.css";
 
 const TrainIcon = ({ label }: { label: string }) => (
   <svg aria-hidden="true" width="32" height="24" viewBox="0 0 800 600" fill="none">
@@ -26,40 +27,95 @@ const formatTime = (value: string) =>
 const formatDuration = (minutes: number) =>
   `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`;
 
+const SkeletonBar = ({ className }: { className: string }) => (
+  <span className={[styles.skeleton, className].join(" ")} />
+);
+
+const PublicTransportSkeleton = () => (
+  <section className={styles.root} aria-busy="true" aria-label="Loading public transport">
+    <div className={styles.skeletonTitle}>
+      <SkeletonBar className={styles.skeletonStationLong} />
+      <SkeletonBar className={styles.skeletonStationShort} />
+    </div>
+    <div className={styles.trips}>
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div key={index} className={styles.trip}>
+          <div className={styles.times}>
+            <SkeletonBar className={styles.skeletonTime} />
+            <SkeletonBar className={styles.skeletonDash} />
+            <SkeletonBar className={styles.skeletonTime} />
+            <SkeletonBar className={styles.skeletonDuration} />
+          </div>
+          <div className={styles.skeletonVehicles}>
+            <SkeletonBar className={styles.skeletonVehicleShort} />
+            <SkeletonBar className={styles.skeletonTransfer} />
+            <SkeletonBar className={styles.skeletonVehicleLong} />
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+);
+
 export default function PublicTransport({ userId }: { userId: number | null }) {
   const [data, setData] = useState<PublicTransportResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
-    void getPublicTransportTrips(userId).then(setData).catch(() => setData(null));
+    let isActive = true;
+    setIsLoading(true);
+    setData(null);
+
+    void getPublicTransportTrips(userId)
+      .then((response) => {
+        if (isActive) {
+          setData(response);
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setData(null);
+        }
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
   }, [userId]);
 
+  if (isLoading) return <PublicTransportSkeleton />;
   if (!data) return null;
 
   return (
-    <section className="w-[20rem] space-y-3">
-      <p className="text-xs uppercase tracking-[0.3em] text-white/45">
+    <section className={styles.root}>
+      <p className={styles.route}>
         {data.fromStation}<br/>
         {data.toStation}
       </p>
-      <div className="space-y-2">
+      <div className={styles.trips}>
         {data.trips.map((trip) => (
-          <div key={`${trip.departureTime}-${trip.arrivalTime}`} className="rounded-md border border-white/35 p-3">
-            <div className="flex items-baseline gap-3 text-sm text-white/90">
+          <div key={`${trip.departureTime}-${trip.arrivalTime}`} className={styles.trip}>
+            <div className={styles.times}>
               <span>{formatTime(trip.departureTime)}</span>
-              <span className="text-white/80">-</span>
+              <span className={styles.separator}>-</span>
               <span>{formatTime(trip.arrivalTime)}</span>
-              <span className="ml-auto text-white/60">{formatDuration(trip.durationInMinutes)}</span>
+              <span className={styles.duration}>{formatDuration(trip.durationInMinutes)}</span>
             </div>
-            <div className="mt-2 flex flex-wrap items-stretch gap-2 text-white/60">
+            <div className={styles.vehicles}>
               {trip.vehicles.map((vehicle, index) => (
-                <span key={`${vehicle.type}-${index}`} className="flex items-stretch gap-2">
-                  <span className="flex items-center rounded bg-white/10 px-2 py-[0.2rem] text-white/60">
-                    <span className="-translate-y-px"><TrainIcon label={vehicle.type === "Intercity" ? "IC" : "SPR"} /></span>
-                    <span className="ml-1 text-xs font-semibold">{vehicle.type === "Intercity" ? "IC" : "SPR"}</span>
+                <span key={`${vehicle.type}-${index}`} className={styles.vehicleGroup}>
+                  <span className={styles.vehicle}>
+                    <span className={styles.icon}><TrainIcon label={vehicle.type === "Intercity" ? "IC" : "SPR"} /></span>
+                    <span className={styles.vehicleLabel}>{vehicle.type === "Intercity" ? "IC" : "SPR"}</span>
                   </span>
                   {vehicle.transferMinutes !== null ? (
-                    <span className="flex items-center rounded bg-white/10 px-2 py-[0.2rem] text-center text-xs leading-tight text-white/80">
+                    <span className={styles.transfer}>
                       {vehicle.transferMinutes} min
                     </span>
                   ) : null}

@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useSpeechRecognition } from "../../hooks/use-speech-recognition";
+import styles from "./styles.module.css";
 
 type VoiceControlProps = {
   prompt: string;
@@ -33,24 +34,22 @@ export default function VoiceControl({
   }
 
   return (
-    <section className="flex w-full flex-col items-center gap-4">
-      <div className="flex w-full max-w-2xl items-center justify-between gap-4">
-        <p className="text-xs uppercase tracking-[0.55em] text-white/40">{t("voice.control")}</p>
-        <span className="border border-white/15 px-3 py-1 text-[10px] uppercase tracking-[0.35em] text-white/70">
+    <section className={styles.root}>
+      <div className={styles.header}>
+        <p className={styles.title}>{t("voice.control")}</p>
+        <span className={styles.state}>
           {t(`voice.states.${voiceState}`)}
         </span>
       </div>
 
-      <div className="w-full max-w-2xl space-y-3 text-center">
-        <div className="rounded-full border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/80">
+      <div className={styles.body}>
+        <div className={styles.prompt}>
           {prompt}
         </div>
-        <p className="text-xs uppercase tracking-[0.25em] text-white/45">{helperText}</p>
-        {errorMessage ? (
-          <p className="text-xs uppercase tracking-[0.25em] text-white/60">{errorMessage}</p>
-        ) : null}
+        <p className={styles.helper}>{helperText}</p>
+        {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
         {!isSupported ? (
-          <p className="text-xs uppercase tracking-[0.25em] text-white/40">
+          <p className={styles.unsupported}>
             {t("voice.errors.notSupported")}
           </p>
         ) : null}

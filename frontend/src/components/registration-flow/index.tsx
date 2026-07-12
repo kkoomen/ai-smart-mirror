@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { normalizeLanguage } from "../../i18n/languages";
 import type { MirrorController } from "../../types/mirror-controller";
 import { getSpeechPrompt } from "../../utils/speech-prompts";
+import styles from "./styles.module.css";
 
 type RegistrationStep = "name" | "nameConfirm" | "scan";
 
@@ -51,39 +52,39 @@ export default function RegistrationFlow({
   }, [step]);
 
   return (
-    <section className="flex flex-col items-center gap-6 text-center">
+    <section className={styles.root}>
       <FadeTransition
         transitionKey={step}
-        className="flex w-full flex-col items-center gap-6 text-center"
+        className={styles.content}
       >
-        <h2 className="max-w-4xl text-3xl font-light tracking-[0.12em] sm:text-5xl">
+        <h2 className={styles.title}>
           {currentLabelMap[step]}
         </h2>
 
         {step === "scan" ? (
-          <div className="flex w-full max-w-2xl flex-col gap-4">
+          <div className={styles.cameraWrap}>
             <CameraPreview videoRef={videoRef} progress={progress} statusText={scanStatus} />
           </div>
         ) : null}
 
         {step === "nameConfirm" ? (
-          <div className="space-y-3">
-            <p className="text-sm uppercase tracking-[0.25em] text-white/65">
+          <div className={styles.confirm}>
+            <p className={styles.message}>
               {t("register.flow.confirmName", { name })}
             </p>
-            <p className="pt-2 text-xs uppercase tracking-[0.3em] text-white/40">
+            <p className={styles.hint}>
               {t("register.flow.yesNo")}
             </p>
           </div>
         ) : null}
 
         {step === "name" ? (
-          <p className="text-sm uppercase tracking-[0.25em] text-white/65">
+          <p className={styles.message}>
             {t("register.flow.sayYourName")}
           </p>
         ) : null}
         {step === "scan" ? (
-          <p className="text-xs uppercase tracking-[0.25em] text-white/45">{helperText}</p>
+          <p className={styles.scanHelp}>{helperText}</p>
         ) : null}
       </FadeTransition>
     </section>

@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import styles from "./styles.module.css";
 
 type WeatherForecastProps = {
   location: string;
@@ -16,22 +17,18 @@ export default function WeatherForecast({
   const { t } = useTranslation();
 
   return (
-    <section className="space-y-2">
-      <div className="space-y-1">
-        <p className="text-xs uppercase tracking-[0.5em] text-white/45">{t("weather.title")}</p>
-        <div className="text-sm uppercase tracking-[0.3em] text-white/70">{location}</div>
+    <section className={styles.root}>
+      <div className={styles.group}>
+        <p className={styles.title}>{t("weather.title")}</p>
+        <div className={styles.location}>{location}</div>
       </div>
 
-      <div className="space-y-1">
-        <div className="text-4xl font-light tracking-[0.08em] sm:text-5xl">{temperature}</div>
-        <div className="text-sm uppercase tracking-[0.35em] text-white/60">{summary}</div>
+      <div className={styles.group}>
+        <div className={styles.temperature}>{temperature}</div>
+        <div className={styles.summary}>{summary}</div>
       </div>
 
-      {rainChance != null ? (
-        <div className="text-xs uppercase tracking-[0.35em] text-white/55">
-          {t("weather.rainChance", { chance: rainChance })}
-        </div>
-      ) : null}
+      {rainChance != null ? <div className={styles.rain}>{t("weather.rainChance", { chance: rainChance })}</div> : null}
     </section>
   );
 }

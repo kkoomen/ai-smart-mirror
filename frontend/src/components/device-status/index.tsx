@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import styles from "./styles.module.css";
 
 type DeviceStatusProps = {
   camera: "scanning" | "polling";
@@ -11,9 +12,9 @@ export default function DeviceStatus({ camera, microphone, network, battery }: D
   const { t } = useTranslation();
 
   return (
-    <section className="space-y-4">
-      <p className="text-xs uppercase tracking-[0.5em] text-white/45">{t("device.title")}</p>
-      <div className="space-y-2 text-sm uppercase tracking-[0.3em] text-white/75 lg:text-right">
+    <section className={styles.root}>
+      <p className={styles.title}>{t("device.title")}</p>
+      <div className={styles.items}>
         <div>
           {t("device.camera")}: {t(`device.status.${camera}`)}
         </div>

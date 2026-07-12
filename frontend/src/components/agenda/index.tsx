@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import styles from "./styles.module.css";
 
 type AgendaEvent = {
   time: string;
@@ -13,23 +14,16 @@ export default function Agenda({ events }: AgendaProps) {
   const { t } = useTranslation();
 
   return (
-    <section className="space-y-4">
-      <p className="text-xs uppercase tracking-[0.5em] text-white/45">{t("agenda.title")}</p>
-      <div className="space-y-3">
+    <section className={styles.root}>
+      <p className={styles.title}>{t("agenda.title")}</p>
+      <div className={styles.events}>
         {events.length === 0 ? (
-          <p className="text-sm uppercase tracking-[0.22em] text-white/65">{t("agenda.empty")}</p>
+          <p className={styles.empty}>{t("agenda.empty")}</p>
         ) : null}
         {events.map((event) => (
-          <div
-            key={`${event.time}-${event.title}`}
-            className="flex items-start justify-between gap-6 border-b border-white/10 pb-3 last:border-b-0 last:pb-0"
-          >
-            <span className="min-w-16 text-sm uppercase tracking-[0.35em] text-white/60">
-              {event.time}
-            </span>
-            <span className="flex-1 text-right text-sm uppercase tracking-[0.22em] text-white/90">
-              {event.title}
-            </span>
+          <div key={`${event.time}-${event.title}`} className={styles.event}>
+            <span className={styles.time}>{event.time}</span>
+            <span className={styles.eventTitle}>{event.title}</span>
           </div>
         ))}
       </div>

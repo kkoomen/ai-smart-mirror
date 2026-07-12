@@ -1,0 +1,105 @@
+.root {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
+.gradient,
+.topLine,
+.bottomLine {
+  position: absolute;
+  pointer-events: none;
+}
+
+.gradient {
+  inset: 0;
+  background: radial-gradient(circle at center, var(--color-surface-faint), transparent 55%);
+}
+
+.topLine,
+.bottomLine {
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: var(--color-surface);
+}
+
+.topLine {
+  top: 0;
+}
+
+.bottomLine {
+  bottom: 0;
+}
+
+.shell {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.header,
+.footer {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.header {
+  align-items: flex-start;
+}
+
+.footer {
+  align-items: flex-end;
+}
+
+.left {
+  justify-self: start;
+}
+
+.right {
+  justify-self: end;
+  text-align: right;
+}
+
+.center {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+.centerInner {
+  width: 100%;
+  padding: 1.5rem 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .shell {
+    padding: 1.5rem;
+  }
+
+  .header,
+  .footer {
+    gap: 1.5rem;
+  }
+
+  .centerInner {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .shell {
+    padding: 2rem;
+  }
+}

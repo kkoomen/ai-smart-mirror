@@ -4,6 +4,7 @@ import { normalizeLanguage } from "../../i18n/languages";
 import type { MirrorController } from "../../types/mirror-controller";
 import { getSpeechPrompt } from "../../utils/speech-prompts";
 import FadeTransition from "../fade-transition";
+import styles from "./styles.module.css";
 
 type MirrorCenterProps = {
   controller: MirrorController;
@@ -72,8 +73,8 @@ export default function MirrorCenter({ controller }: MirrorCenterProps) {
 
   if (phase === "hello") {
     return (
-      <section className="flex flex-col items-center gap-4 text-center">
-        <h2 className="max-w-4xl text-4xl font-light tracking-[0.12em] sm:text-6xl lg:text-7xl">
+      <section className={styles.hello}>
+        <h2 className={styles.heroTitle}>
           {t("status.hello", { name: registeredUser?.name ?? t("home.mirror.defaultUser") })}
         </h2>
       </section>
@@ -82,11 +83,11 @@ export default function MirrorCenter({ controller }: MirrorCenterProps) {
 
   if (phase === "unknown") {
     return (
-      <section className="flex flex-col items-center gap-5 text-center">
-        <h2 className="max-w-4xl text-4xl font-light tracking-[0.12em] sm:text-6xl lg:text-7xl">
+      <section className={styles.unknown}>
+        <h2 className={styles.heroTitle}>
           {t("home.mirror.welcome")}
         </h2>
-        <p className="max-w-2xl text-sm uppercase tracking-[0.3em] text-white/65 sm:text-base">
+        <p className={styles.prompt}>
           {t("home.mirror.startRegistration")}
         </p>
       </section>
@@ -97,10 +98,10 @@ export default function MirrorCenter({ controller }: MirrorCenterProps) {
     return (
       <FadeTransition
         show={isSummaryVisible}
-        className="flex flex-col items-center gap-3 text-center"
+        className={styles.summaryWrap}
       >
-        <section className="flex flex-col items-center gap-3 text-center">
-          <h2 className="max-w-3xl text-sm font-light tracking-[0.14em] text-white/85 sm:text-sm lg:text-base">
+        <section className={styles.summary}>
+          <h2 className={styles.summaryText}>
             {dashboardSummaryText}
           </h2>
         </section>

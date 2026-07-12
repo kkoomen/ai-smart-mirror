@@ -1,0 +1,54 @@
+.root,
+.group {
+  display: flex;
+  flex-direction: column;
+}
+
+.root {
+  gap: 0.5rem;
+}
+
+.group {
+  gap: 0.25rem;
+}
+
+.title {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+}
+
+.location {
+  color: var(--color-text-default);
+  font-size: 0.875rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.temperature {
+  font-size: 2.25rem;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+}
+
+.summary {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+}
+
+.rain {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 640px) {
+  .temperature {
+    font-size: 3rem;
+  }
+}

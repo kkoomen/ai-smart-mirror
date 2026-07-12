@@ -3,6 +3,7 @@ import FadeTransition from "../../components/fade-transition";
 import MirrorLayout from "../../components/mirror-layout";
 import VoiceControl from "../../components/voice-control";
 import type { MirrorController } from "../../types/mirror-controller";
+import styles from "./styles.module.css";
 
 type ChangeLanguagePageProps = {
   controller: MirrorController;
@@ -26,27 +27,27 @@ export default function ChangeLanguagePage({ controller }: ChangeLanguagePagePro
         autoPlay
         muted
         playsInline
-        className="pointer-events-none absolute -left-[9999px] h-px w-px opacity-0"
+        className={styles.hiddenVideo}
       />
       <FadeTransition
         show={phase !== "idle" && !isMirrorFadingOut}
-        className="min-h-screen"
+        className={styles.fullScreen}
         onExited={() => {
           void finishLanguageChange();
         }}
       >
-        <FadeTransition transitionKey="change-language" className="min-h-screen">
+        <FadeTransition transitionKey="change-language" className={styles.fullScreen}>
           <MirrorLayout
             showPanels={false}
             center={
-              <section className="flex flex-col items-center gap-5 text-center">
-                <p className="text-xs uppercase tracking-[0.6em] text-white/45">
+              <section className={styles.language}>
+                <p className={styles.kicker}>
                   {t("changeLanguage.title")}
                 </p>
-                <h1 className="max-w-4xl text-4xl font-light tracking-[0.12em] sm:text-6xl lg:text-7xl">
+                <h1 className={styles.title}>
                   {t("changeLanguage.subtitle")}
                 </h1>
-                <p className="text-xs uppercase tracking-[0.35em] text-white/45">
+                <p className={styles.prompt}>
                   {t("changeLanguage.prompt")}
                 </p>
               </section>

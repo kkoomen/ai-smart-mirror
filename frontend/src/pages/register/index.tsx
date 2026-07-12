@@ -4,6 +4,7 @@ import MirrorLayout from "../../components/mirror-layout";
 import RegistrationCenter from "../../components/registration-center";
 import VoiceControl from "../../components/voice-control";
 import type { MirrorController } from "../../types/mirror-controller";
+import styles from "./styles.module.css";
 
 type RegisterPageProps = {
   controller: MirrorController;
@@ -21,14 +22,14 @@ export default function RegisterPage({ controller }: RegisterPageProps) {
         autoPlay
         muted
         playsInline
-        className="pointer-events-none absolute -left-[9999px] h-px w-px opacity-0"
+        className={styles.hiddenVideo}
       />
       <FadeTransition
         show={phase !== "idle" && !isMirrorFadingOut}
-        className="min-h-screen"
+        className={styles.fullScreen}
         onExited={sleepMirror}
       >
-        <FadeTransition transitionKey="register" className="min-h-screen">
+        <FadeTransition transitionKey="register" className={styles.fullScreen}>
           <MirrorLayout
             showPanels={false}
             center={<RegistrationCenter controller={controller} />}

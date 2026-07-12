@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import styles from "./styles.module.css";
 
 type MirrorLayoutProps = {
   weather?: ReactNode;
@@ -23,38 +24,36 @@ export default function MirrorLayout({
 }: MirrorLayoutProps) {
   if (blank) {
     return (
-      <main className="relative min-h-screen overflow-hidden bg-black text-white">{center}</main>
+      <main className={styles.root}>{center}</main>
     );
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-black text-white">
-      {showGradient ? (
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_55%)]" />
-      ) : null}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/10" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-white/10" />
+    <main className={styles.root}>
+      {showGradient ? <div className={styles.gradient} /> : null}
+      <div className={styles.topLine} />
+      <div className={styles.bottomLine} />
 
-      <div className="relative flex min-h-screen w-full flex-col gap-6 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+      <div className={styles.shell}>
         {showPanels ? (
           <>
-            <header className="grid grid-cols-2 items-start gap-3 sm:gap-6">
-              <div className="justify-self-start">{weather}</div>
-              <div className="justify-self-end text-right">{time}</div>
+            <header className={styles.header}>
+              <div className={styles.left}>{weather}</div>
+              <div className={styles.right}>{time}</div>
             </header>
 
-            <section className="flex flex-1 items-center justify-center">
-              <div className="w-full px-2 py-6 sm:px-0">{center}</div>
+            <section className={styles.center}>
+              <div className={styles.centerInner}>{center}</div>
             </section>
 
-            <footer className="grid grid-cols-2 items-end gap-3 sm:gap-6">
-              <div className="justify-self-start">{agenda}</div>
-              <div className="justify-self-end text-right">{deviceStatus}</div>
+            <footer className={styles.footer}>
+              <div className={styles.left}>{agenda}</div>
+              <div className={styles.right}>{deviceStatus}</div>
             </footer>
           </>
         ) : (
-          <section className="flex flex-1 items-center justify-center">
-            <div className="w-full px-2 py-6 sm:px-0">{center}</div>
+          <section className={styles.center}>
+            <div className={styles.centerInner}>{center}</div>
           </section>
         )}
       </div>

@@ -26,8 +26,8 @@ export default function VoiceActivityIndicator({ visible = true }: VoiceActivity
   return (
     <div
       className={[
-        "pointer-events-none fixed bottom-[25vh] left-1/2 z-50 flex h-12 -translate-x-1/2 items-center justify-center gap-2 transition-opacity duration-500",
-        isEnabled ? "opacity-70" : "opacity-20"
+        styles.root,
+        isEnabled ? styles.enabled : styles.disabled
       ].join(" ")}
       aria-hidden="true"
     >

@@ -9,6 +9,7 @@ import PublicTransport from "../../components/public-transport";
 import VoiceControl from "../../components/voice-control";
 import WeatherForecast from "../../components/weather-forecast";
 import type { MirrorController } from "../../types/mirror-controller";
+import styles from "./styles.module.css";
 
 type HomePageProps = {
   controller: MirrorController;
@@ -47,14 +48,14 @@ export default function HomePage({ controller }: HomePageProps) {
         autoPlay
         muted
         playsInline
-        className="pointer-events-none absolute -left-[9999px] h-px w-px opacity-0"
+        className={styles.hiddenVideo}
       />
       <FadeTransition
         show={phase !== "idle" && !isMirrorFadingOut}
-        className="min-h-screen"
+        className={styles.fullScreen}
         onExited={sleepMirror}
       >
-        <FadeTransition transitionKey={phase} className="min-h-screen">
+        <FadeTransition transitionKey={phase} className={styles.fullScreen}>
           <MirrorLayout
             showPanels={phase === "dashboard"}
             showGradient={phase === "hello"}
@@ -75,7 +76,7 @@ export default function HomePage({ controller }: HomePageProps) {
             }
             time={<LocalTime />}
             agenda={
-              <div className="flex flex-col gap-3">
+              <div className={styles.widgetStack}>
                 {visibleWidgets.includes("agenda") ? <Agenda events={agendaEvents} /> : null}
                 {visibleWidgets.includes("transport") ? (
                   <PublicTransport userId={registeredUser?.id ?? null} />

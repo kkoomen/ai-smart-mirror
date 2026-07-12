@@ -1,0 +1,58 @@
+.fullScreen {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.hiddenVideo {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.language {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  text-align: center;
+}
+
+.kicker,
+.prompt {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.kicker {
+  letter-spacing: 0.6em;
+}
+
+.title {
+  max-width: 56rem;
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+}
+
+.prompt {
+  letter-spacing: 0.35em;
+}
+
+@media (min-width: 640px) {
+  .title {
+    font-size: 3.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .title {
+    font-size: 4.5rem;
+  }
+}

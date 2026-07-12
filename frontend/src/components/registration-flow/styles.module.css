@@ -1,0 +1,67 @@
+.root,
+.content,
+.cameraWrap,
+.confirm {
+  display: flex;
+  flex-direction: column;
+}
+
+.root,
+.content {
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.content {
+  width: 100%;
+}
+
+.title {
+  max-width: 56rem;
+  margin: 0;
+  font-size: 1.875rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+}
+
+.cameraWrap {
+  width: 100%;
+  max-width: 42rem;
+  gap: 1rem;
+}
+
+.confirm {
+  gap: 0.75rem;
+}
+
+.message {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+.hint {
+  margin: 0;
+  padding-top: 0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.scanHelp {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 640px) {
+  .title {
+    font-size: 3rem;
+  }
+}

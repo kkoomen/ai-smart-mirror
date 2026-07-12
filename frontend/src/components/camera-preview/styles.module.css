@@ -1,0 +1,111 @@
+.root {
+  width: 100%;
+  max-width: 42rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: var(--color-black-85);
+  box-shadow: 0 0 0 1px var(--color-border);
+}
+
+.frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.9;
+}
+
+.vignette,
+.innerBorder,
+.faceGuide {
+  position: absolute;
+  pointer-events: none;
+}
+
+.vignette,
+.innerBorder {
+  inset: 0;
+}
+
+.vignette {
+  background: radial-gradient(
+    circle at center,
+    transparent 0%,
+    transparent 42%,
+    var(--color-black-45) 78%,
+    var(--color-black-72) 100%
+  );
+}
+
+.innerBorder {
+  border: 1px solid var(--color-surface);
+}
+
+.faceGuide {
+  left: 50%;
+  top: 50%;
+  width: 42%;
+  height: 78%;
+  border: 1px solid var(--color-text-secondary);
+  border-radius: 50%;
+  box-shadow: 0 0 0 9999px var(--color-black-18);
+  transform: translate(-50%, -50%);
+}
+
+.status {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.progress {
+  position: absolute;
+  right: 1rem;
+  bottom: 5px;
+  left: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.progressValue {
+  display: flex;
+  justify-content: flex-end;
+  color: var(--color-text-default);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 1px;
+  margin-top: 0.25rem;
+  background: var(--color-border);
+}
+
+.progressBar {
+  height: 1px;
+  background: var(--color-white);
+  transition: width 150ms;
+}
+
+@media (min-width: 640px) {
+  .frame {
+    aspect-ratio: 16 / 10;
+  }
+}
