@@ -21,7 +21,7 @@
   opacity: 0.2;
 }
 
-.voice-node {
+.voiceNode {
   background: var(--color-text-strong);
   border-radius: 999px;
   transition:
@@ -32,14 +32,14 @@
     opacity 200ms ease-out;
 }
 
-.voice-node-idle {
+.voiceNodeIdle {
   width: 8px;
   height: 8px;
   min-height: 8px;
   transform: scale(1);
 }
 
-.voice-node-speaking {
+.voiceNodeSpeaking {
   width: 4px;
   height: 12px;
   min-height: 10px;

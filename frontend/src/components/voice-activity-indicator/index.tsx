@@ -35,8 +35,8 @@ export default function VoiceActivityIndicator({ visible = true }: VoiceActivity
         <span
           key={index}
           className={[
-            styles["voice-node"],
-            isEnabled ? styles["voice-node-speaking"] : styles["voice-node-idle"]
+            styles.voiceNode,
+            isEnabled ? styles.voiceNodeSpeaking : styles.voiceNodeIdle
           ].join(" ")}
           style={isEnabled ? { animationDelay: `${index * 120}ms` } : undefined}
         />

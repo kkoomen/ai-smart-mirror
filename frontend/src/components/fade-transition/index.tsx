@@ -31,10 +31,10 @@ export default function FadeTransition({
           nodeRef={nodeRef}
           timeout={duration}
           classNames={{
-            enter: styles["fade-enter"],
-            enterActive: styles["fade-enter-active"],
-            exit: styles["fade-exit"],
-            exitActive: styles["fade-exit-active"]
+            enter: styles.fadeEnter,
+            enterActive: styles.fadeEnterActive,
+            exit: styles.fadeExit,
+            exitActive: styles.fadeExitActive
           }}
           unmountOnExit
         >
@@ -52,10 +52,10 @@ export default function FadeTransition({
       nodeRef={nodeRef}
       timeout={duration}
       classNames={{
-        enter: styles["fade-enter"],
-        enterActive: styles["fade-enter-active"],
-        exit: styles["fade-exit"],
-        exitActive: styles["fade-exit-active"]
+        enter: styles.fadeEnter,
+        enterActive: styles.fadeEnterActive,
+        exit: styles.fadeExit,
+        exitActive: styles.fadeExitActive
       }}
       mountOnEnter
       unmountOnExit
